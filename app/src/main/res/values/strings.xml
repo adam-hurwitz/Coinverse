@@ -1,3 +1,17 @@
 <resources>
     <string name="app_name">carpecoin</string>
+    <!--Price graphs-->
+    <string name="asks">asks</string>
+    <string name="bids">bids</string>
+    <string name="coinbase">Coinbase</string>
+    <string name="binance">Binance</string>
+    <string name="kucoin">Kucoin</string>
+    <string name="kraken">Kraken</string>
+    <string name="gemini">Gemini</string>
+    <string name="percent_difference_format">∆ %.5f%%</string>
+    <string name="base_to_quote_order_format">%.5f</string>
+    <string name="max">max</string>
+    <string name="min">min</string>
+    <string name="price_pair_format">%s-%s</string>
+    <string name="timeframe_last_day">Last day</string>
 </resources>

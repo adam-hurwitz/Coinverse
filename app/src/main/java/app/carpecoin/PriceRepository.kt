@@ -1,33 +1,33 @@
 package app.carpecoin
 
+import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import com.jjoe64.graphview.series.DataPoint
 import java.util.Calendar
 import app.carpecoin.Enums.Exchange
+import app.carpecoin.Enums.Exchange.*
 import kotlin.collections.HashMap
-import app.carpecoin.Enums.Exchange.GDAX
 import app.carpecoin.models.price.*
 import com.firebase.client.*
 import com.jjoe64.graphview.series.LineGraphSeries
 import com.firebase.client.DataSnapshot
+import app.carpecoin.Enums.Timeframe
+import app.carpecoin.Enums.Timeframe.DAY
 
 
 object PriceRepository {
-    val CARPECOIN_FIREBASE_URL = "https://carpecoin-14767.firebaseio.com/"
-    val MAX_PRICE_PERCENT_DIFF_PATH = "maximumPercentDifference"
-    val FIREBASE_REFERENCE = Firebase(CARPECOIN_FIREBASE_URL).child(MAX_PRICE_PERCENT_DIFF_PATH)
-    val TIMESTAMP: String = "timestamp"
-    val QUERY_LAST_THIRTY_DAYS = -30
-    val GDAX_ORDER_DATA = "gdaxOrderAverages"
-    val BINANCE_ORDER_DATA = "binanceOrderAverages"
-    val KRAKEN_ORDER_DATA = "krakenOrderAverages"
-    val KUCOIN_ORDER_DATA = "kucoinOrderAverages"
-    val GEMINI_ORDER_DATA = "geminiOrderAverages"
+    private const val CARPECOIN_FIREBASE_URL = "https://carpecoin-14767.firebaseio.com/"
+    private const val MAX_PRICE_PERCENT_DIFF_PATH = "maximumPercentDifference"
+    private const val ORDER_BY_TIMESTAMP: String = "timestamp"
+
+    private val FIREBASE_REFERENCE = Firebase(CARPECOIN_FIREBASE_URL).child(MAX_PRICE_PERCENT_DIFF_PATH)
+
+    private var xIndex = 0.0
 
     var priceGraphLiveData = MutableLiveData<HashMap<Exchange, PriceGraphLiveData>>()
+    var percentDifference = MutableLiveData<PercentDifference>()
     var priceGraphXAndYConstraintsLiveData = MutableLiveData<PriceGraphXAndYConstraints>()
     var isPriceGraphDataLoadedLiveData = MutableLiveData<Boolean>()
-    var xIndex = 0.0
 
     lateinit var priceGraphChildEventListener: ChildEventListener
 
@@ -43,6 +43,10 @@ object PriceRepository {
         return priceGraphLiveData
     }
 
+    fun getPercentPriceDifferenceLiveData(): LiveData<PercentDifference> {
+        return percentDifference
+    }
+
     fun getPricingGraphXAndYConstraintsLiveData(): MutableLiveData<PriceGraphXAndYConstraints> {
         return priceGraphXAndYConstraintsLiveData
     }
@@ -51,27 +55,24 @@ object PriceRepository {
         return isPriceGraphDataLoadedLiveData
     }
 
-    //TODO: GET DATA BY EACH EXCHANGE
-    fun startFirebaseEventListeners(isLiveDataEnabled: Boolean) {
+    fun startFirebaseEventListeners(isLiveDataEnabled: Boolean, timeframe: Timeframe?) {
         if (!isLiveDataEnabled) {
             exchangeOrdersDataPointsMap.clear()
             exchangeOrdersLiveDataMap.clear()
             index = 0
         }
         priceGraphChildEventListener = object : ChildEventListener {
-            override fun onChildAdded(dataSnapshot: DataSnapshot?, previousChildKey: String?) {
+            override fun onChildAdded(dataSnapshot: DataSnapshot, previousChildKey: String?) {
                 xIndex = index++.toDouble()
-                for (attribute in dataSnapshot?.children ?: listOf()) {
-                    when (attribute.key) {
-                    //TODO: Toggle which to call based on HashMap passed to Repository
-                    //TODO: Pass LiveData object of HashMap back to UI
-                        GDAX_ORDER_DATA -> generateGraphData(GDAX, attribute)
-                    //BINANCE_ORDER_DATA -> generateGraphData(BINANCE, attribute)
-                    //KRAKEN_ORDER_DATA -> generateGraphData(KRAKEN, attribute)
-                    //KUCOIN_ORDER_DATA -> generateGraphData(KUCOIN, attribute)
-                    //GEMINI_ORDER_DATA -> generateGraphData(GEMINI, attribute)
-                    }
-                }
+                val maxPercentPriceDifferenceData = dataSnapshot.getValue(MaximumPercentPriceDifference::class.java)
+                percentDifference.value = maxPercentPriceDifferenceData.percentDifference
+                //TODO: Potentially clean exchangeOrdersDataPointsMap to improve performance.
+                //TODO: Fix axis to use dates
+                generateGraphData(GDAX, maxPercentPriceDifferenceData.gdaxExchangeOrderData)
+                generateGraphData(BINANCE, maxPercentPriceDifferenceData.binanceExchangeOrderData)
+                generateGraphData(GEMINI, maxPercentPriceDifferenceData.geminiExchangeOrderData)
+                generateGraphData(KUCOIN, maxPercentPriceDifferenceData.kucoinExchangeOrderData)
+                generateGraphData(KRAKEN, maxPercentPriceDifferenceData.krakenExchangeOrderData)
             }
 
             override fun onCancelled(firebaseError: FirebaseError?) {
@@ -95,6 +96,7 @@ object PriceRepository {
                 .addValueEventListener(object : ValueEventListener {
                     override fun onDataChange(dataSnapshot: DataSnapshot?) {
                         isPriceGraphDataLoadedLiveData.value = true
+                        println(String.format("Data loaded:%s", dataSnapshot?.childrenCount))
                         if (!isLiveDataEnabled) {
                             FIREBASE_REFERENCE.removeEventListener(this)
                             FIREBASE_REFERENCE.removeEventListener(priceGraphChildEventListener)
@@ -104,44 +106,43 @@ object PriceRepository {
                     override fun onCancelled(firebaseError: FirebaseError?) {}
                 })
         FIREBASE_REFERENCE
-                .orderByChild(TIMESTAMP)
-                .startAt(getDateFromThirtyDaysAgo().toDouble())
+                .orderByChild(ORDER_BY_TIMESTAMP)
+                .startAt(getTimeframe(timeframe).toDouble())
                 .addChildEventListener(priceGraphChildEventListener)
     }
 
-    //TODO: Refactor
-    private fun generateGraphData(exchange: Exchange, attribute: DataSnapshot) {
-        var exchangeOrderAverages = attribute.getValue(OrderAverages::class.java)
-        var baseToQuoteBid = exchangeOrderAverages.baseToQuoteBid.price
-        var baseToQuoteAsk = exchangeOrderAverages.baseToQuoteAsk.price
-        var bidDataPoint = DataPoint(xIndex, baseToQuoteBid)
-        var askDataPoint = DataPoint(xIndex, baseToQuoteAsk)
+    //TODO: Refactor.
+    private fun generateGraphData(exchange: Exchange, exchangeOrderData: ExchangeOrderData) {
+        val baseToQuoteBid = exchangeOrderData.baseToQuoteBid.price
+        val baseToQuoteAsk = exchangeOrderData.baseToQuoteAsk.price
+        val bidDataPoint = DataPoint(xIndex, baseToQuoteBid)
+        val askDataPoint = DataPoint(xIndex, baseToQuoteAsk)
         if (!exchangeOrdersDataPointsMap.containsKey(exchange) &&
                 !exchangeOrdersLiveDataMap.containsKey(exchange)) {
-            var bidDataPoints = arrayListOf(bidDataPoint)
-            var askDataPoints = arrayListOf(askDataPoint)
-            exchangeOrdersDataPointsMap.put(
-                    exchange, ExchangeOrdersDataPoints(bidDataPoints, askDataPoints))
-            var bidLiveData = MutableLiveData<LineGraphSeries<DataPoint>>()
+            val bidDataPoints = arrayListOf(bidDataPoint)
+            val askDataPoints = arrayListOf(askDataPoint)
+            exchangeOrdersDataPointsMap[exchange] =
+                    ExchangeOrdersDataPoints(bidDataPoints, askDataPoints)
+            val bidLiveData = MutableLiveData<LineGraphSeries<DataPoint>>()
             bidLiveData.value = LineGraphSeries(bidDataPoints.toTypedArray())
-            var askLiveData = MutableLiveData<LineGraphSeries<DataPoint>>()
+            val askLiveData = MutableLiveData<LineGraphSeries<DataPoint>>()
             askLiveData.value = LineGraphSeries(askDataPoints.toTypedArray())
-            exchangeOrdersLiveDataMap.put(exchange, PriceGraphLiveData(bidLiveData, askLiveData))
+            exchangeOrdersLiveDataMap[exchange] = PriceGraphLiveData(bidLiveData, askLiveData)
         } else {
-            var bidDataPoints = exchangeOrdersDataPointsMap.get(exchange)?.bidsLiveData
+            val bidDataPoints = exchangeOrdersDataPointsMap[exchange]?.bidsLiveData
             bidDataPoints?.add(bidDataPoint)
-            var askDataPoints = exchangeOrdersDataPointsMap.get(exchange)?.asksLiveData
+            val askDataPoints = exchangeOrdersDataPointsMap[exchange]?.asksLiveData
             askDataPoints?.add(askDataPoint)
 
-            exchangeOrdersLiveDataMap.get(exchange)?.bidsLiveData?.value =
+            exchangeOrdersLiveDataMap[exchange]?.bidsLiveData?.value =
                     LineGraphSeries(bidDataPoints?.toTypedArray())
-            exchangeOrdersLiveDataMap.get(exchange)?.asksLiveData?.value =
+            exchangeOrdersLiveDataMap[exchange]?.asksLiveData?.value =
                     LineGraphSeries(askDataPoints?.toTypedArray())
         }
         findMinAndMaxGraphConstraints(baseToQuoteBid, baseToQuoteAsk)
         priceGraphLiveData.value = exchangeOrdersLiveDataMap
-        println("BID:" + exchange + " " + exchangeOrderAverages.baseToQuoteBid.price)
-        println("ASK:" + exchange + " " + exchangeOrderAverages.baseToQuoteAsk.price)
+        println("BID:" + exchange + " " + exchangeOrderData.baseToQuoteBid.price)
+        println("ASK:" + exchange + " " + exchangeOrderData.baseToQuoteAsk.price)
     }
 
     private fun findMinAndMaxGraphConstraints(baseToQuoteBid: Double, baseToQuoteAsk: Double) {
@@ -150,10 +151,15 @@ object PriceRepository {
         priceGraphXAndYConstraintsLiveData.value = PriceGraphXAndYConstraints(minX, maxX, minY, maxY)
     }
 
-    private fun getDateFromThirtyDaysAgo(): Long {
+    private fun getTimeframe(timeframe: Timeframe?): Long {
+        var timeframeToQuery = 0
+        when (timeframe) {
+            DAY -> timeframeToQuery = -1
+            else -> timeframeToQuery = -1
+        }
         val calendar = Calendar.getInstance()
-        calendar.setTime(calendar.time)
-        calendar.add(Calendar.DAY_OF_YEAR, QUERY_LAST_THIRTY_DAYS)
+        calendar.time = calendar.time
+        calendar.add(Calendar.DAY_OF_YEAR, timeframeToQuery)
         return calendar.timeInMillis
     }
 

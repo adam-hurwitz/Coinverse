@@ -3,4 +3,15 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+    <color name="coinbaseAsks">#FF2F3D44</color>
+    <color name="coinbaseBids">#402F3D44</color>
+    <color name="binanceAsks">#FFF5BC01</color>
+    <color name="binanceBids">#40F5BC01</color>
+    <color name="geminiAsks">#FF49DCFA</color>
+    <color name="geminiBids">#4049DCFA</color>
+    <color name="kucoinAsks">#FF68B92E</color>
+    <color name="kucoinBids">#4068B92E</color>
+    <color name="krakenAsks">#FF4F6E88</color>
+    <color name="krakenBids">#404F6E88</color>
+    <color name="transparent">#80000000</color>
 </resources>

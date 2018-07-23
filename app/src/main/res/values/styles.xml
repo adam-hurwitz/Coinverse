@@ -8,4 +8,33 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="SelectableItemTheme">
+        <item name="colorControlHighlight">@color/colorPrimaryDark</item>
+    </style>
+
+    <style name="ButtonTheme" parent="Base.Widget.AppCompat.Button.Borderless">
+        <item name="android:theme">@style/SelectableItemTheme</item>
+        <item name="android:textSize">@dimen/button_text_size</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="background">?attr/selectableItemBackground</item>
+    </style>
+
+    <style name="PriceGraphLegendTheme">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:textSize">@dimen/legend_text_size</item>
+        <item name="android:layout_marginLeft">@dimen/margin_small</item>
+        <item name="android:layout_marginRight">@dimen/margin_small</item>
+        <item name="android:drawablePadding">@dimen/max_and_min_top_padding</item>
+    </style>
+
+    <style name="PriceGraphMinAndMaxTheme">
+        <item name="android:drawablePadding">@dimen/max_and_min_top_padding</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:paddingBottom">@dimen/margin_medium</item>
+    </style>
+
+
 </resources>
