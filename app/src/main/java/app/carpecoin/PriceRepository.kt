@@ -2,25 +2,36 @@ package app.carpecoin
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
+import android.util.Log
 import com.jjoe64.graphview.series.DataPoint
-import java.util.Calendar
 import app.carpecoin.Enums.Exchange
 import app.carpecoin.Enums.Exchange.*
 import kotlin.collections.HashMap
 import app.carpecoin.models.price.*
-import com.firebase.client.*
 import com.jjoe64.graphview.series.LineGraphSeries
-import com.firebase.client.DataSnapshot
 import app.carpecoin.Enums.Timeframe
 import app.carpecoin.Enums.Timeframe.DAY
+import app.carpecoin.utils.auth.Auth
+import com.google.firebase.FirebaseApp
+import com.google.firebase.firestore.EventListener
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.Query
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
+import java.util.*
 
 
 object PriceRepository {
-    private const val CARPECOIN_FIREBASE_URL = "https://carpecoin-14767.firebaseio.com/"
-    private const val MAX_PRICE_PERCENT_DIFF_PATH = "maximumPercentDifference"
-    private const val ORDER_BY_TIMESTAMP: String = "timestamp"
+    private const val MAX_PRICE_DIFFERENCE_COLLECTION = "maximumPercentDifference"
+    private const val TIMESTAMP: String = "timestamp"
 
-    private val FIREBASE_REFERENCE = Firebase(CARPECOIN_FIREBASE_URL).child(MAX_PRICE_PERCENT_DIFF_PATH)
+    private val LOG_TAG = PriceRepository::class.java.simpleName
+    //TODO: Use dependency injection.
+    private val priceDifferenceCollection = FirebaseFirestore
+            .getInstance(FirebaseApp.getInstance(Auth.PRICE_SERVICE))
+            .collection(MAX_PRICE_DIFFERENCE_COLLECTION)
 
     private var xIndex = 0.0
 
@@ -29,7 +40,7 @@ object PriceRepository {
     var priceGraphXAndYConstraintsLiveData = MutableLiveData<PriceGraphXAndYConstraints>()
     var isPriceGraphDataLoadedLiveData = MutableLiveData<Boolean>()
 
-    lateinit var priceGraphChildEventListener: ChildEventListener
+    lateinit var priceDataListenerRegistration: ListenerRegistration
 
     private var index = 0
     private var minY: Double = 1000000000000.0
@@ -55,64 +66,73 @@ object PriceRepository {
         return isPriceGraphDataLoadedLiveData
     }
 
-    fun startFirebaseEventListeners(isLiveDataEnabled: Boolean, timeframe: Timeframe?) {
+    fun startFirestoreEventListeners(isLiveDataEnabled: Boolean, timeframe: Timeframe?) {
+
         if (!isLiveDataEnabled) {
             exchangeOrdersDataPointsMap.clear()
             exchangeOrdersLiveDataMap.clear()
             index = 0
         }
-        priceGraphChildEventListener = object : ChildEventListener {
-            override fun onChildAdded(dataSnapshot: DataSnapshot, previousChildKey: String?) {
-                xIndex = index++.toDouble()
-                val maxPercentPriceDifferenceData = dataSnapshot.getValue(MaximumPercentPriceDifference::class.java)
-                percentDifference.value = maxPercentPriceDifferenceData.percentDifference
-                //TODO: Potentially clean exchangeOrdersDataPointsMap to improve performance.
-                //TODO: Fix axis to use dates
-                generateGraphData(GDAX, maxPercentPriceDifferenceData.gdaxExchangeOrderData)
-                generateGraphData(BINANCE, maxPercentPriceDifferenceData.binanceExchangeOrderData)
-                generateGraphData(GEMINI, maxPercentPriceDifferenceData.geminiExchangeOrderData)
-                generateGraphData(KUCOIN, maxPercentPriceDifferenceData.kucoinExchangeOrderData)
-                generateGraphData(KRAKEN, maxPercentPriceDifferenceData.krakenExchangeOrderData)
-            }
 
-            override fun onCancelled(firebaseError: FirebaseError?) {
-                // Not implemented.
-            }
-
-            override fun onChildMoved(dataSnapshot: DataSnapshot?, p1: String?) {
-                // Not implemented.
-            }
-
-            override fun onChildChanged(dataSnapshot: DataSnapshot?, p1: String?) {
-                // Not implemented.
-            }
-
-            override fun onChildRemoved(dataSnapshot: DataSnapshot?) {
-                // Not implemented.
-            }
-        }
-
-        FIREBASE_REFERENCE
-                .addValueEventListener(object : ValueEventListener {
-                    override fun onDataChange(dataSnapshot: DataSnapshot?) {
-                        isPriceGraphDataLoadedLiveData.value = true
-                        println(String.format("Data loaded:%s", dataSnapshot?.childrenCount))
-                        if (!isLiveDataEnabled) {
-                            FIREBASE_REFERENCE.removeEventListener(this)
-                            FIREBASE_REFERENCE.removeEventListener(priceGraphChildEventListener)
-                        }
+        priceDataListenerRegistration = priceDifferenceCollection
+                .orderBy(TIMESTAMP, Query.Direction.DESCENDING)
+                .whereGreaterThan(TIMESTAMP, getTimeframe(timeframe))
+                .addSnapshotListener(EventListener { value, error ->
+                    if (error != null) {
+                        Log.e(LOG_TAG, "Price Data EventListener Failed.", error)
+                        return@EventListener
                     }
 
-                    override fun onCancelled(firebaseError: FirebaseError?) {}
+                    if (!isLiveDataEnabled) {
+                        priceDataListenerRegistration.remove()
+                    }
+
+                    if (value!!.documents.isNotEmpty()) {
+                        isPriceGraphDataLoadedLiveData.value = true
+                    }
+
+                    for (priceDataDocument in value.getDocumentChanges()) {
+                        xIndex = index++.toDouble()
+                        val priceData = priceDataDocument.document.toObject(MaximumPercentPriceDifference::class.java)
+                        percentDifference.value = priceData.percentDifference
+                        //TODO: Refactor axis to use dates
+                        //TODO: Refactor to Observable.zip()
+                        generateGraphData(GDAX, priceData.gdaxExchangeOrderData)
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe { priceGraphLiveData ->
+                                    this.priceGraphLiveData.postValue(priceGraphLiveData)
+                                }
+                        generateGraphData(BINANCE, priceData.binanceExchangeOrderData)
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe { priceGraphLiveData ->
+                                    this.priceGraphLiveData.postValue(priceGraphLiveData)
+                                }
+                        generateGraphData(GEMINI, priceData.geminiExchangeOrderData)
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe { priceGraphLiveData ->
+                                    this.priceGraphLiveData.postValue(priceGraphLiveData)
+                                }
+                        generateGraphData(KUCOIN, priceData.kucoinExchangeOrderData)
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe { priceGraphLiveData ->
+                                    this.priceGraphLiveData.postValue(priceGraphLiveData)
+                                }
+                        generateGraphData(KRAKEN, priceData.krakenExchangeOrderData)
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe { priceGraphLiveData ->
+                                    this.priceGraphLiveData.postValue(priceGraphLiveData)
+                                }
+                    }
+
                 })
-        FIREBASE_REFERENCE
-                .orderByChild(ORDER_BY_TIMESTAMP)
-                .startAt(getTimeframe(timeframe).toDouble())
-                .addChildEventListener(priceGraphChildEventListener)
     }
 
-    //TODO: Refactor.
-    private fun generateGraphData(exchange: Exchange, exchangeOrderData: ExchangeOrderData) {
+    private fun generateGraphData(exchange: Exchange, exchangeOrderData: ExchangeOrderData): Observable<HashMap<Exchange, PriceGraphLiveData>> {
         val baseToQuoteBid = exchangeOrderData.baseToQuoteBid.price
         val baseToQuoteAsk = exchangeOrderData.baseToQuoteAsk.price
         val bidDataPoint = DataPoint(xIndex, baseToQuoteBid)
@@ -124,9 +144,9 @@ object PriceRepository {
             exchangeOrdersDataPointsMap[exchange] =
                     ExchangeOrdersDataPoints(bidDataPoints, askDataPoints)
             val bidLiveData = MutableLiveData<LineGraphSeries<DataPoint>>()
-            bidLiveData.value = LineGraphSeries(bidDataPoints.toTypedArray())
+            bidLiveData.postValue(LineGraphSeries(bidDataPoints.toTypedArray()))
             val askLiveData = MutableLiveData<LineGraphSeries<DataPoint>>()
-            askLiveData.value = LineGraphSeries(askDataPoints.toTypedArray())
+            askLiveData.postValue(LineGraphSeries(askDataPoints.toTypedArray()))
             exchangeOrdersLiveDataMap[exchange] = PriceGraphLiveData(bidLiveData, askLiveData)
         } else {
             val bidDataPoints = exchangeOrdersDataPointsMap[exchange]?.bidsLiveData
@@ -134,33 +154,30 @@ object PriceRepository {
             val askDataPoints = exchangeOrdersDataPointsMap[exchange]?.asksLiveData
             askDataPoints?.add(askDataPoint)
 
-            exchangeOrdersLiveDataMap[exchange]?.bidsLiveData?.value =
-                    LineGraphSeries(bidDataPoints?.toTypedArray())
-            exchangeOrdersLiveDataMap[exchange]?.asksLiveData?.value =
-                    LineGraphSeries(askDataPoints?.toTypedArray())
+            exchangeOrdersLiveDataMap[exchange]?.bidsLiveData?.postValue(
+                    LineGraphSeries(bidDataPoints?.toTypedArray()))
+            exchangeOrdersLiveDataMap[exchange]?.asksLiveData?.postValue(
+                    LineGraphSeries(askDataPoints?.toTypedArray()))
         }
         findMinAndMaxGraphConstraints(baseToQuoteBid, baseToQuoteAsk)
-        priceGraphLiveData.value = exchangeOrdersLiveDataMap
-        println("BID:" + exchange + " " + exchangeOrderData.baseToQuoteBid.price)
-        println("ASK:" + exchange + " " + exchangeOrderData.baseToQuoteAsk.price)
+        return Observable.just(exchangeOrdersLiveDataMap)
     }
 
     private fun findMinAndMaxGraphConstraints(baseToQuoteBid: Double, baseToQuoteAsk: Double) {
         findMinAndMaxY(Math.max(baseToQuoteBid, baseToQuoteAsk))
         findMinAndMaxX(xIndex)
-        priceGraphXAndYConstraintsLiveData.value = PriceGraphXAndYConstraints(minX, maxX, minY, maxY)
+        priceGraphXAndYConstraintsLiveData.postValue(PriceGraphXAndYConstraints(minX, maxX, minY, maxY))
     }
 
-    private fun getTimeframe(timeframe: Timeframe?): Long {
-        var timeframeToQuery = 0
+    private fun getTimeframe(timeframe: Timeframe?): Date {
+        var timeframeToQuery: Int
         when (timeframe) {
             DAY -> timeframeToQuery = -1
             else -> timeframeToQuery = -1
         }
         val calendar = Calendar.getInstance()
-        calendar.time = calendar.time
         calendar.add(Calendar.DAY_OF_YEAR, timeframeToQuery)
-        return calendar.timeInMillis
+        return Date(calendar.timeInMillis)
     }
 
     private fun findMinAndMaxX(xIndex: Double) {

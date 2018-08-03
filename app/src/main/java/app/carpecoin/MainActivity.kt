@@ -4,7 +4,6 @@ import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import com.firebase.client.Firebase
 import android.databinding.DataBindingUtil
 import android.support.v4.content.ContextCompat
 import android.view.View
@@ -33,6 +32,7 @@ import app.carpecoin.models.price.PriceGraphData
 import app.carpecoin.utils.ExchangeColors
 import android.support.constraint.ConstraintSet
 import app.carpecoin.coin.R
+import app.carpecoin.utils.FirebaseHelper
 import kotlinx.android.synthetic.main.activity_main.view.*
 
 
@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Firebase.setAndroidContext(this)
+        FirebaseHelper.initialize(this)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.setLifecycleOwner(this)
         viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
@@ -86,6 +86,7 @@ class MainActivity : AppCompatActivity() {
                 this, Observer { priceGraphDataMap: HashMap<Enums.Exchange, PriceGraphLiveData>? ->
 
             for (priceGraphData in priceGraphDataMap!!.entries) {
+                println("VALUE: " + priceGraphData.key)
                 val exchange = priceGraphData.key
                 setExchangeGraphDataAndStyle(exchange, ASK, exchangeGraphSeriesMap[exchange]?.asks,
                         priceGraphDataMap)

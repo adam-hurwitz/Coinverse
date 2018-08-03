@@ -1,9 +1,6 @@
 package app.carpecoin
 
-import android.app.Application
 import android.arch.lifecycle.*
-import android.content.res.Resources
-import android.support.v4.content.ContextCompat
 import app.carpecoin.models.price.PercentDifference
 import app.carpecoin.Enums.Exchange
 import app.carpecoin.Enums.Exchange.GDAX
@@ -50,7 +47,7 @@ class MainViewModel : ViewModel() {
 
     fun initializeData(isRealtimeDataEnabled: Boolean) {
         this.toInitializePriceGraphData.value = true
-        PriceRepository.startFirebaseEventListeners(isRealtimeDataEnabled, timeframe.value)
+        PriceRepository.startFirestoreEventListeners(isRealtimeDataEnabled, timeframe.value)
     }
 
     fun addOrRemoveEnabledExchanges(exchange: Exchange) {
