@@ -10,23 +10,35 @@ import com.google.firebase.firestore.FirebaseFirestore
 object FirebaseHelper {
     fun initialize(context: Context) {
         Firebase.setAndroidContext(context)
+        var priceFirestoreEnabled = false
         var contentServiceEnabled = false
         for (app in FirebaseApp.getApps(context)) {
-            if (app.name.equals(Auth.PRICE_SERVICE)) {
-                contentServiceEnabled = true
+            when(app.name){
+                Auth.PRICE_FIRESTORE_NAME -> priceFirestoreEnabled = true
+                Auth.CONTENT_FIRESTORE_NAME -> contentServiceEnabled = true
             }
         }
-        if (contentServiceEnabled == false) {
-            FirebaseApp.initializeApp(
-                    context,
-                    FirebaseOptions.Builder()
-                            .setApplicationId(Auth.PRICE_SERVICE_APP_ID) // Required for Analytics.
-                            .setApiKey(Auth.PRICE_SERVICE_API_ID) // Required for Auth.
-                            .setDatabaseUrl(Auth.DATABASE_URL) // Required for RTDB.
-                            .setProjectId(Auth.PROJECT_ID)
-                            .build(),
-                    Auth.PRICE_SERVICE)
+        if (priceFirestoreEnabled == false) {
+            initializeFirestore(context, Auth.PRICE_FIRESTORE_DATABASE_URL,
+                    Auth.PRICE_FIRESTORE_PROJECT_ID, Auth.PRICE_FIRESTORE_NAME)
         }
-        FirebaseFirestore.getInstance(FirebaseApp.getInstance(Auth.PRICE_SERVICE))
+        if (contentServiceEnabled == false) {
+            initializeFirestore(context, Auth.CONTENT_FIRESTORE_DATABASE_URL,
+                    Auth.CONTENT_FIRESTORE_PROJECT_ID, Auth.CONTENT_FIRESTORE_NAME)
+        }
+    }
+
+    private fun initializeFirestore(context: Context, databaseUrl: String, projectId: String,
+                                    firestoreName: String) {
+        FirebaseApp.initializeApp(
+                context,
+                FirebaseOptions.Builder()
+                        .setApplicationId(Auth.APP_ID) // Required for Analytics.
+                        .setApiKey(Auth.APP_API_ID) // Required for Auth.
+                        .setDatabaseUrl(databaseUrl) // Required for RTDB.
+                        .setProjectId(projectId)
+                        .build(),
+                firestoreName)
+        FirebaseFirestore.getInstance(FirebaseApp.getInstance(firestoreName))
     }
 }

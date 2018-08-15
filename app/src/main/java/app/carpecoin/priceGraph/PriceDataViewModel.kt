@@ -1,53 +1,54 @@
-package app.carpecoin
+package app.carpecoin.priceGraph
 
-import android.arch.lifecycle.*
-import app.carpecoin.models.price.PercentDifference
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
+import androidx.lifecycle.ViewModel
+import app.carpecoin.priceGraph.models.PercentDifference
 import app.carpecoin.Enums.Exchange
 import app.carpecoin.Enums.Exchange.GDAX
-import app.carpecoin.models.price.PricePair
+import app.carpecoin.priceGraph.models.PricePair
 import app.carpecoin.Enums.Currency.ETH
 import app.carpecoin.Enums.Currency.BTC
 import app.carpecoin.Enums.Timeframe
 import app.carpecoin.Enums.Timeframe.DAY
 
-class MainViewModel : ViewModel() {
-    //TODO: Inject PriceRepository
+class PriceDataViewModel : ViewModel() {
+
+    //TODO: Inject PriceDataRepository
 
     //TODO: Query Firebase by pricePair.
     var pricePair = PricePair(ETH, BTC)
 
     //TODO: Paid feature
     var isRealtimeDataEnabled = true
-    var enabledExchanges = MutableLiveData<ArrayList<Exchange?>>()
+
+    //TODO: Set timeframe from UI.
     var timeframe = MutableLiveData<Timeframe>()
-    var percentDifferenceLiveData: LiveData<PercentDifference>
+    var enabledExchanges = MutableLiveData<ArrayList<Exchange?>>()
+    var priceDifferenceDetailsLiveData: LiveData<PercentDifference>
 
     private var toInitializePriceGraphData = MutableLiveData<Boolean>()
 
     init {
-        val percentPriceDifferenceLiveData = PriceRepository.getPercentPriceDifferenceLiveData()
-        enabledExchanges.value = arrayListOf(GDAX)
-        this.percentDifferenceLiveData =
-                Transformations.map(percentPriceDifferenceLiveData) { result -> result }
-        //TODO: Select timeframe in UI.
+        val percentPriceDifferenceLiveData = PriceDataRepository.priceDifferenceDetailsLiveData
         timeframe.value = DAY
-    }
-
-    val priceGraphLiveData = Transformations.switchMap(toInitializePriceGraphData) {
-        PriceRepository.getPricingGraphLiveData()
-    }
-
-    val isPriceGraphDataLoadedLiveData = Transformations.switchMap(toInitializePriceGraphData) {
-        PriceRepository.getIsPriceGraphDataLoadedLiveData()
-    }
-
-    val priceGraphXAndYConstraintsLiveData = Transformations.switchMap(toInitializePriceGraphData) {
-        PriceRepository.getPricingGraphXAndYConstraintsLiveData()
+        enabledExchanges.value = arrayListOf(GDAX)
+        this.priceDifferenceDetailsLiveData =
+                Transformations.map(percentPriceDifferenceLiveData) { result -> result }
     }
 
     fun initializeData(isRealtimeDataEnabled: Boolean) {
         this.toInitializePriceGraphData.value = true
-        PriceRepository.startFirestoreEventListeners(isRealtimeDataEnabled, timeframe.value)
+        PriceDataRepository.startFirestoreEventListeners(isRealtimeDataEnabled, timeframe.value!!)
+    }
+
+    val graphLiveData = Transformations.switchMap(toInitializePriceGraphData) {
+        PriceDataRepository.graphLiveData
+    }
+
+    val priceGraphXAndYConstraintsLiveData = Transformations.switchMap(toInitializePriceGraphData) {
+        PriceDataRepository.graphConstraintsLiveData
     }
 
     fun addOrRemoveEnabledExchanges(exchange: Exchange) {

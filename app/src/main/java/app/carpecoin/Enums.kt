@@ -2,6 +2,11 @@ package app.carpecoin
 
 object Enums {
 
+    enum class Timeframe {
+        HOUR, DAY, WEEK, MONTH, YEAR
+    }
+
+    // Price graph.
     enum class Exchange {
         GDAX, BINANCE, KUCOIN, KRAKEN, GEMINI, EMPTY
     }
@@ -14,7 +19,12 @@ object Enums {
         BTC, ETH
     }
 
-    enum class Timeframe {
-        HOUR, DAY, WEEK, MONTH, YEAR
+    enum class Status {
+        SUCCESS, ERROR
+    }
+
+    // Content feed.
+    enum class ContentType {
+        YOUTUBE, EMPTY
     }
 }

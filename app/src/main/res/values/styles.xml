@@ -1,10 +1,10 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorPrimaryDark">@android:color/darker_gray</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
@@ -12,7 +12,7 @@
         <item name="colorControlHighlight">@color/colorPrimaryDark</item>
     </style>
 
-    <style name="ButtonTheme" parent="Base.Widget.AppCompat.Button.Borderless">
+    <style name="ButtonStyle" parent="Base.Widget.AppCompat.Button.Borderless">
         <item name="android:theme">@style/SelectableItemTheme</item>
         <item name="android:textSize">@dimen/button_text_size</item>
         <item name="android:layout_width">0dp</item>
@@ -20,7 +20,9 @@
         <item name="background">?attr/selectableItemBackground</item>
     </style>
 
-    <style name="PriceGraphLegendTheme">
+    <!--Price graph-->
+
+    <style name="PriceGraphLegendStyle">
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_width">wrap_content</item>
         <item name="android:textSize">@dimen/legend_text_size</item>
@@ -29,12 +31,62 @@
         <item name="android:drawablePadding">@dimen/max_and_min_top_padding</item>
     </style>
 
-    <style name="PriceGraphMinAndMaxTheme">
+    <style name="PriceGraphMinAndMaxStyle">
         <item name="android:drawablePadding">@dimen/max_and_min_top_padding</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_width">wrap_content</item>
         <item name="android:paddingBottom">@dimen/margin_medium</item>
     </style>
 
+    <!--Content feed-->
+
+    <style name="contentCardStyle">
+        <item name="android:layout_height">@dimen/cell_content_feed_height</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_marginLeft">@dimen/margin_small</item>
+        <item name="android:layout_marginRight">@dimen/margin_small</item>
+        <item name="android:layout_marginTop">@dimen/margin_tiniest</item>
+        <item name="android:layout_marginBottom">@dimen/margin_tiniest</item>
+        <item name="android:elevation">@dimen/card_elevation</item>
+    </style>
+
+    <style name="contentConstraintStyle">
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:padding">@dimen/padding_small</item>
+    </style>
+
+    <style name="contentTitleStyle">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:maxLines">@integer/maxLines</item>
+        <item name="android:textSize">@dimen/text_size_secondary_copy</item>
+    </style>
+
+    <style name="contentCreatorStyle">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="timeAgoStyle">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:textSize">@dimen/text_size_caption</item>
+        <item name="android:layout_marginLeft">@dimen/margin_small</item>
+    </style>
+
+    <style name="contentPreviewStyle">
+        <item name="android:layout_height">0dp</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:contentDescription">@string/preview_content_description</item>
+    </style>
+
+    <style name="contentDescriptionStyle">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:maxLines">@integer/maxLines</item>
+    </style>
 
 </resources>

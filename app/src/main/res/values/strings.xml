@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">carpecoin</string>
+    <string name="app_name">coinverse</string>
     <!--Price graphs-->
     <string name="asks">asks</string>
     <string name="bids">bids</string>
@@ -14,4 +14,14 @@
     <string name="min">min</string>
     <string name="price_pair_format">%s-%s</string>
     <string name="timeframe_last_day">Last day</string>
+
+    <!--Content feed-->
+    <string name="preview_content_description">Preview image for content item.</string>
+    <string name="just_now">just now</string>
+    <string name="a_minute_ago">a minute ago</string>
+    <string name="minutes_ago">minutes ago</string>
+    <string name="an_hour_ago">an hour ago</string>
+    <string name="hours_ago">hours ago</string>
+    <string name="yesterday">yesterday</string>
+    <string name="days_ago">days ago</string>
 </resources>

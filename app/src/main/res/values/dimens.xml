@@ -27,6 +27,7 @@
     <dimen name="text_size_title">22sp</dimen>
 
     <!--Price Graph-->
+    <dimen name="price_graph_height">400dp</dimen>
     <dimen name="legend_text_size">12sp</dimen>
     <dimen name="price_graph_icon_height">16dp</dimen>
     <dimen name="price_graph_arrow_height">14dp</dimen>
@@ -34,11 +35,19 @@
     <dimen name="max_and_min_top_padding">-8dp</dimen>
     <dimen name="price_pair_text_size">14sp</dimen>
     <dimen name="timeframe_text_size">12sp</dimen>
-    <dimen name="price_graph_card_corner_radius">4dp</dimen>
+    <dimen name="price_graph_card_corner_radius">0dp</dimen>
 
     <integer name="price_graph_asks_thickness">5</integer>
     <integer name="price_graph_bids_thickness">3</integer>
     <integer name="price_graph_base_to_quote_margin">8</integer>
+
+    <item name="price_graph_constraint_guideline" format="float" type="dimen">0.70</item>
     <item name="data_point_radius" format="float" type="dimen">0.0</item>
 
+    <!--Content Feed-->
+    <dimen name="cell_content_feed_height">328dp</dimen>
+    <integer name="maxLines">2</integer>
+
+    <dimen name="card_elevation">8dp</dimen>
+    <dimen name="card_radius">8dp</dimen>
 </resources>

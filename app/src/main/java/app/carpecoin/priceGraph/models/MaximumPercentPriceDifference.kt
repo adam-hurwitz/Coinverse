@@ -1,7 +1,6 @@
-package app.carpecoin.models.price
+package app.carpecoin.priceGraph.models
 
 import app.carpecoin.Enums.Exchange.EMPTY
-import java.sql.Timestamp
 import java.util.*
 
 data class MaximumPercentPriceDifference(
@@ -12,8 +11,7 @@ data class MaximumPercentPriceDifference(
         val binanceExchangeOrderData: ExchangeOrderData,
         val kucoinExchangeOrderData: ExchangeOrderData,
         val geminiExchangeOrderData: ExchangeOrderData,
-        val percentDifference: PercentDifference
-) {
+        val percentDifference: PercentDifference) {
     constructor() : this(
             Date(),
             "",

@@ -1,4 +1,4 @@
-package app.carpecoin.models.price
+package app.carpecoin.priceGraph.models
 import app.carpecoin.Enums.Exchange
 import app.carpecoin.Enums.Exchange.EMPTY
 

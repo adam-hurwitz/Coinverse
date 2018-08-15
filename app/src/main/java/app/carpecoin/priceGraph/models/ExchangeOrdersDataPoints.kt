@@ -1,4 +1,4 @@
-package app.carpecoin.models.price
+package app.carpecoin.priceGraph.models
 
 import com.jjoe64.graphview.series.DataPoint
 

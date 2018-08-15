@@ -1,6 +1,6 @@
-package app.carpecoin.models.price
+package app.carpecoin.priceGraph.models
 
-import android.arch.lifecycle.MutableLiveData
+import androidx.lifecycle.MutableLiveData
 import com.jjoe64.graphview.series.DataPoint
 import com.jjoe64.graphview.series.LineGraphSeries
 
