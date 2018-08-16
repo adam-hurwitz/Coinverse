@@ -42,7 +42,7 @@
 
             <ImageView
                 android:id="@+id/preview"
-                style="@style/contentPreviewStyle"
+                style="@style/contentPreviewImageStyle"
                 app:imageUrl="@{data.previewImage}"
                 app:layout_constraintBottom_toTopOf="@id/title"
                 app:layout_constraintLeft_toLeftOf="parent"

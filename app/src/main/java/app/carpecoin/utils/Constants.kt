@@ -2,6 +2,7 @@ package app.carpecoin.utils
 
 object Constants {
     // Firebase
+    const val RC_SIGN_IN = 123
     const val TIMESTAMP = "timestamp"
     const val QUALITY_SCORE = "qualityScore"
 

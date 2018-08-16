@@ -21,6 +21,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.functions.Function5
@@ -59,6 +60,7 @@ object PriceDataRepository {
             index = 0
         }
 
+        val compositeDisposable = CompositeDisposable()
         listenerRegistration = priceDifferenceCollection
                 .orderBy(TIMESTAMP, Query.Direction.ASCENDING)
                 .whereGreaterThan(TIMESTAMP, getTimeframe(timeframe))
@@ -70,6 +72,9 @@ object PriceDataRepository {
 
                     if (!isLiveDataEnabled) listenerRegistration.remove()
 
+                    //FIXME: Debugging graphLiveData being observed multiple times when back is pressed.
+                    println(String.format("DOUBLE_GRAPH: listenerRegistration"))
+
                     for (priceDataDocument in value!!.getDocumentChanges()) {
                         xIndex = index++.toDouble()
                         val priceData = priceDataDocument.document
@@ -77,7 +82,7 @@ object PriceDataRepository {
                         priceDifferenceDetailsLiveData.value = priceData.percentDifference
                         //TODO: Refactor axis to use dates
 
-                        Observable.zip(
+                        compositeDisposable.add(Observable.zip(
                                 generateGraphData(GDAX, priceData.gdaxExchangeOrderData).subscribeOn(Schedulers.io()),
                                 generateGraphData(BINANCE, priceData.binanceExchangeOrderData).subscribeOn(Schedulers.io()),
                                 generateGraphData(GEMINI, priceData.geminiExchangeOrderData).subscribeOn(Schedulers.io()),
@@ -97,8 +102,9 @@ object PriceDataRepository {
                                     override fun onComplete() {
                                         Log.v(LOG_TAG, String.format("Graph data status: complete"))
                                     }
-                                })
+                                }))
                     }
+                    compositeDisposable.dispose()
                 })
     }
 

@@ -44,7 +44,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
     kapt "androidx.lifecycle:lifecycle-compiler:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-common-java8:$lifecycle_version"
-    implementation "androidx.lifecycle:lifecycle-reactivestreams:$lifecycle_version" // use -ktx for Kotlin
+    implementation "androidx.lifecycle:lifecycle-reactivestreams-ktx:$lifecycle_version"
     implementation "androidx.paging:paging-runtime:$paging_version"
     implementation "androidx.paging:paging-rxjava2:$paging_version"
 
@@ -52,11 +52,12 @@ dependencies {
     implementation 'com.google.firebase:firebase-core:16.0.1'
     implementation 'com.google.firebase:firebase-firestore:17.1.0'
     implementation 'com.firebaseui:firebase-ui-firestore:4.1.0'
+    implementation 'com.firebaseui:firebase-ui-auth:4.0.0'
     implementation 'com.jjoe64:graphview:4.2.2'
     implementation 'io.reactivex.rxjava2:rxjava:2.2.0'
     implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
-    implementation "android.arch.navigation:navigation-fragment:$nav_version" // use -ktx for Kotlin
-    implementation "android.arch.navigation:navigation-ui:$nav_version" // use -ktx fo
+    implementation "android.arch.navigation:navigation-fragment-ktx:$nav_version"
+    implementation "android.arch.navigation:navigation-ui-ktx:$nav_version"
     //FIXME: Filed StackOverflow issue: https://stackoverflow.com/questions/51791067/glide-unable-to-build-appglidemodule-compilesdkversion-28.
     implementation 'com.github.bumptech.glide:glide:4.7.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.7.1'

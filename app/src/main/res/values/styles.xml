@@ -76,7 +76,7 @@
         <item name="android:layout_marginLeft">@dimen/margin_small</item>
     </style>
 
-    <style name="contentPreviewStyle">
+    <style name="contentPreviewImageStyle">
         <item name="android:layout_height">0dp</item>
         <item name="android:layout_width">0dp</item>
         <item name="android:contentDescription">@string/preview_content_description</item>

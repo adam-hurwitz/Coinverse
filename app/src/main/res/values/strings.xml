@@ -17,6 +17,7 @@
 
     <!--Content feed-->
     <string name="preview_content_description">Preview image for content item.</string>
+    <string name="profile_content_description">User profile login button.</string>
     <string name="just_now">just now</string>
     <string name="a_minute_ago">a minute ago</string>
     <string name="minutes_ago">minutes ago</string>
@@ -24,4 +25,7 @@
     <string name="hours_ago">hours ago</string>
     <string name="yesterday">yesterday</string>
     <string name="days_ago">days ago</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

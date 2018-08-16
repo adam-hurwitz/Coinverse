@@ -40,6 +40,8 @@ class PriceDataViewModel : ViewModel() {
 
     fun initializeData(isRealtimeDataEnabled: Boolean) {
         this.toInitializePriceGraphData.value = true
+        //FIXME: Debugging graphLiveData being observed multiple times when back is pressed.
+        println(String.format("DOUBLE_GRAPH: initializeData()"))
         PriceDataRepository.startFirestoreEventListeners(isRealtimeDataEnabled, timeframe.value!!)
     }
 

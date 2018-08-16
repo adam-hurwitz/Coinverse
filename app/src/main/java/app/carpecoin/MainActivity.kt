@@ -10,7 +10,7 @@ import app.carpecoin.coin.R
 import app.carpecoin.utils.FirebaseHelper
 
 
-class MainActivity : AppCompatActivity(), HomeFragment.OnFragmentInteractionListener {
+class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,7 +21,4 @@ class MainActivity : AppCompatActivity(), HomeFragment.OnFragmentInteractionList
 
     override fun onSupportNavigateUp() = findNavController(findViewById(R.id.navHostFragment)).navigateUp()
 
-    override fun onFragmentInteraction(uri: Uri) {
-        // Not implemented.
-    }
 }

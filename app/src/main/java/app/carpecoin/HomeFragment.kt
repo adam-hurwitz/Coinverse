@@ -1,32 +1,39 @@
 package app.carpecoin
 
-import android.content.Context
-import android.net.Uri
+import android.app.Activity.RESULT_OK
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import app.carpecoin.coin.R
 import app.carpecoin.coin.databinding.FragmentHomeBinding
 import app.carpecoin.contentFeed.ContentFeedFragment
 import app.carpecoin.priceGraph.PriceGraphFragment
+import com.firebase.ui.auth.AuthUI
+import com.firebase.ui.auth.IdpResponse
+import android.content.Intent
+import androidx.navigation.Navigation
+import app.carpecoin.utils.Constants.RC_SIGN_IN
+import com.google.firebase.auth.FirebaseUser
+import kotlinx.android.synthetic.main.fragment_home.*
 
-/**
- * Use the [HomeFragment.newInstance] factory method to
- * create an instance of this fragment.
- *
- */
 class HomeFragment : Fragment() {
 
-    private var listener: OnFragmentInteractionListener? = null
+    private var user: FirebaseUser? = null
 
     private lateinit var binding: FragmentHomeBinding
+    private lateinit var viewModel: HomeViewModel
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         binding = FragmentHomeBinding.inflate(inflater, container, false)
         binding.setLifecycleOwner(this)
+        viewModel = ViewModelProviders.of(this).get(HomeViewModel::class.java)
+        binding.viewmodel = viewModel
+        user = viewModel.getCurrentUser()
         if (savedInstanceState == null) {
             fragmentManager
                     ?.beginTransaction()
@@ -37,51 +44,36 @@ class HomeFragment : Fragment() {
                     ?.add(binding.contentFeedContainer.id, ContentFeedFragment.newInstance())
                     ?.commit()
         }
+        observeProfileButton()
         return binding.root
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    fun onButtonPressed(uri: Uri) {
-        listener?.onFragmentInteraction(uri)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        setProfileButton(user != null)
+        super.onViewCreated(view, savedInstanceState)
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        if (context is OnFragmentInteractionListener) {
-            listener = context
-        } else {
-            throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == RC_SIGN_IN) {
+            val response = IdpResponse.fromResultIntent(data)
+
+            if (resultCode == RESULT_OK) {
+                // Successfully signed in
+                user = viewModel.getCurrentUser()
+                setProfileButton(user != null)
+                println(String.format("requestCode:%s resultCode:%s user:%s",
+                        requestCode, resultCode, user?.displayName))
+                // ...
+            } else {
+                // Sign in failed. If response is null the user canceled the
+                // sign-in flow using the back button. Otherwise check
+                // response.getError().getErrorCode() and handle the error.
+                // ...
+                println(String.format("sign_in fail:%s", response?.error?.errorCode))
+            }
         }
-    }
-
-    override fun onDetach() {
-        super.onDetach()
-        listener = null
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     */
-    interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        fun onFragmentInteraction(uri: Uri)
-    }
-
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment HomeFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) = HomeFragment()
     }
 
     //TODO: Fix swipe to refresh and CollapasingToolBar overlap.
@@ -100,8 +92,46 @@ class HomeFragment : Fragment() {
         }
     }
 
-    fun disableSwipeToRefresh(){
+    fun disableSwipeToRefresh() {
         binding.swipeToRefresh.isRefreshing = false
+    }
+
+    private fun observeUserLoginStatus() {
+        viewModel.user.observe(this, Observer { user ->
+            setProfileButton(user != null)
+        })
+    }
+
+    private fun observeProfileButton() {
+        viewModel.profileButtonClick.observe(this, Observer { view ->
+            if (user == null) {
+                this.startActivityForResult(
+                        AuthUI.getInstance()
+                                .createSignInIntentBuilder()
+                                .setAvailableProviders(listOf(AuthUI.IdpConfig.GoogleBuilder().build()))
+                                .build(),
+                        RC_SIGN_IN)
+            } else {
+                view.setOnClickListener(Navigation.createNavigateOnClickListener(
+                        R.id.action_homeFragment_to_profileFragment, null))
+
+                //TODO: Add to profile screen to log out.
+                /*AuthUI.getInstance()
+                        .signOut(activity!!)
+                        .addOnCompleteListener {
+                            Toast.makeText(activity, "Signed out.", Toast.LENGTH_LONG).show()
+                        }*/
+            }
+        })
+    }
+
+    private fun setProfileButton(isLoggedIn: Boolean) {
+        if (isLoggedIn) {
+            this.user = user
+            profileButton.setImageResource(R.drawable.ic_profile_logged_in_24dp)
+        } else {
+            profileButton.setImageResource(R.drawable.ic_profile_logged_out_24dp)
+        }
     }
 
 }

@@ -37,19 +37,8 @@ import app.carpecoin.HomeFragment
 import app.carpecoin.coin.databinding.FragmentPriceGraphBinding
 import kotlinx.android.synthetic.main.fragment_price_graph.view.*
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
 private val dataPointRadiusValue = TypedValue()
 
-/**
- * A simple [Fragment] subclass.
- * Use the [PriceGraphFragment.newInstance] factory method to
- * create an instance of this fragment.
- *
- */
 class PriceGraphFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
@@ -69,10 +58,6 @@ class PriceGraphFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -83,6 +68,9 @@ class PriceGraphFragment : Fragment() {
         binding.viewmodel = viewModel
         homeFragment = (parentFragment?.fragmentManager?.findFragmentById(R.id.navHostFragment)
                 ?.childFragmentManager?.findFragmentById(R.id.navHostFragment) as HomeFragment)
+
+        //FIXME: Debugging graphLiveData being observed multiple times when back is pressed.
+        println(String.format("DOUBLE_GRAPH: onCreateView()"))
 
         setPriceGraphStyle()
         setRealtimeDataConfiguration()
@@ -99,12 +87,6 @@ class PriceGraphFragment : Fragment() {
     }
 
     companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @return A new instance of fragment PriceGraphFragment.
-         */
         @JvmStatic
         fun newInstance() = PriceGraphFragment()
     }
@@ -183,6 +165,10 @@ class PriceGraphFragment : Fragment() {
     private fun observeGraphData() {
         viewModel.graphLiveData.observe(
                 this, Observer { priceGraphDataMap: HashMap<Exchange, PriceGraphLiveData>? ->
+
+            //FIXME: Debugging graphLiveData being observed multiple times when back is pressed.
+            println(String.format("DOUBLE_GRAPH: observeGraphData"))
+
             for (priceGraphData in priceGraphDataMap!!.entries) {
                 val exchange = priceGraphData.key
                 setExchangeGraphDataAndStyle(exchange, ASK, graphSeriesMap[exchange]?.asks,
