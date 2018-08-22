@@ -27,35 +27,38 @@ import com.firebase.ui.firestore.paging.LoadingState.FINISHED
 import com.firebase.ui.firestore.paging.LoadingState.ERROR
 import android.content.Intent
 import android.net.Uri
+import kotlinx.android.synthetic.main.fragment_content_feed.*
 
 
 private val LOG_TAG = ContentFeedFragment::class.java.simpleName
 
-/**
- * Use the [ContentFeedFragment.newInstance] factory method to
- * create an instance of this fragment.
- *
- */
 class ContentFeedFragment : Fragment() {
 
     private lateinit var binding: FragmentContentFeedBinding
     private lateinit var viewModel: ContentFeedViewModel
     private lateinit var lifecycleOwner: LifecycleOwner
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        viewModel = ViewModelProviders.of(this).get(ContentFeedViewModel::class.java)
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         binding = FragmentContentFeedBinding.inflate(inflater, container, false)
         binding.setLifecycleOwner(this)
-        viewModel = ViewModelProviders.of(this).get(ContentFeedViewModel::class.java)
         binding.viewmodel = viewModel
-        lifecycleOwner = this
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         //TODO: Handle savedInstanceState adapter position
         initializeFirestoreAdapter()
-        binding.swipeToRefresh.setOnRefreshListener {
+        swipeToRefreshView.setOnRefreshListener {
             initializeFirestoreAdapter()
         }
         observeContentSelection()
-        return binding.root
     }
 
     companion object {
@@ -103,17 +106,17 @@ class ContentFeedFragment : Fragment() {
                 when (state) {
                     LOADING_INITIAL -> Log.v(LOG_TAG,
                             String.format("onLoadingStateChanged(): %s", LOADING_INITIAL))
-                    LOADED -> binding.swipeToRefresh.isRefreshing = false
+                    LOADED -> swipeToRefreshView.isRefreshing = false
                     LOADING_MORE -> Log.v(LOG_TAG,
                             String.format("onLoadingStateChanged(): %s", LOADING_MORE))
-                    FINISHED -> binding.swipeToRefresh.isRefreshing = false
+                    FINISHED -> swipeToRefreshView.isRefreshing = false
                     ERROR -> Log.v(LOG_TAG,
                             String.format("onLoadingStateChanged(): %s", ERROR))
                 }
             }
         }
-        binding.contentFeedRecyclerView.layoutManager = LinearLayoutManager(context)
-        binding.contentFeedRecyclerView.adapter = adapter
+        contentFeedRecyclerView.layoutManager = LinearLayoutManager(context)
+        contentFeedRecyclerView.adapter = adapter
     }
 
     private fun observeContentSelection() {

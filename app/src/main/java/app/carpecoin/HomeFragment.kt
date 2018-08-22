@@ -10,15 +10,18 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import app.carpecoin.coin.R
 import app.carpecoin.coin.databinding.FragmentHomeBinding
-import app.carpecoin.contentFeed.ContentFeedFragment
 import app.carpecoin.priceGraph.PriceGraphFragment
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
 import android.content.Intent
 import androidx.navigation.Navigation
+import app.carpecoin.contentFeed.ContentFeedFragment
 import app.carpecoin.utils.Constants.RC_SIGN_IN
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.fragment_home.*
+
+private const val PRICEGRAPH_FRAGMENT_TAG = "priceGraphFragmentTag"
+private const val CONTENTFEED_FRAGMENT_TAG = "contentFeedFragmentTag"
 
 class HomeFragment : Fragment() {
 
@@ -27,30 +30,38 @@ class HomeFragment : Fragment() {
     private lateinit var binding: FragmentHomeBinding
     private lateinit var viewModel: HomeViewModel
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        viewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         binding = FragmentHomeBinding.inflate(inflater, container, false)
         binding.setLifecycleOwner(this)
-        viewModel = ViewModelProviders.of(this).get(HomeViewModel::class.java)
         binding.viewmodel = viewModel
-        user = viewModel.getCurrentUser()
-        if (savedInstanceState == null) {
-            fragmentManager
-                    ?.beginTransaction()
-                    ?.add(binding.priceDataContainer.id, PriceGraphFragment.newInstance())
-                    ?.commit()
-            fragmentManager
-                    ?.beginTransaction()
-                    ?.add(binding.contentFeedContainer.id, ContentFeedFragment.newInstance())
-                    ?.commit()
-        }
-        observeProfileButton()
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        if (savedInstanceState == null
+                && childFragmentManager.findFragmentByTag(PRICEGRAPH_FRAGMENT_TAG) == null
+                && childFragmentManager.findFragmentByTag(CONTENTFEED_FRAGMENT_TAG) == null) {
+            childFragmentManager.beginTransaction()
+                    .replace(priceDataContainer.id, PriceGraphFragment.newInstance(),
+                            PRICEGRAPH_FRAGMENT_TAG)
+                    .commit()
+            childFragmentManager.beginTransaction()
+                    .replace(contentFeedContainer.id, ContentFeedFragment.newInstance(),
+                            CONTENTFEED_FRAGMENT_TAG)
+                    .commit()
+        }
+        user = viewModel.getCurrentUser()
         setProfileButton(user != null)
-        super.onViewCreated(view, savedInstanceState)
+        observeDataRealtimeStatus()
+        observeDisableSwipeToRefresh()
+        observeProfileButton()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -77,33 +88,31 @@ class HomeFragment : Fragment() {
     }
 
     //TODO: Fix swipe to refresh and CollapasingToolBar overlap.
-    fun setRefreshStatus(isRealTimeDataEnabled: Boolean) {
-        if (isRealTimeDataEnabled) {
-            binding.swipeToRefresh.isRefreshing = false
-            binding.swipeToRefresh.isEnabled = false
-        } else {
-            binding.swipeToRefresh.setOnRefreshListener {
-                (fragmentManager?.findFragmentById(R.id.priceDataContainer) as PriceGraphFragment)
-                        .initializeData()
-                //TODO: Decide 1 or 2 SwipeToRefresh for screen.
-                /*(fragmentManager?.findFragmentById(R.id.contentFeedContainer) as ContentFeedFragment)
-                        .initializeData()*/
+    fun observeDataRealtimeStatus() {
+        viewModel.isRealtimeDataEnabled.observe(viewLifecycleOwner, Observer { isRealtimeDataEnabled: Boolean ->
+            if (isRealtimeDataEnabled) {
+                swipeToRefresh.isRefreshing = false
+                swipeToRefresh.isEnabled = false
+            } else {
+                swipeToRefresh.setOnRefreshListener {
+                    (fragmentManager?.findFragmentById(R.id.priceDataContainer) as PriceGraphFragment)
+                            .initializeData()
+                    //TODO: Decide 1 or 2 SwipeToRefresh for screen.
+                    /*(fragmentManager?.findFragmentById(R.id.contentFeedContainer) as ContentFeedFragment)
+                            .initializeData()*/
+                }
             }
-        }
+        })
     }
 
-    fun disableSwipeToRefresh() {
-        binding.swipeToRefresh.isRefreshing = false
-    }
-
-    private fun observeUserLoginStatus() {
-        viewModel.user.observe(this, Observer { user ->
-            setProfileButton(user != null)
+    fun observeDisableSwipeToRefresh() {
+        viewModel.disableSwipeToRefresh.observe(viewLifecycleOwner, Observer { disableSwipeToRefresh: Boolean ->
+            swipeToRefresh.isRefreshing = false
         })
     }
 
     private fun observeProfileButton() {
-        viewModel.profileButtonClick.observe(this, Observer { view ->
+        viewModel.profileButtonClick.observe(viewLifecycleOwner, Observer { isClicked ->
             if (user == null) {
                 this.startActivityForResult(
                         AuthUI.getInstance()
@@ -112,16 +121,15 @@ class HomeFragment : Fragment() {
                                 .build(),
                         RC_SIGN_IN)
             } else {
-                view.setOnClickListener(Navigation.createNavigateOnClickListener(
+                profileButton.setOnClickListener(Navigation.createNavigateOnClickListener(
                         R.id.action_homeFragment_to_profileFragment, null))
-
-                //TODO: Add to profile screen to log out.
-                /*AuthUI.getInstance()
-                        .signOut(activity!!)
-                        .addOnCompleteListener {
-                            Toast.makeText(activity, "Signed out.", Toast.LENGTH_LONG).show()
-                        }*/
             }
+            //TODO: Add to profile screen to log out.
+            /*AuthUI.getInstance()
+                    .signOut(activity!!)
+                    .addOnCompleteListener {
+                        Toast.makeText(activity, "Signed out.", Toast.LENGTH_LONG).show()
+                    }*/
         })
     }
 

@@ -8,6 +8,7 @@ import app.carpecoin.coin.databinding.ActivityMainBinding
 import androidx.navigation.Navigation.findNavController
 import app.carpecoin.coin.R
 import app.carpecoin.utils.FirebaseHelper
+import kotlinx.android.synthetic.main.activity_main.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -19,6 +20,6 @@ class MainActivity : AppCompatActivity() {
         FirebaseHelper.initialize(this)
     }
 
-    override fun onSupportNavigateUp() = findNavController(findViewById(R.id.navHostFragment)).navigateUp()
+    override fun onSupportNavigateUp() = findNavController(navHostFragment.view!!).navigateUp()
 
 }

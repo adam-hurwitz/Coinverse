@@ -31,7 +31,7 @@ private val LOG_TAG = PriceDataRepository::class.java.simpleName
 
 object PriceDataRepository {
 
-    var graphLiveData = MutableLiveData<HashMap<Exchange, PriceGraphLiveData>>()
+    var graphLiveData = MutableLiveData<HashMap<Exchange, PriceGraphData>>()
     var priceDifferenceDetailsLiveData = MutableLiveData<PercentDifference>()
     var graphConstraintsLiveData = MutableLiveData<PriceGraphXAndYConstraints>()
 
@@ -48,7 +48,7 @@ object PriceDataRepository {
     private var maxX: Double = -1000000000000.0
 
     private var exchangeOrdersPointsMap = HashMap<Exchange, ExchangeOrdersDataPoints>()
-    private var exchangeOrdersLiveDataMap = HashMap<Exchange, PriceGraphLiveData>()
+    private var exchangeOrdersDataMap = HashMap<Exchange, PriceGraphData>()
 
     private lateinit var listenerRegistration: ListenerRegistration
 
@@ -56,7 +56,7 @@ object PriceDataRepository {
 
         if (!isLiveDataEnabled) {
             exchangeOrdersPointsMap.clear()
-            exchangeOrdersLiveDataMap.clear()
+            exchangeOrdersDataMap.clear()
             index = 0
         }
 
@@ -72,9 +72,6 @@ object PriceDataRepository {
 
                     if (!isLiveDataEnabled) listenerRegistration.remove()
 
-                    //FIXME: Debugging graphLiveData being observed multiple times when back is pressed.
-                    println(String.format("DOUBLE_GRAPH: listenerRegistration"))
-
                     for (priceDataDocument in value!!.getDocumentChanges()) {
                         xIndex = index++.toDouble()
                         val priceData = priceDataDocument.document
@@ -89,6 +86,7 @@ object PriceDataRepository {
                                 generateGraphData(KUCOIN, priceData.kucoinExchangeOrderData).subscribeOn(Schedulers.io()),
                                 generateGraphData(KRAKEN, priceData.krakenExchangeOrderData).subscribeOn(Schedulers.io()),
                                 getFunction5())
+                                .subscribeOn(Schedulers.io())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribeWith(object : DisposableObserver<Status>() {
                                     override fun onNext(status: Status) {
@@ -104,58 +102,54 @@ object PriceDataRepository {
                                     }
                                 }))
                     }
-                    compositeDisposable.dispose()
                 })
+        compositeDisposable.clear()
     }
 
-    private fun generateGraphData(exchange: Exchange, exchangeOrderData: ExchangeOrderData): Observable<HashMap<Exchange, PriceGraphLiveData>> {
+    private fun generateGraphData(exchange: Exchange, exchangeOrderData: ExchangeOrderData)
+            : Observable<HashMap<Exchange, PriceGraphData>> {
         val baseToQuoteBid = exchangeOrderData.baseToQuoteBid.price
         val baseToQuoteAsk = exchangeOrderData.baseToQuoteAsk.price
         val bidDataPoint = DataPoint(xIndex, baseToQuoteBid)
         val askDataPoint = DataPoint(xIndex, baseToQuoteAsk)
-        if (!exchangeOrdersPointsMap.containsKey(exchange) &&
-                !exchangeOrdersLiveDataMap.containsKey(exchange)) {
+        if (!exchangeOrdersPointsMap.containsKey(exchange)
+                && !exchangeOrdersDataMap.containsKey(exchange)) {
             val bidDataPoints = arrayListOf(bidDataPoint)
             val askDataPoints = arrayListOf(askDataPoint)
-            exchangeOrdersPointsMap[exchange] =
-                    ExchangeOrdersDataPoints(bidDataPoints, askDataPoints)
-            val bidLiveData = MutableLiveData<LineGraphSeries<DataPoint>>()
-            bidLiveData.postValue(LineGraphSeries(bidDataPoints.toTypedArray()))
-            val askLiveData = MutableLiveData<LineGraphSeries<DataPoint>>()
-            askLiveData.postValue(LineGraphSeries(askDataPoints.toTypedArray()))
-            exchangeOrdersLiveDataMap[exchange] = PriceGraphLiveData(bidLiveData, askLiveData)
+            exchangeOrdersPointsMap[exchange] = ExchangeOrdersDataPoints(bidDataPoints, askDataPoints)
+            exchangeOrdersDataMap[exchange] =
+                    PriceGraphData(
+                            LineGraphSeries(bidDataPoints.toTypedArray()),
+                            LineGraphSeries(askDataPoints.toTypedArray()))
         } else {
             val bidDataPoints = exchangeOrdersPointsMap[exchange]?.bidsLiveData
             bidDataPoints?.add(bidDataPoint)
             val askDataPoints = exchangeOrdersPointsMap[exchange]?.asksLiveData
             askDataPoints?.add(askDataPoint)
-
-            exchangeOrdersLiveDataMap[exchange]?.bidsLiveData?.postValue(
-                    LineGraphSeries(bidDataPoints?.toTypedArray()))
-            exchangeOrdersLiveDataMap[exchange]?.asksLiveData?.postValue(
-                    LineGraphSeries(askDataPoints?.toTypedArray()))
+            exchangeOrdersDataMap[exchange]?.bids = LineGraphSeries(bidDataPoints?.toTypedArray())
+            exchangeOrdersDataMap[exchange]?.asks = LineGraphSeries(askDataPoints?.toTypedArray())
         }
         findMinAndMaxGraphConstraints(baseToQuoteBid, baseToQuoteAsk)
-        return Observable.just(exchangeOrdersLiveDataMap)
+        return Observable.just(exchangeOrdersDataMap)
     }
 
     private fun getFunction5(): Function5<
-            HashMap<Exchange, PriceGraphLiveData>,
-            HashMap<Exchange, PriceGraphLiveData>,
-            HashMap<Exchange, PriceGraphLiveData>,
-            HashMap<Exchange, PriceGraphLiveData>,
-            HashMap<Exchange, PriceGraphLiveData>,
+            HashMap<Exchange, PriceGraphData>,
+            HashMap<Exchange, PriceGraphData>,
+            HashMap<Exchange, PriceGraphData>,
+            HashMap<Exchange, PriceGraphData>,
+            HashMap<Exchange, PriceGraphData>,
             Status> {
-        return Function5 { gdaxPriceGraphLiveData,
-                           binancePriceGraphLiveData,
-                           geminiPriceGraphLiveData,
-                           kucoinPriceGraphLiveData,
-                           krakenPriceGraphLiveData ->
-            graphLiveData.postValue(gdaxPriceGraphLiveData)
-            graphLiveData.postValue(binancePriceGraphLiveData)
-            graphLiveData.postValue(geminiPriceGraphLiveData)
-            graphLiveData.postValue(kucoinPriceGraphLiveData)
-            graphLiveData.postValue(krakenPriceGraphLiveData)
+        return Function5 { gdaxPriceGraphData,
+                           binancePriceGraphData,
+                           geminiPriceGraphData,
+                           kucoinPriceGraphData,
+                           krakenPriceGraphData ->
+            graphLiveData.postValue(gdaxPriceGraphData)
+            graphLiveData.postValue(binancePriceGraphData)
+            graphLiveData.postValue(geminiPriceGraphData)
+            graphLiveData.postValue(kucoinPriceGraphData)
+            graphLiveData.postValue(krakenPriceGraphData)
             SUCCESS
         }
     }

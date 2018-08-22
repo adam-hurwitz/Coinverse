@@ -8,20 +8,29 @@ import com.google.firebase.auth.FirebaseUser
 
 
 class HomeViewModel : ViewModel() {
+    var isRealtimeDataEnabled = MutableLiveData<Boolean>()
+    var disableSwipeToRefresh = MutableLiveData<Boolean>()
     var user = MutableLiveData<FirebaseUser>()
-
-    var profileButtonClick = MutableLiveData<View>()
+    var profileButtonClick = MutableLiveData<Boolean>()
 
     init {
         user.value = getCurrentUser()
     }
 
-    fun profileButtonClick(view: View) {
-        profileButtonClick.value = view
+    fun profileButtonClick(click: Boolean) {
+        profileButtonClick.value = true
     }
 
     fun getCurrentUser(): FirebaseUser? {
         return FirebaseAuth.getInstance().currentUser
+    }
+
+    fun setRefreshStatus(isRealtimeDataEnabled: Boolean) {
+        this.isRealtimeDataEnabled.value = isRealtimeDataEnabled
+    }
+
+    fun disableSwipeToRefresh() {
+        disableSwipeToRefresh.value = true
     }
 
 }

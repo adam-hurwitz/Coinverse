@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
+import app.carpecoin.Enums
 import app.carpecoin.priceGraph.models.PercentDifference
 import app.carpecoin.Enums.Exchange
 import app.carpecoin.Enums.Exchange.GDAX
@@ -12,21 +13,28 @@ import app.carpecoin.Enums.Currency.ETH
 import app.carpecoin.Enums.Currency.BTC
 import app.carpecoin.Enums.Timeframe
 import app.carpecoin.Enums.Timeframe.DAY
+import app.carpecoin.priceGraph.models.PriceGraphData
+import com.jjoe64.graphview.series.LineGraphSeries
 
 class PriceDataViewModel : ViewModel() {
 
     //TODO: Inject PriceDataRepository
 
-    //TODO: Query Firebase by pricePair.
-    var pricePair = PricePair(ETH, BTC)
-
-    //TODO: Paid feature
-    var isRealtimeDataEnabled = true
-
     //TODO: Set timeframe from UI.
     var timeframe = MutableLiveData<Timeframe>()
     var enabledExchanges = MutableLiveData<ArrayList<Exchange?>>()
     var priceDifferenceDetailsLiveData: LiveData<PercentDifference>
+
+    //TODO: Query Firebase by pricePair.
+    var pricePair = PricePair(ETH, BTC)
+    //TODO: Paid feature
+    var isRealtimeDataEnabled = true
+    var graphSeriesMap = hashMapOf(
+            Pair(Enums.Exchange.GDAX, PriceGraphData(LineGraphSeries(), LineGraphSeries())),
+            Pair(Enums.Exchange.BINANCE, PriceGraphData(LineGraphSeries(), LineGraphSeries())),
+            Pair(Enums.Exchange.GEMINI, PriceGraphData(LineGraphSeries(), LineGraphSeries())),
+            Pair(Enums.Exchange.KUCOIN, PriceGraphData(LineGraphSeries(), LineGraphSeries())),
+            Pair(Enums.Exchange.KRAKEN, PriceGraphData(LineGraphSeries(), LineGraphSeries())))
 
     private var toInitializePriceGraphData = MutableLiveData<Boolean>()
 
@@ -40,8 +48,6 @@ class PriceDataViewModel : ViewModel() {
 
     fun initializeData(isRealtimeDataEnabled: Boolean) {
         this.toInitializePriceGraphData.value = true
-        //FIXME: Debugging graphLiveData being observed multiple times when back is pressed.
-        println(String.format("DOUBLE_GRAPH: initializeData()"))
         PriceDataRepository.startFirestoreEventListeners(isRealtimeDataEnabled, timeframe.value!!)
     }
 

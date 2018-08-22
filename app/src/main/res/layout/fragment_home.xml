@@ -40,7 +40,7 @@
                             android:layout_height="wrap_content"
                             android:contentDescription="@string/profile_content_description"
                             android:src="@drawable/ic_profile_logged_out_24dp"
-                            android:onClick="@{(v) -> viewmodel.profileButtonClick(v)}" />
+                            android:onClick="@{() -> viewmodel.profileButtonClick(true)}" />
 
                     </androidx.appcompat.widget.Toolbar>
 

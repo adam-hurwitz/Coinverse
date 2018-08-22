@@ -5,4 +5,4 @@ import com.bumptech.glide.module.AppGlideModule
 
 //FIXME: Filed StackOverflow issue: https://stackoverflow.com/questions/51791067/glide-unable-to-build-appglidemodule-compilesdkversion-28.
 @GlideModule
-class MyAppGlideModule : AppGlideModule()
+class GlideModule : AppGlideModule()
