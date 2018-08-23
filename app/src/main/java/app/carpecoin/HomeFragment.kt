@@ -17,6 +17,9 @@ import android.content.Intent
 import androidx.navigation.Navigation
 import app.carpecoin.contentFeed.ContentFeedFragment
 import app.carpecoin.utils.Constants.RC_SIGN_IN
+import app.carpecoin.utils.setProfileImageUrl
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.fragment_home.*
 
@@ -121,24 +124,23 @@ class HomeFragment : Fragment() {
                                 .build(),
                         RC_SIGN_IN)
             } else {
+                val action =
+                        HomeFragmentDirections.actionHomeFragmentToProfileFragment(user!!)
+                action.setUser(user!!)
                 profileButton.setOnClickListener(Navigation.createNavigateOnClickListener(
-                        R.id.action_homeFragment_to_profileFragment, null))
+                        R.id.action_homeFragment_to_profileFragment, action.arguments))
             }
-            //TODO: Add to profile screen to log out.
-            /*AuthUI.getInstance()
-                    .signOut(activity!!)
-                    .addOnCompleteListener {
-                        Toast.makeText(activity, "Signed out.", Toast.LENGTH_LONG).show()
-                    }*/
         })
     }
 
     private fun setProfileButton(isLoggedIn: Boolean) {
         if (isLoggedIn) {
-            this.user = user
-            profileButton.setImageResource(R.drawable.ic_profile_logged_in_24dp)
+            Glide.with(this)
+                    .load(user?.photoUrl.toString())
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(profileButton)
         } else {
-            profileButton.setImageResource(R.drawable.ic_profile_logged_out_24dp)
+            profileButton.setImageResource(R.drawable.ic_profile_logged_in_24dp)
         }
     }
 

@@ -26,6 +26,9 @@
     <dimen name="text_size_medium">20sp</dimen>
     <dimen name="text_size_title">22sp</dimen>
 
+    <!--Home Fragment-->
+    <dimen name="profileButton">24dp</dimen>
+
     <!--Price Graph-->
     <dimen name="price_graph_height">400dp</dimen>
     <dimen name="legend_text_size">12sp</dimen>
@@ -48,6 +51,10 @@
     <dimen name="cell_content_feed_height">328dp</dimen>
     <integer name="maxLines">2</integer>
 
-    <dimen name="card_elevation">8dp</dimen>
+    <!--Profile-->
+    <dimen name="profile_image">128dp</dimen>
+
     <dimen name="card_radius">8dp</dimen>
+    <dimen name="card_elevation">8dp</dimen>
+
 </resources>

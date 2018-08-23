@@ -26,6 +26,13 @@
     <string name="yesterday">yesterday</string>
     <string name="days_ago">days ago</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <!--Profile-->
+    <string name="profile_image">User profile image.</string>
+    <string name="archives">Archived Content</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="signed_out">Sign Out Successful. See you soon!</string>
+    <string name="already_signed_out">You\'re already signed out.</string>
+    <string name="delete">Remove Account</string>
+    <string name="deleted">Bye Felicia! You\'re account has been removed.</string>
+    <string name="unable_to_delete">You cannot remove an account if you\'re not logged in.</string>
 </resources>

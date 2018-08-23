@@ -6,6 +6,9 @@ object Constants {
     const val TIMESTAMP = "timestamp"
     const val QUALITY_SCORE = "qualityScore"
 
+    // Home
+    const val ON_BACK_PRESS_DELAY_IN_MILLIS = 1000L
+
     // Content feed
     const val CONTENT_ALL_COLLECTION = "CONTENT_ALL"
     const val CONTENT_BY_WEEK_COLLECTION = "CONTENT_BY_WEEK"

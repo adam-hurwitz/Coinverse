@@ -36,8 +36,8 @@
 
                         <ImageView
                             android:id="@+id/profileButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
+                            android:layout_width="@dimen/profileButton"
+                            android:layout_height="@dimen/profileButton"
                             android:contentDescription="@string/profile_content_description"
                             android:src="@drawable/ic_profile_logged_out_24dp"
                             android:onClick="@{() -> viewmodel.profileButtonClick(true)}" />
