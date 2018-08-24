@@ -1,5 +1,6 @@
 package app.carpecoin
 
+import android.content.Intent
 import android.os.Bundle
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
@@ -21,5 +22,4 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onSupportNavigateUp() = findNavController(navHostFragment.view!!).navigateUp()
-
 }

@@ -7,7 +7,7 @@ object Constants {
     const val QUALITY_SCORE = "qualityScore"
 
     // Home
-    const val ON_BACK_PRESS_DELAY_IN_MILLIS = 1000L
+    const val ON_BACK_PRESS_DELAY_IN_MILLIS = 500L
 
     // Content feed
     const val CONTENT_ALL_COLLECTION = "CONTENT_ALL"

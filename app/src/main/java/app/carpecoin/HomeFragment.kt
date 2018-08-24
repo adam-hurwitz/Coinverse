@@ -11,13 +11,11 @@ import androidx.lifecycle.ViewModelProviders
 import app.carpecoin.coin.R
 import app.carpecoin.coin.databinding.FragmentHomeBinding
 import app.carpecoin.priceGraph.PriceGraphFragment
-import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
 import android.content.Intent
 import androidx.navigation.Navigation
 import app.carpecoin.contentFeed.ContentFeedFragment
 import app.carpecoin.utils.Constants.RC_SIGN_IN
-import app.carpecoin.utils.setProfileImageUrl
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.google.firebase.auth.FirebaseUser
@@ -25,6 +23,7 @@ import kotlinx.android.synthetic.main.fragment_home.*
 
 private const val PRICEGRAPH_FRAGMENT_TAG = "priceGraphFragmentTag"
 private const val CONTENTFEED_FRAGMENT_TAG = "contentFeedFragmentTag"
+private const val SIGNIN_DIALOG_FRAGMENT_TAG = "signInDialogFragmentTag"
 
 class HomeFragment : Fragment() {
 
@@ -64,27 +63,18 @@ class HomeFragment : Fragment() {
         setProfileButton(user != null)
         observeDataRealtimeStatus()
         observeDisableSwipeToRefresh()
-        observeProfileButton()
+        observeProfileButtonClick()
+        observeSignIn()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
         if (requestCode == RC_SIGN_IN) {
             val response = IdpResponse.fromResultIntent(data)
-
             if (resultCode == RESULT_OK) {
-                // Successfully signed in
                 user = viewModel.getCurrentUser()
                 setProfileButton(user != null)
-                println(String.format("requestCode:%s resultCode:%s user:%s",
-                        requestCode, resultCode, user?.displayName))
-                // ...
             } else {
-                // Sign in failed. If response is null the user canceled the
-                // sign-in flow using the back button. Otherwise check
-                // response.getError().getErrorCode() and handle the error.
-                // ...
                 println(String.format("sign_in fail:%s", response?.error?.errorCode))
             }
         }
@@ -114,15 +104,10 @@ class HomeFragment : Fragment() {
         })
     }
 
-    private fun observeProfileButton() {
+    private fun observeProfileButtonClick() {
         viewModel.profileButtonClick.observe(viewLifecycleOwner, Observer { isClicked ->
             if (user == null) {
-                this.startActivityForResult(
-                        AuthUI.getInstance()
-                                .createSignInIntentBuilder()
-                                .setAvailableProviders(listOf(AuthUI.IdpConfig.GoogleBuilder().build()))
-                                .build(),
-                        RC_SIGN_IN)
+                SignInDialogFragment.newInstance().show(fragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
             } else {
                 val action =
                         HomeFragmentDirections.actionHomeFragmentToProfileFragment(user!!)
@@ -130,6 +115,13 @@ class HomeFragment : Fragment() {
                 profileButton.setOnClickListener(Navigation.createNavigateOnClickListener(
                         R.id.action_homeFragment_to_profileFragment, action.arguments))
             }
+        })
+    }
+
+    private fun observeSignIn() {
+        viewModel.user.observe(this, Observer { user: FirebaseUser? ->
+            this.user = user
+            setProfileButton(user != null)
         })
     }
 

@@ -1,6 +1,5 @@
 package app.carpecoin
 
-import android.view.View
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.MutableLiveData
 import com.google.firebase.auth.FirebaseAuth

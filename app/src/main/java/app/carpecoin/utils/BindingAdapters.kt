@@ -4,8 +4,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.bumptech.glide.Glide
 import androidx.databinding.BindingAdapter
-import com.bumptech.glide.request.RequestOptions
-
+import com.bumptech.glide.request.RequestOptions.circleCropTransform
 
 
 @BindingAdapter("imageUrl")
@@ -19,7 +18,7 @@ fun ImageView.setImageUrl(url: String?) {
 fun ImageView.setProfileImageUrl(url: String?) {
     Glide.with(context)
             .load(url)
-            .apply(RequestOptions.circleCropTransform())
+            .apply(circleCropTransform())
             .into(this)
 }
 

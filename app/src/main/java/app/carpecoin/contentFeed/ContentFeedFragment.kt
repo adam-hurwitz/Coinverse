@@ -36,7 +36,6 @@ class ContentFeedFragment : Fragment() {
 
     private lateinit var binding: FragmentContentFeedBinding
     private lateinit var viewModel: ContentFeedViewModel
-    private lateinit var lifecycleOwner: LifecycleOwner
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
