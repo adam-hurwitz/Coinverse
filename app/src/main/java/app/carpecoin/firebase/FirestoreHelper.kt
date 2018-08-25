@@ -1,4 +1,4 @@
-package app.carpecoin.utils
+package app.carpecoin.firebase
 
 import android.content.Context
 import app.carpecoin.utils.auth.Auth
@@ -7,7 +7,7 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.firestore.FirebaseFirestore
 
-object FirebaseHelper {
+object FirestoreHelper {
     fun initialize(context: Context) {
         Firebase.setAndroidContext(context)
         var priceFirestoreEnabled = false

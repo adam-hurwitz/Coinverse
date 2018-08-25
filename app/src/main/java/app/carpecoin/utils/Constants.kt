@@ -9,9 +9,6 @@ object Constants {
     // Home
     const val ON_BACK_PRESS_DELAY_IN_MILLIS = 500L
 
-    // Content feed
-    const val CONTENT_ALL_COLLECTION = "CONTENT_ALL"
-    const val CONTENT_BY_WEEK_COLLECTION = "CONTENT_BY_WEEK"
     const val PREFETCH_DISTANCE = 24
     const val PAGE_SIZE = 12
 }

@@ -15,6 +15,7 @@ import com.firebase.ui.auth.IdpResponse
 import android.content.Intent
 import androidx.navigation.Navigation
 import app.carpecoin.contentFeed.ContentFeedFragment
+import app.carpecoin.firebase.FirestoreCollections.usersCollection
 import app.carpecoin.utils.Constants.RC_SIGN_IN
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
@@ -122,6 +123,11 @@ class HomeFragment : Fragment() {
         viewModel.user.observe(this, Observer { user: FirebaseUser? ->
             this.user = user
             setProfileButton(user != null)
+            //TODO: Save user to Firebase if new.
+            //TODO: Refactor User object to include content information
+            /*if (user != null && usersCollection.document("1234") == null) {
+                usersCollection.document("1234").set(user)
+            }*/
         })
     }
 

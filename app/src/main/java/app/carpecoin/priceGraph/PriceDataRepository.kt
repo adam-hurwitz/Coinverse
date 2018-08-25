@@ -10,13 +10,11 @@ import app.carpecoin.Enums.Exchange.*
 import kotlin.collections.HashMap
 import com.jjoe64.graphview.series.LineGraphSeries
 import app.carpecoin.Enums.Timeframe
+import app.carpecoin.firebase.FirestoreCollections.priceDifferenceCollection
 import app.carpecoin.priceGraph.models.*
 import app.carpecoin.utils.Constants.TIMESTAMP
 import app.carpecoin.utils.DateAndTime.getTimeframe
-import app.carpecoin.utils.auth.Auth
-import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.EventListener
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import io.reactivex.Observable
@@ -26,7 +24,6 @@ import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.functions.Function5
 
-private const val MAX_PRICE_DIFFERENCE_COLLECTION = "maximumPercentDifference"
 private val LOG_TAG = PriceDataRepository::class.java.simpleName
 
 object PriceDataRepository {
@@ -34,11 +31,6 @@ object PriceDataRepository {
     var graphLiveData = MutableLiveData<HashMap<Exchange, PriceGraphData>>()
     var priceDifferenceDetailsLiveData = MutableLiveData<PercentDifference>()
     var graphConstraintsLiveData = MutableLiveData<PriceGraphXAndYConstraints>()
-
-    //TODO: Use dependency injection.
-    private val priceDifferenceCollection = FirebaseFirestore
-            .getInstance(FirebaseApp.getInstance(Auth.PRICE_FIRESTORE_NAME))
-            .collection(MAX_PRICE_DIFFERENCE_COLLECTION)
 
     private var xIndex = 0.0
     private var index = 0

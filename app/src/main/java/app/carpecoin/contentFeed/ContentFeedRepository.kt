@@ -2,15 +2,13 @@ package app.carpecoin.contentFeed
 
 import androidx.lifecycle.MutableLiveData
 import app.carpecoin.utils.Constants.QUALITY_SCORE
-import app.carpecoin.utils.auth.Auth
-import com.google.firebase.FirebaseApp
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import app.carpecoin.Enums.Timeframe
 import app.carpecoin.Enums.Timeframe.WEEK
 import app.carpecoin.contentFeed.models.Content
-import app.carpecoin.utils.Constants.CONTENT_ALL_COLLECTION
-import app.carpecoin.utils.Constants.CONTENT_BY_WEEK_COLLECTION
+import app.carpecoin.firebase.FirestoreCollections
+import app.carpecoin.firebase.FirestoreCollections.ALL_COLLECTION
+import app.carpecoin.firebase.FirestoreCollections.WEEK_COLLECTION
 import com.google.firebase.firestore.ListenerRegistration
 
 private val LOG_TAG = ContentFeedRepository::class.java.simpleName
@@ -26,12 +24,12 @@ object ContentFeedRepository {
         //TODO: Get Content Collection based on timeframe.
         var contentCollection = ""
         when (timeframe) {
-            WEEK -> contentCollection = CONTENT_BY_WEEK_COLLECTION
-            else -> contentCollection = CONTENT_ALL_COLLECTION
+            WEEK -> contentCollection = WEEK_COLLECTION
+            else -> contentCollection = ALL_COLLECTION
         }
 
         //TODO: Explore use of Kotlin dependency injection.
-        return FirebaseFirestore.getInstance(FirebaseApp.getInstance(Auth.CONTENT_FIRESTORE_NAME))
+        return FirestoreCollections.contentCollection
                 .collection(contentCollection).orderBy(QUALITY_SCORE, Query.Direction.DESCENDING)
     }
 
