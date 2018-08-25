@@ -13,14 +13,18 @@ import app.carpecoin.coin.databinding.FragmentHomeBinding
 import app.carpecoin.priceGraph.PriceGraphFragment
 import com.firebase.ui.auth.IdpResponse
 import android.content.Intent
+import android.util.Log
 import androidx.navigation.Navigation
 import app.carpecoin.contentFeed.ContentFeedFragment
 import app.carpecoin.firebase.FirestoreCollections.usersCollection
 import app.carpecoin.utils.Constants.RC_SIGN_IN
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.fragment_home.*
+
+private var LOG_TAG = HomeFragment::class.java.simpleName
 
 private const val PRICEGRAPH_FRAGMENT_TAG = "priceGraphFragmentTag"
 private const val CONTENTFEED_FRAGMENT_TAG = "contentFeedFragmentTag"
@@ -123,11 +127,21 @@ class HomeFragment : Fragment() {
         viewModel.user.observe(this, Observer { user: FirebaseUser? ->
             this.user = user
             setProfileButton(user != null)
-            //TODO: Save user to Firebase if new.
-            //TODO: Refactor User object to include content information
-            /*if (user != null && usersCollection.document("1234") == null) {
-                usersCollection.document("1234").set(user)
-            }*/
+            if (user != null) {
+                usersCollection.document(user.uid).get().addOnCompleteListener(
+                        { userQuery ->
+                            if (!userQuery.result.exists()) {
+                                //TODO: Create User object.
+                                //username, email, savedContent, laterContent, archivedContent
+                                usersCollection.document(user.uid).set(mapOf(Pair("name", user.displayName)))
+                                        .addOnSuccessListener {
+                                            Log.v(LOG_TAG, String.format("New user added success:%s", it))
+                                        }.addOnFailureListener {
+                                            Log.v(LOG_TAG, String.format("New user added failure:%s", it))
+                                        }
+                            }
+                        })
+            }
         })
     }
 
