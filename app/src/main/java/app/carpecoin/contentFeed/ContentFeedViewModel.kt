@@ -1,44 +1,39 @@
 package app.carpecoin.contentFeed
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.paging.LivePagedListBuilder
+import androidx.paging.PagedList
 import app.carpecoin.Enums
 import app.carpecoin.Enums.Timeframe
 import app.carpecoin.contentFeed.models.Content
+import app.carpecoin.utils.Constants.PAGE_SIZE
+import app.carpecoin.utils.Constants.PREFETCH_DISTANCE
 
 
-class ContentFeedViewModel: ViewModel(){
+class ContentFeedViewModel : ViewModel() {
 
-    //TODO: Paid feature
-    //var isRealtimeDataEnabled = true
-
-    //TODO: Set timeframe from UI.
+    //TODO: Add isRealtimeDataEnabled Boolean for paid feature.
     var timeframe = MutableLiveData<Timeframe>()
+    var contentFeedDataSourceFactory = ContentFeedDataSourceFactory(timeframe)
+    val contentList: LiveData<PagedList<Content>> = LivePagedListBuilder(
+            contentFeedDataSourceFactory,
+            PagedList.Config.Builder()
+                    .setEnablePlaceholders(true)
+                    .setPrefetchDistance(PREFETCH_DISTANCE)
+                    .setPageSize(PAGE_SIZE)
+                    .build())
+            .build()
+
+    var contentSelected = MutableLiveData<Content>()
 
     init {
         timeframe.value = Enums.Timeframe.WEEK
     }
 
-    val contentFeedQuery = ContentFeedRepository.getContentFeedQuery(timeframe.value)
-
-    var contentSelected = MutableLiveData<Content>()
-
-    fun contentClicked(content: Content){
+    fun contentClicked(content: Content) {
         contentSelected.value = content
-        //println(String.format("CONTENT_CLICKED:%s", content.contentTitle))
-
     }
-
-    //TODO: Keep in case Adapter is refactored to PagedListAdapter
-    /*private var toInitializeContentFeedData = MutableLiveData<Boolean>()
-
-    fun initializeData(isRealtimeDataEnabled: Boolean) {
-        this.toInitializeContentFeedData.value = true
-        ContentFeedRepository.startFirestoreEventListeners(isRealtimeDataEnabled, timeframe.value!!)
-    }
-
-    val contentFeedLiveData = Transformations.switchMap(toInitializeContentFeedData) {
-        ContentFeedRepository.contentFeedLiveData
-    }*/
 
 }

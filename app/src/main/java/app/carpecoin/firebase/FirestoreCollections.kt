@@ -1,16 +1,14 @@
 package app.carpecoin.firebase
 
-import app.carpecoin.utils.Constants
 import app.carpecoin.utils.auth.Auth
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FirebaseFirestore
 
 object FirestoreCollections {
-    // Content feed/
+    // Content feed.
     const val CONTENT_COLLECTION = "content"
     const val TIMEFRAME = "timeframe"
     const val ALL_COLLECTION = "all"
-    const val WEEK_COLLECTION = "week"
 
     // Users.
     const val USERS_COLLECTION = "users"

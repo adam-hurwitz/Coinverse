@@ -81,17 +81,13 @@ object PriceDataRepository {
                                 .subscribeOn(Schedulers.io())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribeWith(object : DisposableObserver<Status>() {
-                                    override fun onNext(status: Status) {
-                                        Log.v(LOG_TAG, String.format("Graph data status: %s", status))
-                                    }
+                                    override fun onNext(status: Status) {}
 
                                     override fun onError(e: Throwable) {
                                         e.printStackTrace()
                                     }
 
-                                    override fun onComplete() {
-                                        Log.v(LOG_TAG, String.format("Graph data status: complete"))
-                                    }
+                                    override fun onComplete() {}
                                 }))
                     }
                 })
