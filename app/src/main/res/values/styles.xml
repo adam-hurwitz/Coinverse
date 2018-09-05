@@ -57,8 +57,6 @@
     <style name="contentCardStyle">
         <item name="android:layout_height">@dimen/cell_content_feed_height</item>
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_marginLeft">@dimen/margin_small</item>
-        <item name="android:layout_marginRight">@dimen/margin_small</item>
         <item name="android:layout_marginTop">@dimen/margin_tiniest</item>
         <item name="android:layout_marginBottom">@dimen/margin_tiniest</item>
         <item name="android:elevation">@dimen/card_elevation</item>

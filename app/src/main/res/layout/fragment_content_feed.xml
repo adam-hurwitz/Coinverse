@@ -14,7 +14,7 @@
         android:id="@+id/swipeToRefreshView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="app.carpecoin.contentFeed.ContentFeedFragment">
+        tools:context="app.carpecoin.contentFeed.ContentFragment">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/contentFeedRecyclerView"

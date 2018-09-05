@@ -71,7 +71,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="@dimen/margin_medium"
                 android:layout_marginTop="@dimen/margin_small"
-                android:src="@drawable/ic_vpn_key_black_24dp"
+                android:src="@drawable/ic_key_black_24dp"
                 app:layout_constraintBottom_toBottomOf="@id/percentDifference"
                 app:layout_constraintLeft_toLeftOf="parent" />
 

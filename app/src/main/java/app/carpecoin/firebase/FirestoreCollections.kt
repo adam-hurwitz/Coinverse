@@ -9,6 +9,8 @@ object FirestoreCollections {
     const val CONTENT_COLLECTION = "content"
     const val TIMEFRAME = "timeframe"
     const val ALL_COLLECTION = "all"
+    const val ARCHIVED_COLLECTION = "archived"
+    const val SAVED_COLLECTION = "collection"
 
     // Users.
     const val USERS_COLLECTION = "users"

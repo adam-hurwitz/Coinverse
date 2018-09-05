@@ -21,7 +21,7 @@
     </fragment>
     <fragment
         android:id="@+id/profileFragment"
-        android:name="app.carpecoin.ProfileFragment"
+        android:name="app.carpecoin.user.ProfileFragment"
         android:label="fragment_profile"
         tools:layout="@layout/fragment_profile" >
         <argument

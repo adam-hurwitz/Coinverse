@@ -6,25 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
-import app.carpecoin.coin.R
-import app.carpecoin.priceGraph.models.PriceGraphData
-import com.jjoe64.graphview.series.DataPoint
-import com.jjoe64.graphview.series.LineGraphSeries
-import app.carpecoin.Enums.Exchange.BINANCE
-import app.carpecoin.Enums.Exchange.GEMINI
-import app.carpecoin.Enums.Exchange.KUCOIN
-import app.carpecoin.Enums.Exchange.KRAKEN
-import app.carpecoin.Enums.Exchange.GDAX
-import app.carpecoin.Enums.OrderType
-import app.carpecoin.Enums.OrderType.ASK
-import app.carpecoin.Enums.OrderType.BID
-import app.carpecoin.Enums.Timeframe
-import app.carpecoin.Enums.Timeframe.DAY
-import app.carpecoin.priceGraph.models.PriceGraphXAndYConstraints
-import com.jjoe64.graphview.GridLabelRenderer
-import app.carpecoin.Enums.Exchange
-import app.carpecoin.priceGraph.models.PercentDifference
-import app.carpecoin.utils.ExchangeColors
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
@@ -32,13 +13,28 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import app.carpecoin.Enums
+import app.carpecoin.Enums.Exchange
+import app.carpecoin.Enums.Exchange.*
+import app.carpecoin.Enums.OrderType
+import app.carpecoin.Enums.OrderType.ASK
+import app.carpecoin.Enums.OrderType.BID
+import app.carpecoin.Enums.Timeframe
+import app.carpecoin.Enums.Timeframe.DAY
 import app.carpecoin.HomeViewModel
+import app.carpecoin.coin.R
 import app.carpecoin.coin.databinding.FragmentPriceGraphBinding
+import app.carpecoin.priceGraph.models.PercentDifference
+import app.carpecoin.priceGraph.models.PriceGraphData
+import app.carpecoin.priceGraph.models.PriceGraphXAndYConstraints
+import app.carpecoin.utils.ExchangeColors
+import com.jjoe64.graphview.GridLabelRenderer
+import com.jjoe64.graphview.series.DataPoint
+import com.jjoe64.graphview.series.LineGraphSeries
 import kotlinx.android.synthetic.main.fragment_price_graph.*
 
 private val dataPointRadiusValue = TypedValue()
 
-class PriceGraphFragment : Fragment() {
+class PriceFragment : Fragment() {
     private lateinit var binding: FragmentPriceGraphBinding
     private lateinit var priceViewModel: PriceDataViewModel
     private lateinit var homeViewModel: HomeViewModel
@@ -76,7 +72,7 @@ class PriceGraphFragment : Fragment() {
 
     companion object {
         @JvmStatic
-        fun newInstance() = PriceGraphFragment()
+        fun newInstance() = PriceFragment()
     }
 
     fun initializeData() {

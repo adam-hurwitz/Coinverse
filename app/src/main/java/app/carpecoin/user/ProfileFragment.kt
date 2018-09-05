@@ -1,23 +1,27 @@
-package app.carpecoin
+package app.carpecoin.user
 
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import app.carpecoin.coin.databinding.FragmentProfileBinding
-import kotlinx.android.synthetic.main.fragment_profile.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
+import app.carpecoin.HomeViewModel
+import app.carpecoin.coin.R
+import app.carpecoin.coin.databinding.FragmentProfileBinding
+import app.carpecoin.firebase.FirestoreCollections.ARCHIVED_COLLECTION
+import app.carpecoin.firebase.FirestoreCollections.usersCollection
+import app.carpecoin.utils.Constants.ON_BACK_PRESS_DELAY_IN_MILLIS
 import com.firebase.ui.auth.AuthUI
 import com.google.android.material.snackbar.Snackbar
-import app.carpecoin.coin.R
-import app.carpecoin.firebase.FirestoreCollections.usersCollection
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import app.carpecoin.utils.Constants.ON_BACK_PRESS_DELAY_IN_MILLIS
+import com.google.firebase.firestore.CollectionReference
+import kotlinx.android.synthetic.main.fragment_profile.*
+
 
 private var LOG_TAG = ProfileFragment::class.java.simpleName
 
@@ -81,7 +85,13 @@ class ProfileFragment : Fragment() {
                         .delete(context!!)
                         .addOnCompleteListener {
                             if (it.isSuccessful) {
-                                usersCollection.document(viewModel.user.value!!.uid).delete()
+                                //TODO: Refactor to handle on server.
+                                deleteCollection(usersCollection
+                                        .document(viewModel.user.value!!.uid)
+                                        .collection(ARCHIVED_COLLECTION), 20)
+                                usersCollection
+                                        .document(viewModel.user.value!!.uid)
+                                        .delete()
                                         .addOnSuccessListener {
                                             viewModel.user.value = null
                                             message = R.string.deleted
@@ -104,5 +114,28 @@ class ProfileFragment : Fragment() {
                 Snackbar.make(view, getString(message), Snackbar.LENGTH_SHORT).show()
             }
         }
+    }
+
+    fun deleteCollection(collection: CollectionReference, batchSize: Int) {
+        try {
+            // Retrieve a small batch of documents to avoid out-of-memory errors/
+            var deleted = 0
+            collection
+                    .limit(batchSize.toLong())
+                    .get()
+                    .addOnCompleteListener {
+                        for (document in it.result.documents) {
+                            document.getReference().delete()
+                            ++deleted
+                        }
+                        if (deleted >= batchSize) {
+                            // retrieve and delete another batch
+                            deleteCollection(collection, batchSize)
+                        }
+                    }
+        } catch (e: Exception) {
+            System.err.println("Error deleting collection : " + e.message)
+        }
+
     }
 }

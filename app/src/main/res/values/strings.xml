@@ -16,6 +16,7 @@
     <string name="timeframe_last_day">Last day</string>
 
     <!--Content feed-->
+    <string name="first_dismiss_attempt">"firstDismiss"</string>
     <string name="preview_content_description">Preview image for content item.</string>
     <string name="profile_content_description">User profile login button.</string>
     <string name="just_now">just now</string>

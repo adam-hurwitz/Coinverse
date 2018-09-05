@@ -18,7 +18,7 @@
     <androidx.cardview.widget.CardView
         style="@style/contentCardStyle"
         android:onClick="@{() -> viewmodel.contentClicked(data)}"
-        app:cardCornerRadius="@dimen/card_radius">
+        app:cardCornerRadius="0dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/cell_content_feed"

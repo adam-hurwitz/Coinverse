@@ -15,7 +15,7 @@
         android:id="@+id/profileFragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="app.carpecoin.ProfileFragment">
+        tools:context="app.carpecoin.user.ProfileFragment">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -61,7 +61,7 @@
                 style="@style/ButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:drawableStart="@drawable/ic_archive_24dp"
+                android:drawableStart="@drawable/ic_archive_color_primary_24dp"
                 android:drawablePadding="@dimen/padding_small"
                 android:text="@string/archives"
                 app:layout_constraintLeft_toLeftOf="parent"

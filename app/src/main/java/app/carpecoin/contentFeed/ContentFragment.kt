@@ -10,26 +10,37 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
+import app.carpecoin.HomeViewModel
 import app.carpecoin.coin.databinding.FragmentContentFeedBinding
+import app.carpecoin.contentFeed.adapter.ContentAdapter
+import app.carpecoin.contentFeed.adapter.ItemTouchHelper
+import app.carpecoin.contentFeed.room.ContentDatabase
+import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.fragment_content_feed.*
 
-private val LOG_TAG = ContentFeedFragment::class.java.simpleName
+private val LOG_TAG = ContentFragment::class.java.simpleName
 
-class ContentFeedFragment : Fragment() {
-
+class ContentFragment : Fragment() {
     private lateinit var binding: FragmentContentFeedBinding
-    private lateinit var viewModel: ContentFeedViewModel
+    private lateinit var contentViewModel: ContentFeedViewModel
+    private lateinit var homeViewModel: HomeViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel = ViewModelProviders.of(this).get(ContentFeedViewModel::class.java)
+        contentViewModel = ViewModelProviders.of(this).get(ContentFeedViewModel::class.java)
+        homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
+        val contentDatabase = ContentDatabase.getAppDatabase(context!!)
+        contentViewModel.contentDatabase = contentDatabase
+        if (savedInstanceState == null) {
+            initializeData()
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         binding = FragmentContentFeedBinding.inflate(inflater, container, false)
         binding.setLifecycleOwner(this)
-        binding.viewmodel = viewModel
+        binding.viewmodel = contentViewModel
         return binding.root
     }
 
@@ -38,32 +49,46 @@ class ContentFeedFragment : Fragment() {
         //TODO: Handle savedInstanceState adapter position.
         initializeAdapter()
         swipeToRefreshView.setOnRefreshListener {
-            viewModel.contentFeedDataSourceFactory.sourceLiveData.value?.invalidate()
+            initializeData()
         }
         observeContentSelected()
     }
 
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        observeSignIn()
+    }
+
     companion object {
         @JvmStatic
-        fun newInstance() = ContentFeedFragment()
+        fun newInstance() = ContentFragment()
+    }
+
+    fun initializeData() {
+        contentViewModel.initializeData(contentViewModel.isRealtimeDataEnabled)
     }
 
     private fun initializeAdapter() {
-        val adapter = ContentAdapter(viewModel)
+        val adapter = ContentAdapter(contentViewModel)
         contentFeedRecyclerView.layoutManager = LinearLayoutManager(context)
-        viewModel.contentList.observe(this, Observer { contentList ->
+        contentViewModel.getContentList().observe(viewLifecycleOwner, Observer { contentList ->
             adapter.submitList(contentList)
             swipeToRefreshView.isRefreshing = false
         })
         contentFeedRecyclerView.adapter = adapter
+        ItemTouchHelper().build(context!!, adapter, fragmentManager!!).attachToRecyclerView(contentFeedRecyclerView)
     }
 
+
     private fun observeContentSelected() {
-        viewModel.contentSelected.observe(this, Observer { content ->
+        contentViewModel.contentSelected.observe(this, Observer { content ->
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube://${content.id}")))
         })
     }
 
+    private fun observeSignIn() {
+        homeViewModel.user.observe(this, Observer { user: FirebaseUser? ->
+            initializeData()
+        })
+    }
 }
-
-

@@ -23,8 +23,8 @@ object Enums {
         SUCCESS, ERROR
     }
 
-    // Content feed.
-    enum class ContentType {
-        YOUTUBE, EMPTY
+    enum class ContentType(val code: Int) {
+        EMPTY(0),
+        YOUTUBE(1)
     }
 }

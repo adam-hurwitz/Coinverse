@@ -1,4 +1,4 @@
-package app.carpecoin
+package app.carpecoin.user
 
 import android.app.Activity
 import android.content.Intent
@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProviders
+import app.carpecoin.HomeViewModel
 import app.carpecoin.coin.R
 import app.carpecoin.coin.databinding.FragmentSignInDialogBinding
 import app.carpecoin.utils.Constants.RC_SIGN_IN

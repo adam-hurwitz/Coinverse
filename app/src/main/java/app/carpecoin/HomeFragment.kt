@@ -1,34 +1,36 @@
 package app.carpecoin
 
 import android.app.Activity.RESULT_OK
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.Navigation
 import app.carpecoin.coin.R
 import app.carpecoin.coin.databinding.FragmentHomeBinding
-import app.carpecoin.priceGraph.PriceGraphFragment
-import com.firebase.ui.auth.IdpResponse
-import android.content.Intent
-import android.util.Log
-import androidx.navigation.Navigation
-import app.carpecoin.contentFeed.ContentFeedFragment
+import app.carpecoin.contentFeed.ContentFragment
 import app.carpecoin.firebase.FirestoreCollections.usersCollection
+import app.carpecoin.priceGraph.PriceFragment
+import app.carpecoin.user.SignInDialogFragment
+import app.carpecoin.user.models.UserInfo
 import app.carpecoin.utils.Constants.RC_SIGN_IN
+import app.carpecoin.utils.Constants.SIGNIN_DIALOG_FRAGMENT_TAG
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
-import com.google.android.gms.tasks.OnCompleteListener
+import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.fragment_home.*
+import java.util.*
 
 private var LOG_TAG = HomeFragment::class.java.simpleName
 
 private const val PRICEGRAPH_FRAGMENT_TAG = "priceGraphFragmentTag"
 private const val CONTENTFEED_FRAGMENT_TAG = "contentFeedFragmentTag"
-private const val SIGNIN_DIALOG_FRAGMENT_TAG = "signInDialogFragmentTag"
 
 class HomeFragment : Fragment() {
 
@@ -56,11 +58,11 @@ class HomeFragment : Fragment() {
                 && childFragmentManager.findFragmentByTag(PRICEGRAPH_FRAGMENT_TAG) == null
                 && childFragmentManager.findFragmentByTag(CONTENTFEED_FRAGMENT_TAG) == null) {
             childFragmentManager.beginTransaction()
-                    .replace(priceDataContainer.id, PriceGraphFragment.newInstance(),
+                    .replace(priceDataContainer.id, PriceFragment.newInstance(),
                             PRICEGRAPH_FRAGMENT_TAG)
                     .commit()
             childFragmentManager.beginTransaction()
-                    .replace(contentFeedContainer.id, ContentFeedFragment.newInstance(),
+                    .replace(contentFeedContainer.id, ContentFragment.newInstance(),
                             CONTENTFEED_FRAGMENT_TAG)
                     .commit()
         }
@@ -93,11 +95,9 @@ class HomeFragment : Fragment() {
                 swipeToRefresh.isEnabled = false
             } else {
                 swipeToRefresh.setOnRefreshListener {
-                    (fragmentManager?.findFragmentById(R.id.priceDataContainer) as PriceGraphFragment)
+                    //TODO: Decide 1 or 2 swipe-to-refresh for home screen.
+                    (fragmentManager?.findFragmentById(R.id.priceDataContainer) as PriceFragment)
                             .initializeData()
-                    //TODO: Decide 1 or 2 SwipeToRefresh for screen.
-                    /*(fragmentManager?.findFragmentById(R.id.contentFeedContainer) as ContentFeedFragment)
-                            .initializeData()*/
                 }
             }
         })
@@ -128,19 +128,20 @@ class HomeFragment : Fragment() {
             this.user = user
             setProfileButton(user != null)
             if (user != null) {
-                usersCollection.document(user.uid).get().addOnCompleteListener(
-                        { userQuery ->
-                            if (!userQuery.result.exists()) {
-                                //TODO: Create User object.
-                                //username, email, savedContent, laterContent, archivedContent
-                                usersCollection.document(user.uid).set(mapOf(Pair("name", user.displayName)))
-                                        .addOnSuccessListener {
-                                            Log.v(LOG_TAG, String.format("New user added success:%s", it))
-                                        }.addOnFailureListener {
-                                            Log.v(LOG_TAG, String.format("New user added failure:%s", it))
-                                        }
-                            }
-                        })
+                usersCollection.document(user.uid).get().addOnCompleteListener { userQuery ->
+                    if (!userQuery.result.exists()) {
+                        usersCollection.document(user.uid).set(
+                                UserInfo(user.uid, user.displayName, user.email, user.phoneNumber,
+                                        user.photoUrl.toString(),
+                                        Date(user.metadata!!.creationTimestamp),
+                                        Date(user.metadata!!.lastSignInTimestamp), user.providerId))
+                                .addOnSuccessListener {
+                                    Log.v(LOG_TAG, String.format("New user added success:%s", it))
+                                }.addOnFailureListener {
+                                    Log.v(LOG_TAG, String.format("New user added failure:%s", it))
+                                }
+                    }
+                }
             }
         })
     }
@@ -152,7 +153,7 @@ class HomeFragment : Fragment() {
                     .apply(RequestOptions.circleCropTransform())
                     .into(profileButton)
         } else {
-            profileButton.setImageResource(R.drawable.ic_profile_logged_in_24dp)
+            profileButton.setImageResource(R.drawable.ic_profile_logged_in_color_accent_24dp)
         }
     }
 
