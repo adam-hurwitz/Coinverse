@@ -14,20 +14,19 @@ import app.carpecoin.utils.Constants.PREFETCH_DISTANCE
 import app.carpecoin.utils.DateAndTime.getTimeframe
 
 
-class ContentFeedViewModel : ViewModel() {
+class ContentViewModel : ViewModel() {
     lateinit var contentDatabase: ContentDatabase
 
-    //TODO: Add isRealtimeDataEnabled Boolean for paid feature.
+    //TODO: Add isRealtime Boolean for paid feature.
     var timeframe = MutableLiveData<Timeframe>()
-    var isRealtimeDataEnabled = true
 
-    fun initializeData(isRealtimeDataEnabled: Boolean) {
-        ContentRepository.startFirestoreEventListeners(contentDatabase, isRealtimeDataEnabled, timeframe.value!!)
+    fun getContent(isRealtime: Boolean) {
+        ContentRepository.getContent(contentDatabase, isRealtime, timeframe.value!!)
     }
 
     fun getContentList(): LiveData<PagedList<Content>> {
         return LivePagedListBuilder(
-                ContentRepository.getAllPaged(getTimeframe(timeframe.value)),
+                ContentRepository.getAllPaged(contentDatabase, getTimeframe(timeframe.value)),
                 PagedList.Config.Builder()
                         .setEnablePlaceholders(true)
                         .setPrefetchDistance(PREFETCH_DISTANCE)

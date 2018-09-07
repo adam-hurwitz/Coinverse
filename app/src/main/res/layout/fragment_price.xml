@@ -6,7 +6,7 @@
 
         <variable
             name="viewmodel"
-            type="app.carpecoin.priceGraph.PriceDataViewModel" />
+            type="app.carpecoin.priceGraph.PriceViewModel" />
 
         <variable
             name="exchange"

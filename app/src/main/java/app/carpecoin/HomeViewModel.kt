@@ -1,18 +1,22 @@
 package app.carpecoin
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 
 
 class HomeViewModel : ViewModel() {
-    var isRealtimeDataEnabled = MutableLiveData<Boolean>()
-    var disableSwipeToRefresh = MutableLiveData<Boolean>()
+    var isRealtime = MutableLiveData<Boolean>()
+    var endSwipeToRefresh = MutableLiveData<Boolean>()
     var user = MutableLiveData<FirebaseUser>()
     var profileButtonClick = MutableLiveData<Boolean>()
 
     init {
+        //TODO: Set ability to toggle based on user configuration.
+        //TODO: Return info to ContentFragment observerSignIn().
+        //TODO: Toggle with button if subscribed user.
+        isRealtime.value = true
         user.value = getCurrentUser()
     }
 
@@ -24,12 +28,8 @@ class HomeViewModel : ViewModel() {
         return FirebaseAuth.getInstance().currentUser
     }
 
-    fun setRefreshStatus(isRealtimeDataEnabled: Boolean) {
-        this.isRealtimeDataEnabled.value = isRealtimeDataEnabled
-    }
-
     fun disableSwipeToRefresh() {
-        disableSwipeToRefresh.value = true
+        endSwipeToRefresh.value = true
     }
 
 }

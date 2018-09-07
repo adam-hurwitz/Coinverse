@@ -2,32 +2,32 @@ package app.carpecoin.priceGraph
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
-import com.jjoe64.graphview.series.DataPoint
 import app.carpecoin.Enums.Exchange
 import app.carpecoin.Enums.Status
 import app.carpecoin.Enums.Status.SUCCESS
-import app.carpecoin.Enums.Exchange.*
-import kotlin.collections.HashMap
-import com.jjoe64.graphview.series.LineGraphSeries
 import app.carpecoin.Enums.Timeframe
 import app.carpecoin.firebase.FirestoreCollections.priceDifferenceCollection
 import app.carpecoin.priceGraph.models.*
 import app.carpecoin.utils.Constants.TIMESTAMP
 import app.carpecoin.utils.DateAndTime.getTimeframe
+import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
+import com.jjoe64.graphview.series.DataPoint
+import com.jjoe64.graphview.series.LineGraphSeries
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.functions.Function5
 import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers
-import io.reactivex.functions.Function5
 
-private val LOG_TAG = PriceDataRepository::class.java.simpleName
+private val LOG_TAG = PriceRepository::class.java.simpleName
 
-object PriceDataRepository {
+object PriceRepository {
 
+    val compositeDisposable = CompositeDisposable()
     var graphLiveData = MutableLiveData<HashMap<Exchange, PriceGraphData>>()
     var priceDifferenceDetailsLiveData = MutableLiveData<PercentDifference>()
     var graphConstraintsLiveData = MutableLiveData<PriceGraphXAndYConstraints>()
@@ -44,54 +44,61 @@ object PriceDataRepository {
 
     private lateinit var listenerRegistration: ListenerRegistration
 
-    fun startFirestoreEventListeners(isLiveDataEnabled: Boolean, timeframe: Timeframe) {
-
-        if (!isLiveDataEnabled) {
+    fun getPrices(isRealtime: Boolean, timeframe: Timeframe) {
+        if (isRealtime) {
+            listenerRegistration = priceDifferenceCollection
+                    .orderBy(TIMESTAMP, Query.Direction.ASCENDING)
+                    .whereGreaterThan(TIMESTAMP, getTimeframe(timeframe))
+                    .addSnapshotListener(EventListener { value, error ->
+                        error?.run {
+                            Log.e(LOG_TAG, "Price Data EventListener Failed.", error)
+                            return@EventListener
+                        }
+                        parsePriceData(value!!.getDocumentChanges())
+                    })
+        } else {
             exchangeOrdersPointsMap.clear()
             exchangeOrdersDataMap.clear()
             index = 0
+            priceDifferenceCollection
+                    .orderBy(TIMESTAMP, Query.Direction.ASCENDING)
+                    .whereGreaterThan(TIMESTAMP, getTimeframe(timeframe))
+                    .get()
+                    .addOnCompleteListener {
+                        parsePriceData(it.result.documentChanges)
+                    }
         }
+    }
 
-        val compositeDisposable = CompositeDisposable()
-        listenerRegistration = priceDifferenceCollection
-                .orderBy(TIMESTAMP, Query.Direction.ASCENDING)
-                .whereGreaterThan(TIMESTAMP, getTimeframe(timeframe))
-                .addSnapshotListener(EventListener { value, error ->
-                    error?.run {
-                        Log.e(LOG_TAG, "Price Data EventListener Failed.", error)
-                        return@EventListener
-                    }
+    private fun parsePriceData(documentChanges: List<DocumentChange>) {
+        for (priceDataDocument in documentChanges) {
+            xIndex = index++.toDouble()
+            val priceData = priceDataDocument.document
+                    .toObject(MaximumPercentPriceDifference::class.java)
+            priceDifferenceDetailsLiveData.value = priceData.percentDifference
+            //TODO: Refactor axis to use dates.
 
-                    if (!isLiveDataEnabled) listenerRegistration.remove()
+            compositeDisposable.add(Observable.zip(
+                    generateGraphData(Exchange.GDAX, priceData.gdaxExchangeOrderData).subscribeOn(Schedulers.io()),
+                    generateGraphData(Exchange.BINANCE, priceData.binanceExchangeOrderData).subscribeOn(Schedulers.io()),
+                    generateGraphData(Exchange.GEMINI, priceData.geminiExchangeOrderData).subscribeOn(Schedulers.io()),
+                    generateGraphData(Exchange.KUCOIN, priceData.kucoinExchangeOrderData).subscribeOn(Schedulers.io()),
+                    generateGraphData(Exchange.KRAKEN, priceData.krakenExchangeOrderData).subscribeOn(Schedulers.io()),
+                    getFunction5())
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribeWith(object : DisposableObserver<Status>() {
+                        override fun onNext(status: Status) {}
 
-                    for (priceDataDocument in value!!.getDocumentChanges()) {
-                        xIndex = index++.toDouble()
-                        val priceData = priceDataDocument.document
-                                .toObject(MaximumPercentPriceDifference::class.java)
-                        priceDifferenceDetailsLiveData.value = priceData.percentDifference
-                        //TODO: Refactor axis to use dates
+                        override fun onError(e: Throwable) {
+                            e.printStackTrace()
+                        }
 
-                        compositeDisposable.add(Observable.zip(
-                                generateGraphData(GDAX, priceData.gdaxExchangeOrderData).subscribeOn(Schedulers.io()),
-                                generateGraphData(BINANCE, priceData.binanceExchangeOrderData).subscribeOn(Schedulers.io()),
-                                generateGraphData(GEMINI, priceData.geminiExchangeOrderData).subscribeOn(Schedulers.io()),
-                                generateGraphData(KUCOIN, priceData.kucoinExchangeOrderData).subscribeOn(Schedulers.io()),
-                                generateGraphData(KRAKEN, priceData.krakenExchangeOrderData).subscribeOn(Schedulers.io()),
-                                getFunction5())
-                                .subscribeOn(Schedulers.io())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribeWith(object : DisposableObserver<Status>() {
-                                    override fun onNext(status: Status) {}
-
-                                    override fun onError(e: Throwable) {
-                                        e.printStackTrace()
-                                    }
-
-                                    override fun onComplete() {}
-                                }))
-                    }
-                })
-        compositeDisposable.clear()
+                        override fun onComplete() {
+                            compositeDisposable.clear()
+                        }
+                    }))
+        }
     }
 
     private fun generateGraphData(exchange: Exchange, exchangeOrderData: ExchangeOrderData)

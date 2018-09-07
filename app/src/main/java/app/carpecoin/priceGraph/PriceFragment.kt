@@ -22,7 +22,7 @@ import app.carpecoin.Enums.Timeframe
 import app.carpecoin.Enums.Timeframe.DAY
 import app.carpecoin.HomeViewModel
 import app.carpecoin.coin.R
-import app.carpecoin.coin.databinding.FragmentPriceGraphBinding
+import app.carpecoin.coin.databinding.FragmentPriceBinding
 import app.carpecoin.priceGraph.models.PercentDifference
 import app.carpecoin.priceGraph.models.PriceGraphData
 import app.carpecoin.priceGraph.models.PriceGraphXAndYConstraints
@@ -30,29 +30,31 @@ import app.carpecoin.utils.ExchangeColors
 import com.jjoe64.graphview.GridLabelRenderer
 import com.jjoe64.graphview.series.DataPoint
 import com.jjoe64.graphview.series.LineGraphSeries
-import kotlinx.android.synthetic.main.fragment_price_graph.*
+import kotlinx.android.synthetic.main.fragment_price.*
 
 private val dataPointRadiusValue = TypedValue()
 
 class PriceFragment : Fragment() {
-    private lateinit var binding: FragmentPriceGraphBinding
-    private lateinit var priceViewModel: PriceDataViewModel
+    private lateinit var binding: FragmentPriceBinding
+    private lateinit var priceViewModel: PriceViewModel
     private lateinit var homeViewModel: HomeViewModel
 
     private var enabledExchangesList: ArrayList<Enums.Exchange?>? = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        priceViewModel = ViewModelProviders.of(this).get(PriceDataViewModel::class.java)
+        priceViewModel = ViewModelProviders.of(this).get(PriceViewModel::class.java)
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
         if (savedInstanceState == null) {
-            initializeData()
+            homeViewModel.isRealtime.observe(this, Observer {
+                getPrices(it)
+            })
         }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        binding = FragmentPriceGraphBinding.inflate(inflater, container, false)
+        binding = FragmentPriceBinding.inflate(inflater, container, false)
         binding.setLifecycleOwner(this)
         binding.viewmodel = priceViewModel
         return binding.root
@@ -61,7 +63,6 @@ class PriceFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setPriceGraphStyle()
-        setRealtimeDataConfiguration()
         setGraphVisibility(View.GONE)
 
         observeExchangesEnabled()
@@ -75,8 +76,8 @@ class PriceFragment : Fragment() {
         fun newInstance() = PriceFragment()
     }
 
-    fun initializeData() {
-        priceViewModel.initializeData(priceViewModel.isRealtimeDataEnabled)
+    fun getPrices(isRealtime: Boolean) {
+        priceViewModel.getPrices(isRealtime)
     }
 
     private fun setPriceGraphStyle() {
@@ -92,17 +93,6 @@ class PriceFragment : Fragment() {
                 else -> timeframe.text = resources.getString(R.string.timeframe_last_day)
             }
         })
-    }
-
-    private fun setRealtimeDataConfiguration() {
-        priceViewModel.isRealtimeDataEnabled.let {
-            homeViewModel.setRefreshStatus(it)
-            if (it) {
-                priceGraph.viewport.isScrollable = true
-            } else {
-                priceGraph.viewport.isScalable = true
-            }
-        }
     }
 
     private fun observeExchangesEnabled() {

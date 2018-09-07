@@ -23,6 +23,7 @@ import app.carpecoin.utils.Constants.SIGNIN_DIALOG_FRAGMENT_TAG
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.firebase.ui.auth.IdpResponse
+import com.google.android.material.appbar.AppBarLayout
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.fragment_home.*
 import java.util.*
@@ -37,18 +38,18 @@ class HomeFragment : Fragment() {
     private var user: FirebaseUser? = null
 
     private lateinit var binding: FragmentHomeBinding
-    private lateinit var viewModel: HomeViewModel
+    private lateinit var homeViewModel: HomeViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
+        homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         binding = FragmentHomeBinding.inflate(inflater, container, false)
         binding.setLifecycleOwner(this)
-        binding.viewmodel = viewModel
+        binding.viewmodel = homeViewModel
         return binding.root
     }
 
@@ -58,18 +59,17 @@ class HomeFragment : Fragment() {
                 && childFragmentManager.findFragmentByTag(PRICEGRAPH_FRAGMENT_TAG) == null
                 && childFragmentManager.findFragmentByTag(CONTENTFEED_FRAGMENT_TAG) == null) {
             childFragmentManager.beginTransaction()
-                    .replace(priceDataContainer.id, PriceFragment.newInstance(),
+                    .replace(priceContainer.id, PriceFragment.newInstance(),
                             PRICEGRAPH_FRAGMENT_TAG)
                     .commit()
             childFragmentManager.beginTransaction()
-                    .replace(contentFeedContainer.id, ContentFragment.newInstance(),
+                    .replace(contentContainer.id, ContentFragment.newInstance(),
                             CONTENTFEED_FRAGMENT_TAG)
                     .commit()
         }
-        user = viewModel.getCurrentUser()
+        user = homeViewModel.getCurrentUser()
         setProfileButton(user != null)
-        observeDataRealtimeStatus()
-        observeDisableSwipeToRefresh()
+        setRefresh()
         observeProfileButtonClick()
         observeSignIn()
     }
@@ -79,7 +79,7 @@ class HomeFragment : Fragment() {
         if (requestCode == RC_SIGN_IN) {
             val response = IdpResponse.fromResultIntent(data)
             if (resultCode == RESULT_OK) {
-                user = viewModel.getCurrentUser()
+                user = homeViewModel.getCurrentUser()
                 setProfileButton(user != null)
             } else {
                 println(String.format("sign_in fail:%s", response?.error?.errorCode))
@@ -87,30 +87,31 @@ class HomeFragment : Fragment() {
         }
     }
 
-    //TODO: Fix swipe to refresh and CollapasingToolBar overlap.
-    fun observeDataRealtimeStatus() {
-        viewModel.isRealtimeDataEnabled.observe(viewLifecycleOwner, Observer { isRealtimeDataEnabled: Boolean ->
-            if (isRealtimeDataEnabled) {
-                swipeToRefresh.isRefreshing = false
-                swipeToRefresh.isEnabled = false
-            } else {
-                swipeToRefresh.setOnRefreshListener {
-                    //TODO: Decide 1 or 2 swipe-to-refresh for home screen.
-                    (fragmentManager?.findFragmentById(R.id.priceDataContainer) as PriceFragment)
-                            .initializeData()
+    fun setRefresh() {
+        swipeToRefresh.setOnRefreshListener {
+            (childFragmentManager.findFragmentById(R.id.priceContainer) as PriceFragment)
+                    .getPrices(false)
+            (childFragmentManager.findFragmentById(R.id.contentContainer) as ContentFragment)
+                    .getContent(false)
+        }
+
+        appBar.addOnOffsetChangedListener(object : AppBarLayout.OnOffsetChangedListener {
+            override fun onOffsetChanged(appBarLayout: AppBarLayout, verticalOffset: Int) {
+                if (Math.abs(verticalOffset) - appBarLayout.getTotalScrollRange() == 0) {
+                    swipeToRefresh.isEnabled = false // appBar collapsed.
+                } else {
+                    swipeToRefresh.isEnabled = true // appBar expanded.
                 }
             }
         })
-    }
 
-    fun observeDisableSwipeToRefresh() {
-        viewModel.disableSwipeToRefresh.observe(viewLifecycleOwner, Observer { disableSwipeToRefresh: Boolean ->
+        homeViewModel.endSwipeToRefresh.observe(viewLifecycleOwner, Observer { disableSwipeToRefresh: Boolean ->
             swipeToRefresh.isRefreshing = false
         })
     }
 
     private fun observeProfileButtonClick() {
-        viewModel.profileButtonClick.observe(viewLifecycleOwner, Observer { isClicked ->
+        homeViewModel.profileButtonClick.observe(viewLifecycleOwner, Observer { isClicked ->
             if (user == null) {
                 SignInDialogFragment.newInstance().show(fragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
             } else {
@@ -124,7 +125,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun observeSignIn() {
-        viewModel.user.observe(this, Observer { user: FirebaseUser? ->
+        homeViewModel.user.observe(this, Observer { user: FirebaseUser? ->
             this.user = user
             setProfileButton(user != null)
             if (user != null) {

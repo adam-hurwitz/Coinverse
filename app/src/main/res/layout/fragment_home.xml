@@ -20,6 +20,7 @@
             android:layout_height="match_parent">
 
             <com.google.android.material.appbar.AppBarLayout
+                android:id="@+id/appBar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@android:color/white">
@@ -45,7 +46,7 @@
                     </androidx.appcompat.widget.Toolbar>
 
                     <FrameLayout
-                        android:id="@+id/priceDataContainer"
+                        android:id="@+id/priceContainer"
                         android:name="app.carpecoin.PriceDataFragment"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/price_graph_height"
@@ -60,7 +61,7 @@
             </com.google.android.material.appbar.AppBarLayout>
 
             <FrameLayout
-                android:id="@+id/contentFeedContainer"
+                android:id="@+id/contentContainer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior" />

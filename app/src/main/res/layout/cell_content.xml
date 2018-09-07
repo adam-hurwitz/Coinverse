@@ -11,7 +11,7 @@
 
         <variable
             name="viewmodel"
-            type="app.carpecoin.contentFeed.ContentFeedViewModel" />
+            type="app.carpecoin.contentFeed.ContentViewModel" />
 
     </data>
 

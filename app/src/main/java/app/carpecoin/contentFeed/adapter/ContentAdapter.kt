@@ -6,8 +6,8 @@ import android.view.ViewGroup
 import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.DiffUtil
 import app.carpecoin.ViewHolder
-import app.carpecoin.coin.databinding.CellContentFeedBinding
-import app.carpecoin.contentFeed.ContentFeedViewModel
+import app.carpecoin.coin.databinding.CellContentBinding
+import app.carpecoin.contentFeed.ContentViewModel
 import app.carpecoin.contentFeed.models.Content
 import app.carpecoin.firebase.FirestoreCollections.ARCHIVED_COLLECTION
 import app.carpecoin.firebase.FirestoreCollections.usersCollection
@@ -23,10 +23,10 @@ private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Content>() {
             oldContent == newContent
 }
 
-class ContentAdapter(var viewModel: ContentFeedViewModel)
+class ContentAdapter(var viewModel: ContentViewModel)
     : PagedListAdapter<Content, ViewHolder>(DIFF_CALLBACK) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = CellContentFeedBinding
+        val binding = CellContentBinding
                 .inflate(LayoutInflater.from(parent.context), parent, false)
         binding.viewmodel = viewModel
         val viewHolder = ViewHolder(binding)
