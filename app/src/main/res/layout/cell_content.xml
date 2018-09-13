@@ -7,11 +7,11 @@
 
         <variable
             name="data"
-            type="app.carpecoin.contentFeed.models.Content" />
+            type="app.carpecoin.content.models.Content" />
 
         <variable
             name="viewmodel"
-            type="app.carpecoin.contentFeed.ContentViewModel" />
+            type="app.carpecoin.content.ContentViewModel" />
 
     </data>
 
@@ -53,6 +53,7 @@
                 android:id="@+id/title"
                 style="@style/contentTitleStyle"
                 android:text='@{data.contentTitle, default="content title"}'
+                android:textColor="@color/colorPrimaryDark"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/preview" />

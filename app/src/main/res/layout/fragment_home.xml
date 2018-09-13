@@ -40,8 +40,7 @@
                             android:layout_width="@dimen/profileButton"
                             android:layout_height="@dimen/profileButton"
                             android:contentDescription="@string/profile_content_description"
-                            android:src="@drawable/ic_profile_logged_out_color_primary_24dp"
-                            android:onClick="@{() -> viewmodel.profileButtonClick(true)}" />
+                            android:src="@drawable/ic_profile_logged_out_color_primary_24dp" />
 
                     </androidx.appcompat.widget.Toolbar>
 
@@ -65,6 +64,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center|bottom"
+                android:layout_margin="@dimen/padding_medium"
+                android:src="@drawable/ic_star_border_color_primary_dark_24dp"
+                app:layout_anchor="@id/contentContainer"
+                app:layout_anchorGravity="center|bottom"
+                app:rippleColor="@android:color/darker_gray" />
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

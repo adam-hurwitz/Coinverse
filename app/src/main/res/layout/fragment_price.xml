@@ -13,200 +13,201 @@
             type="app.carpecoin.Enums.Exchange" />
     </data>
 
-        <androidx.constraintlayout.widget.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"
-            xmlns:tools="http://schemas.android.com/tools"
-            android:id="@+id/activity_main_constraint"
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/activity_main_constraint"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="app.carpecoin.MainActivity">
+
+        <TextView
+            android:id="@+id/pricePair"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:text="@{String.format(@string/price_pair_format, viewmodel.pricePair.BASE_CURRENCY, viewmodel.pricePair.QUOTE_CURRENCY)}"
+            android:textColor="@color/colorPrimaryDark"
+            android:textSize="@dimen/price_pair_text_size"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/timeframe"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/timeframe_text_size"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/pricePair" />
+
+        <com.jjoe64.graphview.GraphView
+            android:id="@+id/priceGraph"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:context="app.carpecoin.MainActivity">
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toTopOf="@+id/guideline"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/timeframe" />
 
-            <TextView
-                android:id="@+id/pricePair"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_small"
-                android:text="@{String.format(@string/price_pair_format, viewmodel.pricePair.BASE_CURRENCY, viewmodel.pricePair.QUOTE_CURRENCY)}"
-                android:textSize="@dimen/price_pair_text_size"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toTopOf="@+id/guideline"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <TextView
-                android:id="@+id/timeframe"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/timeframe_text_size"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/pricePair" />
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="@dimen/price_graph_constraint_guideline" />
 
-            <com.jjoe64.graphview.GraphView
-                android:id="@+id/priceGraph"
+        <ImageView
+            android:id="@+id/legend_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/margin_medium"
+            android:layout_marginTop="@dimen/margin_small"
+            android:src="@drawable/ic_key_black_24dp"
+            app:layout_constraintBottom_toBottomOf="@id/percentDifference"
+            app:layout_constraintLeft_toLeftOf="parent" />
+
+        <TextView
+            android:id="@+id/asks_legend"
+            style="@style/PriceGraphLegendStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/asks"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@+id/legend_image"
+            app:layout_constraintLeft_toRightOf="@id/legend_image"
+            app:layout_constraintTop_toTopOf="@id/legend_image" />
+
+        <TextView
+            android:id="@+id/bids_legend"
+            style="@style/PriceGraphLegendStyle"
+            android:text="@string/bids"
+            app:layout_constraintBottom_toBottomOf="@+id/legend_image"
+            app:layout_constraintLeft_toRightOf="@id/asks_legend"
+            app:layout_constraintTop_toTopOf="@id/asks_legend" />
+
+        <TextView
+            android:id="@+id/max_legend"
+            style="@style/PriceGraphLegendStyle"
+            android:drawableTop="@drawable/ic_arrow_drop_up_black_24dp"
+            android:text="@string/max"
+            app:layout_constraintBottom_toBottomOf="@+id/legend_image"
+            app:layout_constraintLeft_toRightOf="@id/bids_legend" />
+
+        <TextView
+            android:id="@+id/min_legend"
+            style="@style/PriceGraphLegendStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableTop="@drawable/ic_arrow_drop_down_black_24dp"
+            android:text="@string/min"
+            app:layout_constraintBottom_toBottomOf="@+id/legend_image"
+            app:layout_constraintLeft_toRightOf="@id/max_legend" />
+
+        <TextView
+            android:id="@+id/percentDifference"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/margin_medium"
+            android:layout_marginTop="@dimen/margin_small"
+            android:layout_marginRight="@dimen/margin_medium"
+            android:clickable="true"
+            android:drawableLeft="@drawable/ic_arrow_drop_up_black_24dp"
+            android:text="@{String.valueOf(String.format(@string/percent_difference_format, viewmodel.priceDifferenceDetailsLiveData.percent))}"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/priceGraph" />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_price_graph"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:cardCornerRadius="@dimen/price_graph_card_corner_radius"
+            app:cardElevation="0dp"
+            app:layout_constraintBottom_toBottomOf="@+id/activity_main_constraint"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/percentDifference">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/card_price_constraint"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                app:layout_constraintBottom_toTopOf="@+id/guideline"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/timeframe" />
+                android:layout_height="wrap_content">
 
-            <ProgressBar
-                android:id="@+id/progressBar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintBottom_toTopOf="@+id/guideline"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                <TextView
+                    android:id="@+id/coinbaseToggle"
+                    style="@style/ButtonStyle"
+                    android:onClick="@{() -> viewmodel.addOrRemoveEnabledExchanges(exchange.GDAX)}"
+                    android:text="@string/coinbase"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toLeftOf="@id/binanceToggle"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-            <androidx.constraintlayout.widget.Guideline
-                android:id="@+id/guideline"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                app:layout_constraintGuide_percent="@dimen/price_graph_constraint_guideline" />
+                <TextView
+                    android:id="@+id/binanceToggle"
+                    style="@style/ButtonStyle"
+                    android:onClick="@{() -> viewmodel.addOrRemoveEnabledExchanges(exchange.BINANCE)}"
+                    android:text="@string/binance"
+                    app:layout_constraintLeft_toRightOf="@+id/coinbaseToggle"
+                    app:layout_constraintRight_toLeftOf="@id/geminiToggle"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-            <ImageView
-                android:id="@+id/legend_image"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="@dimen/margin_medium"
-                android:layout_marginTop="@dimen/margin_small"
-                android:src="@drawable/ic_key_black_24dp"
-                app:layout_constraintBottom_toBottomOf="@id/percentDifference"
-                app:layout_constraintLeft_toLeftOf="parent" />
+                <TextView
+                    android:id="@+id/geminiToggle"
+                    style="@style/ButtonStyle"
+                    android:onClick="@{() -> viewmodel.addOrRemoveEnabledExchanges(exchange.GEMINI)}"
+                    android:text="@string/gemini"
+                    app:layout_constraintLeft_toRightOf="@id/binanceToggle"
+                    app:layout_constraintRight_toLeftOf="@id/kucoinToggle"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-            <TextView
-                android:id="@+id/asks_legend"
-                style="@style/PriceGraphLegendStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/asks"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="@+id/legend_image"
-                app:layout_constraintLeft_toRightOf="@id/legend_image"
-                app:layout_constraintTop_toTopOf="@id/legend_image" />
+                <TextView
+                    android:id="@+id/kucoinToggle"
+                    style="@style/ButtonStyle"
+                    android:onClick="@{() -> viewmodel.addOrRemoveEnabledExchanges(exchange.KUCOIN)}"
+                    android:text="@string/kucoin"
+                    app:layout_constraintLeft_toRightOf="@id/geminiToggle"
+                    app:layout_constraintRight_toLeftOf="@id/krakenToggle"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-            <TextView
-                android:id="@+id/bids_legend"
-                style="@style/PriceGraphLegendStyle"
-                android:text="@string/bids"
-                app:layout_constraintBottom_toBottomOf="@+id/legend_image"
-                app:layout_constraintLeft_toRightOf="@id/asks_legend"
-                app:layout_constraintTop_toTopOf="@id/asks_legend" />
+                <TextView
+                    android:id="@+id/krakenToggle"
+                    style="@style/ButtonStyle"
+                    android:onClick="@{() -> viewmodel.addOrRemoveEnabledExchanges(exchange.KRAKEN)}"
+                    android:text="@string/kraken"
+                    app:layout_constraintLeft_toRightOf="@+id/kucoinToggle"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-            <TextView
-                android:id="@+id/max_legend"
-                style="@style/PriceGraphLegendStyle"
-                android:drawableTop="@drawable/ic_arrow_drop_up_black_24dp"
-                android:text="@string/max"
-                app:layout_constraintBottom_toBottomOf="@+id/legend_image"
-                app:layout_constraintLeft_toRightOf="@id/bids_legend" />
+                <TextView
+                    android:id="@+id/baseToQuoteAsk"
+                    style="@style/PriceGraphMinAndMaxStyle"
+                    android:drawableTop="@drawable/ic_arrow_drop_down_black_24dp"
+                    android:text="@{String.valueOf(String.format(@string/base_to_quote_order_format, viewmodel.priceDifferenceDetailsLiveData.baseToQuoteAsk))}"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/coinbaseToggle" />
 
-            <TextView
-                android:id="@+id/min_legend"
-                style="@style/PriceGraphLegendStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:drawableTop="@drawable/ic_arrow_drop_down_black_24dp"
-                android:text="@string/min"
-                app:layout_constraintBottom_toBottomOf="@+id/legend_image"
-                app:layout_constraintLeft_toRightOf="@id/max_legend" />
+                <TextView
+                    android:id="@+id/baseToQuoteBid"
+                    style="@style/PriceGraphMinAndMaxStyle"
+                    android:drawableTop="@drawable/ic_arrow_drop_up_black_24dp"
+                    android:text="@{String.valueOf(String.format(@string/base_to_quote_order_format, viewmodel.priceDifferenceDetailsLiveData.baseToQuoteBid))}"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/coinbaseToggle" />
 
-            <TextView
-                android:id="@+id/percentDifference"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="@dimen/margin_medium"
-                android:layout_marginTop="@dimen/margin_small"
-                android:layout_marginRight="@dimen/margin_medium"
-                android:clickable="true"
-                android:drawableLeft="@drawable/ic_arrow_drop_up_black_24dp"
-                android:text="@{String.valueOf(String.format(@string/percent_difference_format, viewmodel.priceDifferenceDetailsLiveData.percent))}"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/priceGraph" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <androidx.cardview.widget.CardView
-                android:id="@+id/card_price_graph"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                app:cardCornerRadius="@dimen/price_graph_card_corner_radius"
-                app:cardElevation="0dp"
-                app:layout_constraintBottom_toBottomOf="@+id/activity_main_constraint"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/percentDifference">
+        </androidx.cardview.widget.CardView>
 
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/card_price_constraint"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:id="@+id/coinbaseToggle"
-                        style="@style/ButtonStyle"
-                        android:onClick="@{() -> viewmodel.addOrRemoveEnabledExchanges(exchange.GDAX)}"
-                        android:text="@string/coinbase"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintRight_toLeftOf="@id/binanceToggle"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <TextView
-                        android:id="@+id/binanceToggle"
-                        style="@style/ButtonStyle"
-                        android:onClick="@{() -> viewmodel.addOrRemoveEnabledExchanges(exchange.BINANCE)}"
-                        android:text="@string/binance"
-                        app:layout_constraintLeft_toRightOf="@+id/coinbaseToggle"
-                        app:layout_constraintRight_toLeftOf="@id/geminiToggle"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <TextView
-                        android:id="@+id/geminiToggle"
-                        style="@style/ButtonStyle"
-                        android:onClick="@{() -> viewmodel.addOrRemoveEnabledExchanges(exchange.GEMINI)}"
-                        android:text="@string/gemini"
-                        app:layout_constraintLeft_toRightOf="@id/binanceToggle"
-                        app:layout_constraintRight_toLeftOf="@id/kucoinToggle"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <TextView
-                        android:id="@+id/kucoinToggle"
-                        style="@style/ButtonStyle"
-                        android:onClick="@{() -> viewmodel.addOrRemoveEnabledExchanges(exchange.KUCOIN)}"
-                        android:text="@string/kucoin"
-                        app:layout_constraintLeft_toRightOf="@id/geminiToggle"
-                        app:layout_constraintRight_toLeftOf="@id/krakenToggle"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <TextView
-                        android:id="@+id/krakenToggle"
-                        style="@style/ButtonStyle"
-                        android:onClick="@{() -> viewmodel.addOrRemoveEnabledExchanges(exchange.KRAKEN)}"
-                        android:text="@string/kraken"
-                        app:layout_constraintLeft_toRightOf="@+id/kucoinToggle"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <TextView
-                        android:id="@+id/baseToQuoteAsk"
-                        style="@style/PriceGraphMinAndMaxStyle"
-                        android:drawableTop="@drawable/ic_arrow_drop_down_black_24dp"
-                        android:text="@{String.valueOf(String.format(@string/base_to_quote_order_format, viewmodel.priceDifferenceDetailsLiveData.baseToQuoteAsk))}"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/coinbaseToggle" />
-
-                    <TextView
-                        android:id="@+id/baseToQuoteBid"
-                        style="@style/PriceGraphMinAndMaxStyle"
-                        android:drawableTop="@drawable/ic_arrow_drop_up_black_24dp"
-                        android:text="@{String.valueOf(String.format(@string/base_to_quote_order_format, viewmodel.priceDifferenceDetailsLiveData.baseToQuoteBid))}"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/coinbaseToggle" />
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-            </androidx.cardview.widget.CardView>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

@@ -10,7 +10,6 @@ class HomeViewModel : ViewModel() {
     var isRealtime = MutableLiveData<Boolean>()
     var endSwipeToRefresh = MutableLiveData<Boolean>()
     var user = MutableLiveData<FirebaseUser>()
-    var profileButtonClick = MutableLiveData<Boolean>()
 
     init {
         //TODO: Set ability to toggle based on user configuration.
@@ -18,10 +17,6 @@ class HomeViewModel : ViewModel() {
         //TODO: Toggle with button if subscribed user.
         isRealtime.value = true
         user.value = getCurrentUser()
-    }
-
-    fun profileButtonClick(click: Boolean) {
-        profileButtonClick.value = true
     }
 
     fun getCurrentUser(): FirebaseUser? {

@@ -1,6 +1,6 @@
 package app.carpecoin
 
-import android.app.Activity.RESULT_OK
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -10,15 +10,17 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import androidx.navigation.Navigation
+import androidx.navigation.findNavController
+import app.carpecoin.Enums.FeedType.MAIN
+import app.carpecoin.Enums.FeedType.SAVED
 import app.carpecoin.coin.R
 import app.carpecoin.coin.databinding.FragmentHomeBinding
-import app.carpecoin.contentFeed.ContentFragment
+import app.carpecoin.content.ContentFragment
 import app.carpecoin.firebase.FirestoreCollections.usersCollection
 import app.carpecoin.priceGraph.PriceFragment
 import app.carpecoin.user.SignInDialogFragment
 import app.carpecoin.user.models.UserInfo
-import app.carpecoin.utils.Constants.RC_SIGN_IN
+import app.carpecoin.utils.Constants
 import app.carpecoin.utils.Constants.SIGNIN_DIALOG_FRAGMENT_TAG
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
@@ -28,10 +30,10 @@ import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.fragment_home.*
 import java.util.*
 
-private var LOG_TAG = HomeFragment::class.java.simpleName
-
+private val LOG_TAG = HomeFragment::class.java.simpleName
 private const val PRICEGRAPH_FRAGMENT_TAG = "priceGraphFragmentTag"
 private const val CONTENTFEED_FRAGMENT_TAG = "contentFeedFragmentTag"
+private const val FEED_TYPE = "feedType"
 
 class HomeFragment : Fragment() {
 
@@ -53,32 +55,38 @@ class HomeFragment : Fragment() {
         return binding.root
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        user = homeViewModel.getCurrentUser()
+        setCollapsingToolbarStates()
+        setProfileButton(user != null)
+        setClickListeners()
+        observeSignIn()
+        setRefresh()
+    }
+
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         if (savedInstanceState == null
                 && childFragmentManager.findFragmentByTag(PRICEGRAPH_FRAGMENT_TAG) == null
                 && childFragmentManager.findFragmentByTag(CONTENTFEED_FRAGMENT_TAG) == null) {
             childFragmentManager.beginTransaction()
-                    .replace(priceContainer.id, PriceFragment.newInstance(),
-                            PRICEGRAPH_FRAGMENT_TAG)
+                    .replace(priceContainer.id, PriceFragment.newInstance(), PRICEGRAPH_FRAGMENT_TAG)
                     .commit()
+            val contentBundle = Bundle()
+            contentBundle.putString(FEED_TYPE, MAIN.name)
             childFragmentManager.beginTransaction()
-                    .replace(contentContainer.id, ContentFragment.newInstance(),
+                    .replace(contentContainer.id, ContentFragment.newInstance(contentBundle),
                             CONTENTFEED_FRAGMENT_TAG)
                     .commit()
         }
-        user = homeViewModel.getCurrentUser()
-        setProfileButton(user != null)
-        setRefresh()
-        observeProfileButtonClick()
-        observeSignIn()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == RC_SIGN_IN) {
+        if (requestCode == Constants.RC_SIGN_IN) {
             val response = IdpResponse.fromResultIntent(data)
-            if (resultCode == RESULT_OK) {
+            if (resultCode == Activity.RESULT_OK) {
                 user = homeViewModel.getCurrentUser()
                 setProfileButton(user != null)
             } else {
@@ -87,41 +95,56 @@ class HomeFragment : Fragment() {
         }
     }
 
-    fun setRefresh() {
-        swipeToRefresh.setOnRefreshListener {
-            (childFragmentManager.findFragmentById(R.id.priceContainer) as PriceFragment)
-                    .getPrices(false)
-            (childFragmentManager.findFragmentById(R.id.contentContainer) as ContentFragment)
-                    .getContent(false)
-        }
-
+    private fun setCollapsingToolbarStates() {
         appBar.addOnOffsetChangedListener(object : AppBarLayout.OnOffsetChangedListener {
             override fun onOffsetChanged(appBarLayout: AppBarLayout, verticalOffset: Int) {
-                if (Math.abs(verticalOffset) - appBarLayout.getTotalScrollRange() == 0) {
-                    swipeToRefresh.isEnabled = false // appBar collapsed.
-                } else {
-                    swipeToRefresh.isEnabled = true // appBar expanded.
+                // appBar collapsed.
+                if (Math.abs(verticalOffset) - appBarLayout.totalScrollRange == 0) {
+                    swipeToRefresh.isEnabled = false
+                    fab.show()
+                } else { // appBar expanded.
+                    swipeToRefresh.isEnabled = true
+                    fab.hide()
                 }
             }
         })
-
-        homeViewModel.endSwipeToRefresh.observe(viewLifecycleOwner, Observer { disableSwipeToRefresh: Boolean ->
-            swipeToRefresh.isRefreshing = false
-        })
     }
 
-    private fun observeProfileButtonClick() {
-        homeViewModel.profileButtonClick.observe(viewLifecycleOwner, Observer { isClicked ->
-            if (user == null) {
-                SignInDialogFragment.newInstance().show(fragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
-            } else {
+    private fun setProfileButton(isLoggedIn: Boolean) {
+        if (isLoggedIn) {
+            Glide.with(this)
+                    .load(user?.photoUrl.toString())
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(profileButton)
+        } else {
+            profileButton.setImageResource(R.drawable.ic_profile_logged_in_color_accent_24dp)
+        }
+    }
+
+    private fun setClickListeners() {
+
+        profileButton.setOnClickListener { view: View ->
+            if (user != null) {
                 val action =
                         HomeFragmentDirections.actionHomeFragmentToProfileFragment(user!!)
                 action.setUser(user!!)
-                profileButton.setOnClickListener(Navigation.createNavigateOnClickListener(
-                        R.id.action_homeFragment_to_profileFragment, action.arguments))
+                view.findNavController().navigate(R.id.action_homeFragment_to_profileFragment, action.arguments)
+            } else {
+                SignInDialogFragment.newInstance().show(fragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
             }
-        })
+        }
+
+        fab.setOnClickListener { view: View ->
+            if (homeViewModel.user.value != null) {
+                val action =
+                        HomeFragmentDirections.actionHomeFragmentToContentFragment()
+                action.setFeedType(SAVED.name)
+                view.findNavController().navigate(R.id.action_homeFragment_to_contentFragment, action.arguments)
+            } else {
+                SignInDialogFragment.newInstance().show(fragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
+            }
+        }
+
     }
 
     private fun observeSignIn() {
@@ -147,15 +170,16 @@ class HomeFragment : Fragment() {
         })
     }
 
-    private fun setProfileButton(isLoggedIn: Boolean) {
-        if (isLoggedIn) {
-            Glide.with(this)
-                    .load(user?.photoUrl.toString())
-                    .apply(RequestOptions.circleCropTransform())
-                    .into(profileButton)
-        } else {
-            profileButton.setImageResource(R.drawable.ic_profile_logged_in_color_accent_24dp)
+    fun setRefresh() {
+        swipeToRefresh.setOnRefreshListener {
+            (childFragmentManager.findFragmentById(R.id.priceContainer) as PriceFragment)
+                    .getPrices(false)
+            (childFragmentManager.findFragmentById(R.id.contentContainer) as ContentFragment)
+                    .initializeMainContent(false)
         }
+        homeViewModel.endSwipeToRefresh.observe(viewLifecycleOwner, Observer { disableSwipeToRefresh: Boolean ->
+            swipeToRefresh.isRefreshing = false
+        })
     }
 
 }

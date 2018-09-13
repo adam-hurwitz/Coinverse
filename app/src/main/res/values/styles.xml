@@ -1,15 +1,15 @@
 <resources>
 
-    <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@android:color/darker_gray</item>
+        <item name="colorPrimaryDark">@android:color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@android:color/white</item>
+        <item name="android:windowLightNavigationBar">true</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="ToolbarTheme" >
-        <!--parent="Theme.AppCompat.Light.NoActionBar"-->
+    <style name="ToolbarTheme">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="colorPrimary">@android:color/white</item>
@@ -19,12 +19,13 @@
     </style>
 
     <style name="SelectableItemTheme">
-        <item name="colorControlHighlight">@color/colorPrimaryDark</item>
+        <item name="colorControlHighlight">@color/colorPrimary</item>
     </style>
 
     <style name="ButtonStyle" parent="Base.Widget.AppCompat.Button.Borderless">
         <item name="android:theme">@style/SelectableItemTheme</item>
         <item name="android:textSize">@dimen/button_text_size</item>
+        <item name="android:textColor">@color/colorPrimaryDark</item>
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="background">?attr/selectableItemBackground</item>

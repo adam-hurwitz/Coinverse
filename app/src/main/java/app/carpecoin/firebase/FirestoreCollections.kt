@@ -7,12 +7,12 @@ import com.google.firebase.firestore.FirebaseFirestore
 object FirestoreCollections {
     // Content feed.
     const val CONTENT_COLLECTION = "content"
-    const val TIMEFRAME = "timeframe"
-    const val ALL_COLLECTION = "all"
+    const val FEED = "feed"
+    const val MAIN_COLLECTION = "main"
     const val ARCHIVED_COLLECTION = "archived"
-    const val SAVED_COLLECTION = "collection"
+    const val SAVED_COLLECTION = "saved"
 
-    // Users.
+    // Users
     const val USERS_COLLECTION = "users"
 
     private const val MAX_PRICE_DIFFERENCE_COLLECTION = "maximumPercentDifference"
@@ -22,7 +22,7 @@ object FirestoreCollections {
     val contentCollection = FirebaseFirestore
             .getInstance(FirebaseApp.getInstance(Auth.CONTENT_FIRESTORE_NAME))
             .collection(CONTENT_COLLECTION)
-            .document(TIMEFRAME)
+            .document(FEED)
     val usersCollection = FirebaseFirestore
             .getInstance(FirebaseApp.getInstance(Auth.CONTENT_FIRESTORE_NAME))
             .collection(USERS_COLLECTION)

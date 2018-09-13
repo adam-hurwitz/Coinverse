@@ -1,4 +1,4 @@
-package app.carpecoin
+package app.carpecoin.content.adapter
 
 import androidx.databinding.ViewDataBinding
 import androidx.databinding.library.baseAdapters.BR

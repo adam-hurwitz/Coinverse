@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorPrimary">#5FC7E6</color>
+    <color name="colorPrimaryDark">#000000</color>
     <color name="colorAccent">#FF4081</color>
     <color name="transparent">#80000000</color>
 
@@ -16,5 +16,10 @@
     <color name="kucoinBids">#4068B92E</color>
     <color name="krakenAsks">#FF4F6E88</color>
     <color name="krakenBids">#404F6E88</color>
+
+    <color name="colorAccentFadeOne">#CC4081</color>
+    <color name="colorAccentFadeTwo">#994081</color>
+    <color name="colorAccentFadeThree">#664081</color>
+    <color name="colorAccentFadeFour">#334081</color>
 
 </resources>

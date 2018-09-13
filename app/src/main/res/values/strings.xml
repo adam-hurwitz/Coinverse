@@ -19,6 +19,7 @@
     <string name="first_dismiss_attempt">"firstDismiss"</string>
     <string name="preview_content_description">Preview image for content item.</string>
     <string name="profile_content_description">User profile login button.</string>
+    <string name="empty_content_feed_content_description">Empty main content feed message image.</string>
     <string name="just_now">just now</string>
     <string name="a_minute_ago">a minute ago</string>
     <string name="minutes_ago">minutes ago</string>
@@ -26,6 +27,16 @@
     <string name="hours_ago">hours ago</string>
     <string name="yesterday">yesterday</string>
     <string name="days_ago">days ago</string>
+    <string name="swipe_right_image">Content swipe right image.</string>
+    <string name="no_content_title">All of the content is organized!</string>
+    <string name="no_saved_content_title">No Content Saved</string>
+    <string name="no_archived_content_title">No Content Archived</string>
+    <string name="no_feed_content_instructions">Explore your saved content or put away the phone and go for a walk.</string>
+    <string name="no_saved_content_instructions">Swipe right to save content.</string>
+    <string name="no_archived_content_instructions">Swipe left to archive content.</string>
+    <string name="letsGo">Let\'s go!</string>
+    <string name="saved">Saved</string>
+    <string name="archived">Archived</string>
 
     <!--Profile-->
     <string name="profile_image">User profile image.</string>
@@ -41,6 +52,4 @@
     <string name="sign_in_title">Sign In</string>
     <string name="here_we_go">Here we go!</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

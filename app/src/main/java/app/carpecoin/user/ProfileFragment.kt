@@ -5,10 +5,11 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.findNavController
+import app.carpecoin.Enums
 import app.carpecoin.HomeViewModel
 import app.carpecoin.coin.R
 import app.carpecoin.coin.databinding.FragmentProfileBinding
@@ -21,24 +22,25 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.CollectionReference
 import kotlinx.android.synthetic.main.fragment_profile.*
-
+import kotlinx.android.synthetic.main.toolbar.*
 
 private var LOG_TAG = ProfileFragment::class.java.simpleName
 
 class ProfileFragment : Fragment() {
 
     private lateinit var binding: FragmentProfileBinding
-    private lateinit var viewModel: HomeViewModel
+    private lateinit var homeViewModel: HomeViewModel
     private lateinit var user: FirebaseUser
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
+        homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         binding = FragmentProfileBinding.inflate(inflater, container, false)
+        binding.viewmodel = homeViewModel
         user = ProfileFragmentArgs.fromBundle(arguments).user
         binding.user = user
         return binding.root
@@ -46,25 +48,33 @@ class ProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setToolbar()
+        setClickListeners()
+    }
+
+    fun setToolbar() {
         toolbar.title = user.displayName
         (activity as AppCompatActivity).setSupportActionBar(toolbar)
         (activity as AppCompatActivity).supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-        setClickListeners(view)
     }
 
-    fun setClickListeners(view: View) {
-        //TODO: Launch Archived content
-        archivedContent.setOnClickListener {
-            Toast.makeText(context!!, "TODO: Launch archived content.", Toast.LENGTH_SHORT).show()
+    fun setClickListeners() {
+
+        archivedContent.setOnClickListener { view: View ->
+            val action =
+                    ProfileFragmentDirections.actionProfileFragmentToArchivedContentFragment()
+            action.setFeedType(Enums.FeedType.ARCHIVED.name)
+            view.findNavController().navigate(R.id.action_profileFragment_to_archivedContentFragment, action.arguments)
         }
-        signOut.setOnClickListener {
+
+        signOut.setOnClickListener { view: View ->
             var message: Int
             if (FirebaseAuth.getInstance().currentUser != null) {
                 AuthUI.getInstance()
                         .signOut(context!!)
                         .addOnCompleteListener {
                             if (it.isSuccessful) {
-                                viewModel.user.value = null
+                                homeViewModel.user.value = null
                                 message = R.string.signed_out
                                 Snackbar.make(view, getString(message), Snackbar.LENGTH_SHORT).show()
                                 signOut.postDelayed({
@@ -78,7 +88,7 @@ class ProfileFragment : Fragment() {
                 Snackbar.make(view, getString(message), Snackbar.LENGTH_SHORT).show()
             }
         }
-        delete.setOnClickListener {
+        delete.setOnClickListener { view: View ->
             var message: Int
             if (FirebaseAuth.getInstance().currentUser != null) {
                 AuthUI.getInstance()
@@ -87,13 +97,13 @@ class ProfileFragment : Fragment() {
                             if (it.isSuccessful) {
                                 //TODO: Refactor to handle on server.
                                 deleteCollection(usersCollection
-                                        .document(viewModel.user.value!!.uid)
+                                        .document(homeViewModel.user.value!!.uid)
                                         .collection(ARCHIVED_COLLECTION), 20)
                                 usersCollection
-                                        .document(viewModel.user.value!!.uid)
+                                        .document(homeViewModel.user.value!!.uid)
                                         .delete()
                                         .addOnSuccessListener {
-                                            viewModel.user.value = null
+                                            homeViewModel.user.value = null
                                             message = R.string.deleted
                                             Snackbar.make(view, getString(message), Snackbar.LENGTH_SHORT).show()
                                             delete.postDelayed({
@@ -125,7 +135,7 @@ class ProfileFragment : Fragment() {
                     .get()
                     .addOnCompleteListener {
                         for (document in it.result.documents) {
-                            document.getReference().delete()
+                            document.reference.delete()
                             ++deleted
                         }
                         if (deleted >= batchSize) {

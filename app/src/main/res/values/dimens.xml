@@ -50,6 +50,7 @@
     <!--Content Feed-->
     <dimen name="cell_content_feed_height">328dp</dimen>
     <dimen name="swipe_icon_dimen">48dp</dimen>
+    <dimen name="empty_content_image_dimen">96dp</dimen>
     <integer name="maxLines">2</integer>
 
     <!--Sign In-->
@@ -58,6 +59,7 @@
     <!--Profile-->
     <dimen name="profile_image">128dp</dimen>
 
+    <dimen name="dialog_image">128dp</dimen>
     <dimen name="card_elevation">8dp</dimen>
 
 </resources>

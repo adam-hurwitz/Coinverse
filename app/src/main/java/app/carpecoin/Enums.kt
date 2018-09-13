@@ -24,7 +24,14 @@ object Enums {
     }
 
     enum class ContentType(val code: Int) {
-        EMPTY(0),
-        YOUTUBE(1)
+        YOUTUBE(1), NONE(-1)
+    }
+
+    enum class UserAction {
+        SAVE, ARCHIVE
+    }
+
+    enum class FeedType(val code: Int) {
+        MAIN(1), SAVED(2), ARCHIVED(3), NONE(-1)
     }
 }

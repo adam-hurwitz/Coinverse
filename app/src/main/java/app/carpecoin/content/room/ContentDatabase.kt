@@ -1,11 +1,11 @@
-package app.carpecoin.contentFeed.room
+package app.carpecoin.content.room
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import app.carpecoin.contentFeed.models.Content
+import app.carpecoin.content.models.Content
 
 @Database(entities = arrayOf(Content::class), version = 1)
 @TypeConverters(Converters::class)
