@@ -10,7 +10,6 @@ import app.carpecoin.content.room.ContentDatabase
 import app.carpecoin.firebase.FirestoreCollections
 import app.carpecoin.firebase.FirestoreCollections.ARCHIVED_COLLECTION
 import app.carpecoin.firebase.FirestoreCollections.SAVED_COLLECTION
-import app.carpecoin.firebase.FirestoreCollections.USERS_COLLECTION
 import app.carpecoin.utils.Constants
 import app.carpecoin.utils.DateAndTime.getTimeframe
 import com.google.firebase.auth.FirebaseAuth
@@ -70,7 +69,6 @@ object ContentRepository {
             //Logged in and realtime enabled.
             if (isRealtime) {
                 contentListenerRegistration = FirestoreCollections.contentCollection
-                        .collection(FirestoreCollections.MAIN_COLLECTION)
                         .orderBy(Constants.TIMESTAMP, Query.Direction.DESCENDING)
                         .whereGreaterThanOrEqualTo(Constants.TIMESTAMP, getTimeframe(timeframe))
                         .addSnapshotListener(EventListener { value, error ->
@@ -89,7 +87,6 @@ object ContentRepository {
                         })
             } else { // Logged in but not realtime.
                 FirestoreCollections.contentCollection
-                        .collection(FirestoreCollections.MAIN_COLLECTION)
                         .orderBy(Constants.TIMESTAMP, Query.Direction.DESCENDING)
                         .whereGreaterThanOrEqualTo(Constants.TIMESTAMP, getTimeframe(timeframe))
                         .get()
@@ -107,7 +104,6 @@ object ContentRepository {
 
         } else { // Looged out and thus not realtime.
             FirestoreCollections.contentCollection
-                    .collection(FirestoreCollections.MAIN_COLLECTION)
                     .orderBy(Constants.TIMESTAMP, Query.Direction.DESCENDING)
                     .whereGreaterThanOrEqualTo(Constants.TIMESTAMP, getTimeframe(timeframe))
                     .get()
@@ -133,7 +129,6 @@ object ContentRepository {
             newFeedType = ARCHIVED
         }
         FirestoreCollections.contentCollection
-                .collection(USERS_COLLECTION)
                 .document(userId)
                 .collection(collectionType)
                 .orderBy(Constants.TIMESTAMP, Query.Direction.DESCENDING)
