@@ -13,6 +13,7 @@ import app.carpecoin.firebase.FirestoreCollections.SAVED_COLLECTION
 import app.carpecoin.utils.Constants
 import app.carpecoin.utils.DateAndTime.getTimeframe
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
@@ -22,7 +23,6 @@ import kotlin.collections.HashSet
 private val LOG_TAG = ContentRepository.javaClass.simpleName
 
 object ContentRepository {
-
     private lateinit var savedListenerRegistration: ListenerRegistration
     private lateinit var archivedListenerRegistration: ListenerRegistration
     private lateinit var contentListenerRegistration: ListenerRegistration
@@ -153,6 +153,31 @@ object ContentRepository {
 
     fun getCategorizedContent(contentDatabase: ContentDatabase, feedType: FeedType): DataSource.Factory<Int, Content> {
         return contentDatabase.contentDao().getCategorizedContent(feedType)
+    }
+
+    fun setContent(contentViewmodel: ContentViewModel, userReference: DocumentReference, collection: String, content: Content?) {
+        userReference
+                .collection(collection)
+                .document(content!!.contentTitle)
+                .set(content)
+                .addOnSuccessListener {
+                    Log.v(LOG_TAG, String.format("Content added to collection:%s", it))
+                    contentViewmodel.categorizeContentComplete(content)
+                }.addOnFailureListener {
+                    Log.v(LOG_TAG, String.format("Content failed to be added to collection:%s", it))
+                }
+    }
+
+    fun deleteContent(userReference: DocumentReference, collection: String, content: Content?) {
+        userReference
+                .collection(collection)
+                .document(content!!.contentTitle)
+                .delete()
+                .addOnSuccessListener {
+                    Log.v(LOG_TAG, String.format("Content deleted from to collection:%s", it))
+                }.addOnFailureListener {
+                    Log.v(LOG_TAG, String.format("Content failed to be deleted from collection:%s", it))
+                }
     }
 
 }

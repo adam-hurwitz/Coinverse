@@ -1,6 +1,5 @@
 package app.carpecoin.content.adapter
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.paging.PagedListAdapter
@@ -11,13 +10,14 @@ import app.carpecoin.Enums.UserAction
 import app.carpecoin.Enums.UserAction.ARCHIVE
 import app.carpecoin.Enums.UserAction.SAVE
 import app.carpecoin.coin.databinding.CellContentBinding
+import app.carpecoin.content.ContentRepository.deleteContent
+import app.carpecoin.content.ContentRepository.setContent
 import app.carpecoin.content.ContentViewModel
 import app.carpecoin.content.models.Content
 import app.carpecoin.firebase.FirestoreCollections.ARCHIVED_COLLECTION
 import app.carpecoin.firebase.FirestoreCollections.SAVED_COLLECTION
 import app.carpecoin.firebase.FirestoreCollections.usersCollection
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.firestore.DocumentReference
 
 private val LOG_TAG = ContentAdapter::class.java.simpleName
 
@@ -29,11 +29,11 @@ private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Content>() {
             oldContent == newContent
 }
 
-class ContentAdapter(var viewModel: ContentViewModel) : PagedListAdapter<Content, ViewHolder>(DIFF_CALLBACK) {
+class ContentAdapter(var contentViewmodel: ContentViewModel) : PagedListAdapter<Content, ViewHolder>(DIFF_CALLBACK) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = CellContentBinding
                 .inflate(LayoutInflater.from(parent.context), parent, false)
-        binding.viewmodel = viewModel
+        binding.viewmodel = contentViewmodel
         val viewHolder = ViewHolder(binding)
         return viewHolder
     }
@@ -42,7 +42,7 @@ class ContentAdapter(var viewModel: ContentViewModel) : PagedListAdapter<Content
         holder.bind(getItem(position)!!)
     }
 
-    fun removeItem(feedType: String, action: UserAction, itemPosition: Int, user: FirebaseUser) {
+    fun updateItem(feedType: String, action: UserAction, itemPosition: Int, user: FirebaseUser) {
         val userReference = usersCollection.document(user.uid)
         val content = getItem(itemPosition)
         if (action == SAVE) {
@@ -50,38 +50,14 @@ class ContentAdapter(var viewModel: ContentViewModel) : PagedListAdapter<Content
                 deleteContent(userReference, ARCHIVED_COLLECTION, content)
             }
             content?.feedType = SAVED
-            setContent(userReference, SAVED_COLLECTION, content)
+            setContent(contentViewmodel, userReference, SAVED_COLLECTION, content)
         } else if (action == ARCHIVE) {
             if (feedType == SAVED.name) {
                 deleteContent(userReference, SAVED_COLLECTION, content)
             }
             content?.feedType = ARCHIVED
-            setContent(userReference, ARCHIVED_COLLECTION, content)
+            setContent(contentViewmodel, userReference, ARCHIVED_COLLECTION, content)
         }
-    }
-
-    fun setContent(userReference: DocumentReference, collection: String, content: Content?) {
-        userReference
-                .collection(collection)
-                .document(content!!.contentTitle)
-                .set(content)
-                .addOnSuccessListener {
-                    Log.v(LOG_TAG, String.format("Content added to collection:%s", it))
-                }.addOnFailureListener {
-                    Log.v(LOG_TAG, String.format("Content failed to be added to collection:%s", it))
-                }
-    }
-
-    fun deleteContent(userReference: DocumentReference, collection: String, content: Content?) {
-        userReference
-                .collection(collection)
-                .document(content!!.contentTitle)
-                .delete()
-                .addOnSuccessListener {
-                    Log.v(LOG_TAG, String.format("Content deleted from to collection:%s", it))
-                }.addOnFailureListener {
-                    Log.v(LOG_TAG, String.format("Content failed to be deleted from collection:%s", it))
-                }
     }
 
 }

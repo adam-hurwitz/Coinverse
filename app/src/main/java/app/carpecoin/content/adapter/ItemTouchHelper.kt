@@ -40,9 +40,9 @@ class ItemTouchHelper {
                 val user = FirebaseAuth.getInstance().currentUser
                 if (user != null) {
                     if (direction == RIGHT_SWIPE && feedType != SAVED.name) { // Save
-                        adapter.removeItem(feedType, SAVE, viewHolder.adapterPosition, user)
+                        adapter.updateItem(feedType, SAVE, viewHolder.adapterPosition, user)
                     } else if (direction == LEFT_SWIPE && feedType != ARCHIVED.name) { // Archive
-                        adapter.removeItem(feedType, ARCHIVE, viewHolder.adapterPosition, user)
+                        adapter.updateItem(feedType, ARCHIVE, viewHolder.adapterPosition, user)
                     }
                 } else {
                     signInDialog(viewHolder as ViewHolder)

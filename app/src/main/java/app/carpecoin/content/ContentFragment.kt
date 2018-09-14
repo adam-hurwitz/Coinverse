@@ -19,18 +19,27 @@ import app.carpecoin.coin.R
 import app.carpecoin.coin.databinding.FragmentContentBinding
 import app.carpecoin.content.adapter.ContentAdapter
 import app.carpecoin.content.adapter.ItemTouchHelper
+import app.carpecoin.content.models.Content
 import app.carpecoin.content.room.ContentDatabase
+import app.carpecoin.utils.Constants
+import app.carpecoin.utils.Constants.CREATOR_PARAM
+import app.carpecoin.utils.Constants.FEED_TYPE_PARAM
+import app.carpecoin.utils.Constants.QUALITY_SCORE_PARAM
+import app.carpecoin.utils.Constants.TIMESTAMP_PARAM
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.empty_content.view.*
 import kotlinx.android.synthetic.main.fragment_content.*
 
+
 private val LOG_TAG = ContentFragment::class.java.simpleName
 
 class ContentFragment : Fragment() {
+    private lateinit var feedType: String
+    private lateinit var analytics: FirebaseAnalytics
     private lateinit var binding: FragmentContentBinding
     private lateinit var contentViewModel: ContentViewModel
     private lateinit var homeViewModel: HomeViewModel
-    private lateinit var feedType: String
 
     companion object {
         @JvmStatic
@@ -42,6 +51,8 @@ class ContentFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         feedType = ContentFragmentArgs.fromBundle(arguments).feedType
+        analytics = FirebaseAnalytics.getInstance(context!!)
+        analytics.setCurrentScreen(activity!!, feedType, null)
         contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
         contentViewModel.contentDatabase = ContentDatabase.getAppDatabase(context!!)
@@ -73,6 +84,7 @@ class ContentFragment : Fragment() {
         initializeAdapter()
         observeSignIn()
         observeContentSelected()
+        observeContentCategorizedComplete()
     }
 
     fun setToolbar() {
@@ -128,6 +140,15 @@ class ContentFragment : Fragment() {
     private fun observeContentSelected() {
         contentViewModel.contentSelected.observe(this, Observer { content ->
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube://${content.id}")))
+            val bundle = Bundle()
+            bundle.putString(FirebaseAnalytics.Param.ITEM_ID, content.id)
+            bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, content.contentTitle)
+            bundle.putString(CREATOR_PARAM, content.creator)
+            bundle.putString(QUALITY_SCORE_PARAM, content.qualityScore.toString())
+            bundle.putString(TIMESTAMP_PARAM, content.timestamp.toString())
+            bundle.putString(FEED_TYPE_PARAM, feedType)
+            bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, content.contentType.name)
+            analytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle)
         })
     }
 
@@ -170,6 +191,19 @@ class ContentFragment : Fragment() {
                 emptyContent.emptyInstructions.text = getString(R.string.no_archived_content_instructions)
             }
         }
+    }
+
+    fun observeContentCategorizedComplete() {
+        contentViewModel.categorizeContentComplete.observe(viewLifecycleOwner, Observer { content: Content ->
+            val bundle = Bundle()
+            bundle.putString(FirebaseAnalytics.Param.ITEM_ID, content.id)
+            bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, content.contentTitle)
+            bundle.putString(Constants.CREATOR_PARAM, content.creator)
+            bundle.putString(Constants.QUALITY_SCORE_PARAM, content.qualityScore.toString())
+            bundle.putString(Constants.TIMESTAMP_PARAM, content.timestamp.toString())
+            bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, content.contentType.name)
+            analytics.logEvent(content.feedType.name, bundle)
+        })
     }
 
 }

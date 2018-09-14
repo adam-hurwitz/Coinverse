@@ -16,8 +16,10 @@ import app.carpecoin.coin.databinding.FragmentProfileBinding
 import app.carpecoin.firebase.FirestoreCollections.ARCHIVED_COLLECTION
 import app.carpecoin.firebase.FirestoreCollections.usersCollection
 import app.carpecoin.utils.Constants.ON_BACK_PRESS_DELAY_IN_MILLIS
+import app.carpecoin.utils.Constants.PROFILE
 import com.firebase.ui.auth.AuthUI
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.CollectionReference
@@ -27,13 +29,15 @@ import kotlinx.android.synthetic.main.toolbar.*
 private var LOG_TAG = ProfileFragment::class.java.simpleName
 
 class ProfileFragment : Fragment() {
-
+    private lateinit var analytics: FirebaseAnalytics
     private lateinit var binding: FragmentProfileBinding
     private lateinit var homeViewModel: HomeViewModel
     private lateinit var user: FirebaseUser
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        analytics = FirebaseAnalytics.getInstance(context!!)
+        analytics.setCurrentScreen(activity!!, PROFILE, null)
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
     }
 
