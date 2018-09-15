@@ -4,8 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.DiffUtil
-import app.carpecoin.Enums.FeedType.ARCHIVED
-import app.carpecoin.Enums.FeedType.SAVED
+import app.carpecoin.Enums.FeedType.*
 import app.carpecoin.Enums.UserAction
 import app.carpecoin.Enums.UserAction.ARCHIVE
 import app.carpecoin.Enums.UserAction.SAVE
@@ -45,18 +44,23 @@ class ContentAdapter(var contentViewmodel: ContentViewModel) : PagedListAdapter<
     fun updateItem(feedType: String, action: UserAction, itemPosition: Int, user: FirebaseUser) {
         val userReference = usersCollection.document(user.uid)
         val content = getItem(itemPosition)
+        var mainFeedEmptied = false
         if (action == SAVE) {
-            if (feedType == ARCHIVED.name) {
+            if (feedType == MAIN.name) {
+                mainFeedEmptied = itemCount == 1
+            } else if (feedType == ARCHIVED.name) {
                 deleteContent(userReference, ARCHIVED_COLLECTION, content)
             }
             content?.feedType = SAVED
-            setContent(contentViewmodel, userReference, SAVED_COLLECTION, content)
+            setContent(contentViewmodel, userReference, SAVED_COLLECTION, content, mainFeedEmptied)
         } else if (action == ARCHIVE) {
-            if (feedType == SAVED.name) {
+            if (feedType == MAIN.name) {
+                mainFeedEmptied = itemCount == 1
+            } else if (feedType == SAVED.name) {
                 deleteContent(userReference, SAVED_COLLECTION, content)
             }
             content?.feedType = ARCHIVED
-            setContent(contentViewmodel, userReference, ARCHIVED_COLLECTION, content)
+            setContent(contentViewmodel, userReference, ARCHIVED_COLLECTION, content, mainFeedEmptied)
         }
     }
 

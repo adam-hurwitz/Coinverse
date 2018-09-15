@@ -24,6 +24,7 @@ class ContentViewModel : ViewModel() {
     //TODO: Add isRealtime Boolean for paid feature.
     var timeframe = MutableLiveData<Timeframe>()
     var categorizeContentComplete = MutableLiveData<Content>()
+    var mainFeedEmptied = MutableLiveData<Boolean>()
     val pagedListConfiguration = PagedList.Config.Builder()
             .setEnablePlaceholders(true)
             .setPrefetchDistance(PREFETCH_DISTANCE)
@@ -66,8 +67,9 @@ class ContentViewModel : ViewModel() {
         contentSelected.value = content
     }
 
-    fun categorizeContentComplete(content: Content) {
+    fun categorizeContentComplete(content: Content, mainFeedEmptied: Boolean) {
         categorizeContentComplete.value = content
+        this.mainFeedEmptied.value = mainFeedEmptied
     }
 
 }

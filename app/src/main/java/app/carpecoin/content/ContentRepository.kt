@@ -155,14 +155,15 @@ object ContentRepository {
         return contentDatabase.contentDao().getCategorizedContent(feedType)
     }
 
-    fun setContent(contentViewmodel: ContentViewModel, userReference: DocumentReference, collection: String, content: Content?) {
+    fun setContent(contentViewmodel: ContentViewModel, userReference: DocumentReference,
+                   collection: String, content: Content?, mainFeedEmptied: Boolean) {
         userReference
                 .collection(collection)
                 .document(content!!.contentTitle)
                 .set(content)
                 .addOnSuccessListener {
                     Log.v(LOG_TAG, String.format("Content added to collection:%s", it))
-                    contentViewmodel.categorizeContentComplete(content)
+                    contentViewmodel.categorizeContentComplete(content, mainFeedEmptied)
                 }.addOnFailureListener {
                     Log.v(LOG_TAG, String.format("Content failed to be added to collection:%s", it))
                 }
