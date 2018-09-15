@@ -30,6 +30,7 @@ import app.carpecoin.utils.Constants.OPEN_CONTENT_EVENT
 import app.carpecoin.utils.Constants.QUALITY_SCORE_PARAM
 import app.carpecoin.utils.Constants.SAVED_EVENT
 import app.carpecoin.utils.Constants.TIMESTAMP_PARAM
+import app.carpecoin.utils.Constants.USER_ID_PARAM
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.empty_content.view.*
@@ -57,7 +58,6 @@ class ContentFragment : Fragment() {
         super.onCreate(savedInstanceState)
         feedType = ContentFragmentArgs.fromBundle(arguments).feedType
         analytics = FirebaseAnalytics.getInstance(context!!)
-        analytics.setCurrentScreen(activity!!, feedType, null)
         contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
         contentViewModel.contentDatabase = ContentDatabase.getAppDatabase(context!!)
@@ -74,6 +74,7 @@ class ContentFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
+        analytics.setCurrentScreen(activity!!, feedType, null)
         binding = FragmentContentBinding.inflate(inflater, container, false)
         binding.setLifecycleOwner(this)
         binding.viewmodel = contentViewModel
@@ -209,11 +210,8 @@ class ContentFragment : Fragment() {
             }
             val bundle = Bundle()
             bundle.putString(FirebaseAnalytics.Param.ITEM_ID, content.id)
-            bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, content.contentTitle)
-            bundle.putString(Constants.CREATOR_PARAM, content.creator)
-            bundle.putString(Constants.QUALITY_SCORE_PARAM, content.qualityScore.toString())
+            bundle.putString(USER_ID_PARAM, homeViewModel.user.value?.uid)
             bundle.putString(Constants.TIMESTAMP_PARAM, Date().toString())
-            bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, content.contentType.name)
             analytics.logEvent(logEvent, bundle)
         })
     }
