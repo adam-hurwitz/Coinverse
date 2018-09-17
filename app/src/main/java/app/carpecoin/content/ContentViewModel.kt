@@ -1,9 +1,10 @@
 package app.carpecoin.content
 
+import android.app.Application
 import android.view.View
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import app.carpecoin.Enums
@@ -17,8 +18,7 @@ import app.carpecoin.utils.Constants.PREFETCH_DISTANCE
 import app.carpecoin.utils.DateAndTime.getTimeframe
 
 
-class ContentViewModel : ViewModel() {
-    lateinit var contentDatabase: ContentDatabase
+class ContentViewModel(application: Application) : AndroidViewModel(application) {
 
     var feedType = NONE.name
     //TODO: Add isRealtime Boolean for paid feature.
@@ -30,6 +30,12 @@ class ContentViewModel : ViewModel() {
             .setPrefetchDistance(PREFETCH_DISTANCE)
             .setPageSize(PAGE_SIZE)
             .build()
+    private var contentDatabase: ContentDatabase
+
+    init {
+        contentDatabase = ContentDatabase.getAppDatabase(application)
+        timeframe.value = Enums.Timeframe.WEEK
+    }
 
     fun initializeMainContent(isRealtime: Boolean) {
         ContentRepository.initializeMainRoomContent(contentDatabase, isRealtime, timeframe.value!!)
@@ -58,10 +64,6 @@ class ContentViewModel : ViewModel() {
     }
 
     var contentSelected = MutableLiveData<Content>()
-
-    init {
-        timeframe.value = Enums.Timeframe.WEEK
-    }
 
     fun contentClicked(content: Content) {
         contentSelected.value = content

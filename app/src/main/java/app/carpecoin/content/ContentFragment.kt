@@ -20,7 +20,6 @@ import app.carpecoin.coin.databinding.FragmentContentBinding
 import app.carpecoin.content.adapter.ContentAdapter
 import app.carpecoin.content.adapter.ItemTouchHelper
 import app.carpecoin.content.models.Content
-import app.carpecoin.content.room.ContentDatabase
 import app.carpecoin.utils.Constants
 import app.carpecoin.utils.Constants.ARCHIVED_EVENT
 import app.carpecoin.utils.Constants.CREATOR_PARAM
@@ -60,7 +59,6 @@ class ContentFragment : Fragment() {
         analytics = FirebaseAnalytics.getInstance(context!!)
         contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
-        contentViewModel.contentDatabase = ContentDatabase.getAppDatabase(context!!)
         contentViewModel.feedType = feedType
         if (savedInstanceState == null) {
             homeViewModel.isRealtime.observe(this, Observer {
