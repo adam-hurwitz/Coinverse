@@ -14,23 +14,19 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import app.carpecoin.Enums.FeedType.*
+import app.carpecoin.Enums.UserActionType.START
 import app.carpecoin.HomeViewModel
 import app.carpecoin.coin.R
 import app.carpecoin.coin.databinding.FragmentContentBinding
 import app.carpecoin.content.adapter.ContentAdapter
 import app.carpecoin.content.adapter.ItemTouchHelper
-import app.carpecoin.content.models.Content
-import app.carpecoin.utils.Constants
-import app.carpecoin.utils.Constants.ARCHIVED_EVENT
 import app.carpecoin.utils.Constants.CREATOR_PARAM
-import app.carpecoin.utils.Constants.EMPTIED_MAIN_FEED_EVENT
 import app.carpecoin.utils.Constants.FEED_TYPE_PARAM
-import app.carpecoin.utils.Constants.OPEN_CONTENT_EVENT
 import app.carpecoin.utils.Constants.QUALITY_SCORE_PARAM
-import app.carpecoin.utils.Constants.SAVED_EVENT
+import app.carpecoin.utils.Constants.START_CONTENT_EVENT
 import app.carpecoin.utils.Constants.TIMESTAMP_PARAM
-import app.carpecoin.utils.Constants.USER_ID_PARAM
 import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.empty_content.view.*
 import kotlinx.android.synthetic.main.fragment_content.*
@@ -88,8 +84,6 @@ class ContentFragment : Fragment() {
         initializeAdapter()
         observeSignIn()
         observeContentSelected()
-        observeContentCategorizedComplete()
-        observeMainFeedEmpty()
     }
 
     fun setToolbar() {
@@ -145,6 +139,10 @@ class ContentFragment : Fragment() {
     private fun observeContentSelected() {
         contentViewModel.contentSelected.observe(this, Observer { content ->
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube://${content.id}")))
+            var user = FirebaseAuth.getInstance().currentUser
+            if (user != null) {
+                contentViewModel.updateActions(START, content, user)
+            }
             val bundle = Bundle()
             bundle.putString(FirebaseAnalytics.Param.ITEM_ID, content.id)
             bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, content.contentTitle)
@@ -153,7 +151,7 @@ class ContentFragment : Fragment() {
             bundle.putString(TIMESTAMP_PARAM, Date().toString())
             bundle.putString(FEED_TYPE_PARAM, feedType)
             bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, content.contentType.name)
-            analytics.logEvent(OPEN_CONTENT_EVENT, bundle)
+            analytics.logEvent(START_CONTENT_EVENT, bundle)
         })
     }
 
@@ -196,33 +194,6 @@ class ContentFragment : Fragment() {
                 emptyContent.emptyInstructions.text = getString(R.string.no_archived_content_instructions)
             }
         }
-    }
-
-    fun observeContentCategorizedComplete() {
-        contentViewModel.categorizeContentComplete.observe(viewLifecycleOwner, Observer { content: Content ->
-            var logEvent = ""
-            if (content.feedType == SAVED) {
-                logEvent = SAVED_EVENT
-            } else if (content.feedType == ARCHIVED) {
-                logEvent = ARCHIVED_EVENT
-            }
-            val bundle = Bundle()
-            bundle.putString(FirebaseAnalytics.Param.ITEM_ID, content.id)
-            bundle.putString(USER_ID_PARAM, homeViewModel.user.value?.uid)
-            bundle.putString(Constants.TIMESTAMP_PARAM, Date().toString())
-            analytics.logEvent(logEvent, bundle)
-        })
-    }
-
-    fun observeMainFeedEmpty() {
-        contentViewModel.mainFeedEmptied.observe(viewLifecycleOwner, Observer { emptied: Boolean ->
-            if (emptied == true) {
-                val bundle = Bundle()
-                bundle.putString(Constants.TIMESTAMP_PARAM, Date().toString())
-                analytics.logEvent(EMPTIED_MAIN_FEED_EVENT, bundle)
-                contentViewModel.mainFeedEmptied.value = false
-            }
-        })
     }
 
 }

@@ -27,8 +27,8 @@ object Enums {
         YOUTUBE(1), NONE(-1)
     }
 
-    enum class UserAction {
-        SAVE, ARCHIVE
+    enum class UserActionType {
+        START, SAVE, ARCHIVE
     }
 
     enum class FeedType(val code: Int) {

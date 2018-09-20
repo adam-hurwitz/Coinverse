@@ -11,48 +11,48 @@ import app.carpecoin.Enums
 import app.carpecoin.Enums.FeedType
 import app.carpecoin.Enums.FeedType.*
 import app.carpecoin.Enums.Timeframe
+import app.carpecoin.Enums.UserActionType
 import app.carpecoin.content.models.Content
-import app.carpecoin.content.room.ContentDatabase
 import app.carpecoin.utils.Constants.PAGE_SIZE
 import app.carpecoin.utils.Constants.PREFETCH_DISTANCE
 import app.carpecoin.utils.DateAndTime.getTimeframe
+import com.google.firebase.auth.FirebaseUser
 
 
 class ContentViewModel(application: Application) : AndroidViewModel(application) {
 
+    var contentRepository: ContentRepository
     var feedType = NONE.name
     //TODO: Add isRealtime Boolean for paid feature.
     var timeframe = MutableLiveData<Timeframe>()
-    var categorizeContentComplete = MutableLiveData<Content>()
     var mainFeedEmptied = MutableLiveData<Boolean>()
     val pagedListConfiguration = PagedList.Config.Builder()
             .setEnablePlaceholders(true)
             .setPrefetchDistance(PREFETCH_DISTANCE)
             .setPageSize(PAGE_SIZE)
             .build()
-    private var contentDatabase: ContentDatabase
 
     init {
-        contentDatabase = ContentDatabase.getAppDatabase(application)
+        contentRepository = ContentRepository(application)
         timeframe.value = Enums.Timeframe.WEEK
     }
 
     fun initializeMainContent(isRealtime: Boolean) {
-        ContentRepository.initializeMainRoomContent(contentDatabase, isRealtime, timeframe.value!!)
+        contentRepository.initializeMainRoomContent(isRealtime, timeframe.value!!)
     }
 
     fun initializeCategorizedContent(feedType: String, userId: String) {
-        ContentRepository.initializeCategorizedContent(contentDatabase, feedType, userId)
+        contentRepository.initializeCategorizedRoomContent(feedType, userId)
     }
 
     fun getMainContentList(): LiveData<PagedList<Content>> {
         return LivePagedListBuilder(
-                ContentRepository.getMainContent(contentDatabase, getTimeframe(timeframe.value)),
+                contentRepository.getMainContent(getTimeframe(timeframe.value)),
                 pagedListConfiguration).build()
     }
 
     fun getCategorizedContentList(feedType: FeedType): LiveData<PagedList<Content>> {
-        return LivePagedListBuilder(ContentRepository.getCategorizedContent(contentDatabase, feedType),
+        return LivePagedListBuilder(contentRepository.getCategorizedContent(feedType),
                 pagedListConfiguration).build()
     }
 
@@ -69,9 +69,13 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
         contentSelected.value = content
     }
 
-    fun categorizeContentComplete(content: Content, mainFeedEmptied: Boolean) {
-        categorizeContentComplete.value = content
-        this.mainFeedEmptied.value = mainFeedEmptied
+    fun organizeContent(feedType: String, actionType: UserActionType, user: FirebaseUser,
+                        content: Content?, mainFeedEmptied: Boolean) {
+        contentRepository.organizeContent(feedType, actionType, content, user, mainFeedEmptied)
+    }
+
+    fun updateActions(actionType: UserActionType, content: Content, user: FirebaseUser) {
+        contentRepository.updateActionsStatusCheck(actionType, content, user)
     }
 
 }

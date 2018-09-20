@@ -9,8 +9,8 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import app.carpecoin.Enums.FeedType.ARCHIVED
 import app.carpecoin.Enums.FeedType.SAVED
-import app.carpecoin.Enums.UserAction.ARCHIVE
-import app.carpecoin.Enums.UserAction.SAVE
+import app.carpecoin.Enums.UserActionType.ARCHIVE
+import app.carpecoin.Enums.UserActionType.SAVE
 import app.carpecoin.coin.R
 import app.carpecoin.user.SignInDialogFragment
 import app.carpecoin.utils.Constants
@@ -40,9 +40,9 @@ class ItemTouchHelper {
                 val user = FirebaseAuth.getInstance().currentUser
                 if (user != null) {
                     if (direction == RIGHT_SWIPE && feedType != SAVED.name) { // Save
-                        adapter.updateItem(feedType, SAVE, viewHolder.adapterPosition, user)
+                        adapter.organizeContent(feedType, SAVE, viewHolder.adapterPosition, user)
                     } else if (direction == LEFT_SWIPE && feedType != ARCHIVED.name) { // Archive
-                        adapter.updateItem(feedType, ARCHIVE, viewHolder.adapterPosition, user)
+                        adapter.organizeContent(feedType, ARCHIVE, viewHolder.adapterPosition, user)
                     }
                 } else {
                     signInDialog(viewHolder as ViewHolder)

@@ -19,7 +19,7 @@ import app.carpecoin.content.ContentFragment
 import app.carpecoin.firebase.FirestoreCollections.usersCollection
 import app.carpecoin.priceGraph.PriceFragment
 import app.carpecoin.user.SignInDialogFragment
-import app.carpecoin.user.models.UserInfo
+import app.carpecoin.user.models.User
 import app.carpecoin.utils.Constants
 import app.carpecoin.utils.Constants.SIGNIN_DIALOG_FRAGMENT_TAG
 import com.bumptech.glide.Glide
@@ -155,10 +155,13 @@ class HomeFragment : Fragment() {
                 usersCollection.document(user.uid).get().addOnCompleteListener { userQuery ->
                     if (!userQuery.result.exists()) {
                         usersCollection.document(user.uid).set(
-                                UserInfo(user.uid, user.displayName, user.email, user.phoneNumber,
+                                User(user.uid, user.displayName, user.email, user.phoneNumber,
                                         user.photoUrl.toString(),
                                         Date(user.metadata!!.creationTimestamp),
-                                        Date(user.metadata!!.lastSignInTimestamp), user.providerId))
+                                        Date(user.metadata!!.lastSignInTimestamp), user.providerId,
+                                        0.0, 0.0, 0.0,
+                                        0.0, 0.0, 0.0,
+                                        0.0))
                                 .addOnSuccessListener {
                                     Log.v(LOG_TAG, String.format("New user added success:%s", it))
                                 }.addOnFailureListener {

@@ -4,18 +4,11 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.DiffUtil
-import app.carpecoin.Enums.FeedType.*
-import app.carpecoin.Enums.UserAction
-import app.carpecoin.Enums.UserAction.ARCHIVE
-import app.carpecoin.Enums.UserAction.SAVE
+import app.carpecoin.Enums.FeedType.MAIN
+import app.carpecoin.Enums.UserActionType
 import app.carpecoin.coin.databinding.CellContentBinding
-import app.carpecoin.content.ContentRepository.deleteContent
-import app.carpecoin.content.ContentRepository.setContent
 import app.carpecoin.content.ContentViewModel
 import app.carpecoin.content.models.Content
-import app.carpecoin.firebase.FirestoreCollections.ARCHIVED_COLLECTION
-import app.carpecoin.firebase.FirestoreCollections.SAVED_COLLECTION
-import app.carpecoin.firebase.FirestoreCollections.usersCollection
 import com.google.firebase.auth.FirebaseUser
 
 private val LOG_TAG = ContentAdapter::class.java.simpleName
@@ -41,27 +34,12 @@ class ContentAdapter(var contentViewmodel: ContentViewModel) : PagedListAdapter<
         holder.bind(getItem(position)!!)
     }
 
-    fun updateItem(feedType: String, action: UserAction, itemPosition: Int, user: FirebaseUser) {
-        val userReference = usersCollection.document(user.uid)
-        val content = getItem(itemPosition)
+    fun organizeContent(feedType: String, actionType: UserActionType, itemPosition: Int, user: FirebaseUser) {
         var mainFeedEmptied = false
-        if (action == SAVE) {
-            if (feedType == MAIN.name) {
-                mainFeedEmptied = itemCount == 1
-            } else if (feedType == ARCHIVED.name) {
-                deleteContent(userReference, ARCHIVED_COLLECTION, content)
-            }
-            content?.feedType = SAVED
-            setContent(contentViewmodel, userReference, SAVED_COLLECTION, content, mainFeedEmptied)
-        } else if (action == ARCHIVE) {
-            if (feedType == MAIN.name) {
-                mainFeedEmptied = itemCount == 1
-            } else if (feedType == SAVED.name) {
-                deleteContent(userReference, SAVED_COLLECTION, content)
-            }
-            content?.feedType = ARCHIVED
-            setContent(contentViewmodel, userReference, ARCHIVED_COLLECTION, content, mainFeedEmptied)
+        if (feedType == MAIN.name) {
+            mainFeedEmptied = itemCount == 1
         }
+        contentViewmodel.organizeContent(feedType, actionType, user, getItem(itemPosition), mainFeedEmptied)
     }
 
 }

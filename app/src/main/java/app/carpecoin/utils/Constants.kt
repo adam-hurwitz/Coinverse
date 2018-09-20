@@ -4,6 +4,7 @@ object Constants {
     // Firebase
     const val RC_SIGN_IN = 123
     const val TIMESTAMP = "timestamp"
+    const val QUALITY_SCORE = "qualityScore"
 
     // Home
     const val ON_BACK_PRESS_DELAY_IN_MILLIS = 500L
@@ -18,10 +19,13 @@ object Constants {
     // Views
     const val PROFILE = "PROFILE"
     // Events
-    const val OPEN_CONTENT_EVENT = "open_content"
-    const val SAVED_EVENT = "saved_content"
-    const val ARCHIVED_EVENT = "archived_content"
-    const val EMPTIED_MAIN_FEED_EVENT = "emptied_main_feed"
+    const val VIEW_CONTENT_EVENT = "view_content"
+    const val START_CONTENT_EVENT = "start_content"
+    const val FINISH_CONTENT_EVENT = "finish_content"
+    const val ORGANIZE_EVENT = "organize_content"
+    const val SHARE_EVENT = "share_content"
+    const val CLEAR_FEED_EVENT = "clear_feed"
+    const val ARCHIVE_EVENT = "archive_content"
     // Params
     const val USER_ID_PARAM = "user_id"
     const val QUALITY_SCORE_PARAM = "quality_score"
