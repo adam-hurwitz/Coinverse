@@ -6,11 +6,11 @@
 
         <variable
             name="viewmodel"
-            type="app.carpecoin.content.ContentViewModel" />
+            type="app.coinverse.content.ContentViewModel" />
 
         <import type="android.view.View" />
 
-        <import type="app.carpecoin.Enums.FeedType" />
+        <import type="app.coinverse.Enums.FeedType" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

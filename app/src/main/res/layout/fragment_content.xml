@@ -6,7 +6,7 @@
 
         <variable
             name="viewmodel"
-            type="app.carpecoin.content.ContentViewModel" />
+            type="app.coinverse.content.ContentViewModel" />
 
     </data>
 

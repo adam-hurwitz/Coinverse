@@ -7,7 +7,7 @@
 
         <variable
             name="viewmodel"
-            type="app.carpecoin.HomeViewModel" />
+            type="app.coinverse.HomeViewModel" />
 
         <variable
             name="user"
@@ -18,7 +18,7 @@
         android:id="@+id/profileFragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="app.carpecoin.user.ProfileFragment">
+        tools:context="app.coinverse.user.ProfileFragment">
 
         <include layout="@layout/toolbar" />
 

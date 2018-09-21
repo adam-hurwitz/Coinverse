@@ -6,11 +6,11 @@
 
         <variable
             name="viewmodel"
-            type="app.carpecoin.priceGraph.PriceViewModel" />
+            type="app.coinverse.priceGraph.PriceViewModel" />
 
         <variable
             name="exchange"
-            type="app.carpecoin.Enums.Exchange" />
+            type="app.coinverse.Enums.Exchange" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -18,7 +18,7 @@
         android:id="@+id/activity_main_constraint"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="app.carpecoin.MainActivity">
+        tools:context="app.coinverse.MainActivity">
 
         <TextView
             android:id="@+id/pricePair"

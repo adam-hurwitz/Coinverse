@@ -7,11 +7,11 @@
 
         <variable
             name="data"
-            type="app.carpecoin.content.models.Content" />
+            type="app.coinverse.content.models.Content" />
 
         <variable
             name="viewmodel"
-            type="app.carpecoin.content.ContentViewModel" />
+            type="app.coinverse.content.ContentViewModel" />
 
     </data>
 

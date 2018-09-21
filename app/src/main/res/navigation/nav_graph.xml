@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/homeFragment"
-        android:name="app.carpecoin.HomeFragment"
+        android:name="app.coinverse.HomeFragment"
         android:label="fragment_home"
         tools:layout="@layout/fragment_home">
         <action
@@ -29,7 +29,7 @@
     </fragment>
     <fragment
         android:id="@+id/profileFragment"
-        android:name="app.carpecoin.user.ProfileFragment"
+        android:name="app.coinverse.user.ProfileFragment"
         android:label="fragment_profile"
         tools:layout="@layout/fragment_profile">
         <argument
@@ -45,7 +45,7 @@
     </fragment>
     <fragment
         android:id="@+id/savedContentFragment"
-        android:name="app.carpecoin.content.ContentFragment"
+        android:name="app.coinverse.content.ContentFragment"
         android:label="SavedContentFragment">
         <argument
             android:name="feedType"
@@ -54,7 +54,7 @@
     </fragment>
     <fragment
         android:id="@+id/archivedContentFragment"
-        android:name="app.carpecoin.content.ContentFragment"
+        android:name="app.coinverse.content.ContentFragment"
         android:label="ArchivedContentFragment">
         <argument
             android:name="feedType"
