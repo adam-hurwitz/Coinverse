@@ -31,6 +31,7 @@ import app.coinverse.firebase.FirestoreCollections.usersCollection
 import app.coinverse.user.models.ContentAction
 import app.coinverse.utils.Constants.ARCHIVE_EVENT
 import app.coinverse.utils.Constants.CLEAR_FEED_EVENT
+import app.coinverse.utils.Constants.CREATOR_PARAM
 import app.coinverse.utils.Constants.ORGANIZE_EVENT
 import app.coinverse.utils.Constants.QUALITY_SCORE
 import app.coinverse.utils.Constants.TIMESTAMP
@@ -379,7 +380,7 @@ class ContentRepository(application: Application) {
             val bundle = Bundle()
             bundle.putString(FirebaseAnalytics.Param.ITEM_ID, content.id)
             bundle.putString(USER_ID_PARAM, FirebaseAuth.getInstance().currentUser?.uid)
-            bundle.putString(TIMESTAMP_PARAM, Date().toString())
+            bundle.putString(CREATOR_PARAM, content.creator)
             analytics.logEvent(logEvent, bundle)
         }
     }

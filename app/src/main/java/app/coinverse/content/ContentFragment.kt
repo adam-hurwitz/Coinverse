@@ -21,16 +21,15 @@ import app.coinverse.coin.databinding.FragmentContentBinding
 import app.coinverse.content.adapter.ContentAdapter
 import app.coinverse.content.adapter.ItemTouchHelper
 import app.coinverse.utils.Constants.CREATOR_PARAM
-import app.coinverse.utils.Constants.FEED_TYPE_PARAM
-import app.coinverse.utils.Constants.QUALITY_SCORE_PARAM
 import app.coinverse.utils.Constants.START_CONTENT_EVENT
-import app.coinverse.utils.Constants.TIMESTAMP_PARAM
+import app.coinverse.utils.Constants.USER_ID_PARAM
 import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.FirebaseAnalytics.Param
+import com.google.firebase.analytics.FirebaseAnalytics.getInstance
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.empty_content.view.*
 import kotlinx.android.synthetic.main.fragment_content.*
-import java.util.*
 
 
 private val LOG_TAG = ContentFragment::class.java.simpleName
@@ -52,7 +51,7 @@ class ContentFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         feedType = ContentFragmentArgs.fromBundle(arguments).feedType
-        analytics = FirebaseAnalytics.getInstance(context!!)
+        analytics = getInstance(context!!)
         contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
         contentViewModel.feedType = feedType
@@ -144,13 +143,9 @@ class ContentFragment : Fragment() {
                 contentViewModel.updateActions(START, content, user)
             }
             val bundle = Bundle()
-            bundle.putString(FirebaseAnalytics.Param.ITEM_ID, content.id)
-            bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, content.contentTitle)
+            bundle.putString(Param.ITEM_NAME, content.contentTitle)
+            bundle.putString(USER_ID_PARAM, user!!.uid)
             bundle.putString(CREATOR_PARAM, content.creator)
-            bundle.putString(QUALITY_SCORE_PARAM, content.qualityScore.toString())
-            bundle.putString(TIMESTAMP_PARAM, Date().toString())
-            bundle.putString(FEED_TYPE_PARAM, feedType)
-            bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, content.contentType.name)
             analytics.logEvent(START_CONTENT_EVENT, bundle)
         })
     }
