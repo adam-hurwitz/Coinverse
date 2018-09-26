@@ -26,7 +26,6 @@ import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.empty_content.view.*
 import kotlinx.android.synthetic.main.fragment_content.*
 
-
 private val LOG_TAG = ContentFragment::class.java.simpleName
 
 class ContentFragment : Fragment() {
@@ -104,7 +103,7 @@ class ContentFragment : Fragment() {
             MAIN.name -> {
                 contentViewModel.getMainContentList().observe(viewLifecycleOwner, Observer { homeContentList ->
                     adapter.submitList(homeContentList)
-                    if (homeContentList.isEmpty()) {
+                    if (adapter.itemCount == 0) {
                         setEmptyView()
                     } else {
                         emptyContent.visibility = View.GONE
@@ -145,6 +144,7 @@ class ContentFragment : Fragment() {
     }
 
     fun setEmptyView() {
+        contentFeedRecyclerView.visibility = View.GONE
         emptyContent.visibility = View.VISIBLE
         emptyContent.confirmation.setOnClickListener { view: View ->
             view.findNavController().navigateUp()
