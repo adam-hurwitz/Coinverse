@@ -17,9 +17,14 @@
     <color name="krakenAsks">#FF4F6E88</color>
     <color name="krakenBids">#404F6E88</color>
 
+    <!--Saved and archived screens-->
     <color name="colorAccentFadeOne">#CC4081</color>
     <color name="colorAccentFadeTwo">#994081</color>
     <color name="colorAccentFadeThree">#664081</color>
     <color name="colorAccentFadeFour">#334081</color>
+    <color name="fadedColorAccent">#f97ca7</color>
+    <color name="fadedColorAccentDarker">#f23a7a</color>
+    <color name="fadedColorPrimary">#e8f7fc</color>
+    <color name="fadedColorPrimaryDarker">#c6e9f4</color>
 
 </resources>

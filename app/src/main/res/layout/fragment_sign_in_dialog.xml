@@ -12,7 +12,7 @@
             android:layout_width="@dimen/dialog_image"
             android:layout_height="@dimen/dialog_image"
             android:contentDescription="@string/profile_image"
-            android:src="@drawable/ic_profile_logged_in_color_accent_24dp"
+            android:src="@drawable/ic_astronaut_color_accent_24dp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

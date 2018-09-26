@@ -9,15 +9,15 @@ creative commons license: https://creativecommons.org/licenses/by/3.0/legalcode-
     android:viewportWidth="512"
     android:viewportHeight="512">
     <path
-        android:fillColor="#AC2743"
+        android:fillColor="@color/fadedColorAccentDarker"
         android:pathData="M244,264.5m-195.1,0a195.1,195.1 0,1 1,390.2 0a195.1,195.1 0,1 1,-390.2 0"
         android:strokeWidth="20"
         android:strokeColor="#414042" />
     <path
-        android:fillColor="#C13356"
+        android:fillColor="@color/fadedColorAccentDarker"
         android:pathData="M427.5,265.9c0,97.8 -55,168.1 -154,182c-98.2,13.7 -205,-84.2 -205,-182S148.9,79.1 248,79.1S427.5,168.2 427.5,265.9z" />
     <path
-        android:fillColor="#EF4660"
+        android:fillColor="@color/fadedColorAccent"
         android:pathData="M422.5,269.8c0,96.3 -55,165.7 -154,179.3c-98.2,13.5 -205,-83 -205,-179.3S143.9,85.5 243,84.5C359.5,83.3 422.5,173.4 422.5,269.8z" />
     <path
         android:fillColor="@color/colorPrimary"

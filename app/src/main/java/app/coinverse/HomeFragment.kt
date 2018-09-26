@@ -117,7 +117,7 @@ class HomeFragment : Fragment() {
                     .apply(RequestOptions.circleCropTransform())
                     .into(profileButton)
         } else {
-            profileButton.setImageResource(R.drawable.ic_profile_logged_in_color_accent_24dp)
+            profileButton.setImageResource(R.drawable.ic_astronaut_color_accent_24dp)
         }
     }
 

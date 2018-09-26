@@ -46,7 +46,6 @@ class PriceFragment : Fragment() {
         super.onCreate(savedInstanceState)
         priceViewModel = ViewModelProviders.of(this).get(PriceViewModel::class.java)
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
-        //FIXME: Potentially refactor.
         if (savedInstanceState == null) {
             homeViewModel.isRealtime.observe(this, Observer { isRealtime: Boolean ->
                 getPrices(isRealtime, true)
@@ -169,6 +168,8 @@ class PriceFragment : Fragment() {
 
     private fun observePriceDifferenceDetails() {
         priceViewModel.priceDifferenceDetailsLiveData.observe(viewLifecycleOwner, Observer { percentDifference: PercentDifference? ->
+            //TODO: Make prices adjacent or below / above and smaller if min/max exchange is the same.
+            //TODO: Pass in 1) isSameExchange: Boolean 2) otherPriceViewId
             updatePriceDifferenceIndicators(ConstraintSet(), percentDifference?.askExchange,
                     baseToQuoteAsk.id)
             updatePriceDifferenceIndicators(ConstraintSet(), percentDifference?.bidExchange,
@@ -176,11 +177,10 @@ class PriceFragment : Fragment() {
         })
     }
 
-    private fun updatePriceDifferenceIndicators(constraintSet: ConstraintSet,
-                                                exchange: Exchange?,
+    private fun updatePriceDifferenceIndicators(constraintSet: ConstraintSet, exchange: Exchange?,
                                                 orderLayoutId: Int) {
         constraintSet.clone(card_price_constraint)
-        var textViewId: Int
+        val textViewId: Int
         val margin = resources.getInteger(R.integer.price_graph_base_to_quote_margin)
         when (exchange) {
             GDAX -> textViewId = coinbaseToggle.id
@@ -202,7 +202,6 @@ class PriceFragment : Fragment() {
     private fun setExchangeGraphDataAndStyle(exchange: Exchange, orderType: OrderType,
                                              orders: LineGraphSeries<DataPoint>?,
                                              priceGraphDataMap: HashMap<Exchange, PriceGraphData>?) {
-        //TODO:Examine logic here for double graph data bug
         if (priceGraphDataMap != null) {
             priceGraph.removeSeries(orders)
             val orders: LineGraphSeries<DataPoint>?
@@ -221,7 +220,6 @@ class PriceFragment : Fragment() {
                 thickness = resources.getInteger(R.integer.price_graph_bids_thickness)
             }
 
-            //TODO: Make swipe-to-refresh smoother.
             setGraphVisibility(View.VISIBLE)
             homeViewModel.disableSwipeToRefresh()
 
