@@ -161,7 +161,7 @@ class HomeFragment : Fragment() {
                                         Date(user.metadata!!.lastSignInTimestamp), user.providerId,
                                         0.0, 0.0, 0.0,
                                         0.0, 0.0, 0.0,
-                                        0.0))
+                                        0.0, 0.0))
                                 .addOnSuccessListener {
                                     Log.v(LOG_TAG, String.format("New user added success:%s", it))
                                 }.addOnFailureListener {
@@ -176,7 +176,7 @@ class HomeFragment : Fragment() {
     fun setRefresh() {
         swipeToRefresh.setOnRefreshListener {
             (childFragmentManager.findFragmentById(R.id.priceContainer) as PriceFragment)
-                    .getPrices(false)
+                    .getPrices(false, false)
             (childFragmentManager.findFragmentById(R.id.contentContainer) as ContentFragment)
                     .initializeMainContent(false)
         }

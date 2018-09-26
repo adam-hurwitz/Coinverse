@@ -1,7 +1,5 @@
 package app.coinverse.content
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,19 +12,16 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import app.coinverse.Enums.FeedType.*
-import app.coinverse.Enums.UserActionType.START
 import app.coinverse.HomeViewModel
 import app.coinverse.coin.R
 import app.coinverse.coin.databinding.FragmentContentBinding
 import app.coinverse.content.adapter.ContentAdapter
 import app.coinverse.content.adapter.ItemTouchHelper
-import app.coinverse.utils.Constants.CREATOR_PARAM
-import app.coinverse.utils.Constants.START_CONTENT_EVENT
-import app.coinverse.utils.Constants.USER_ID_PARAM
+import app.coinverse.utils.Constants.CONTENT_KEY
+import app.coinverse.utils.Constants.YOUTUBE_DIALOG_FRAGMENT_TAG
+import app.coinverse.utils.livedata.EventObserver
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.FirebaseAnalytics.Param
 import com.google.firebase.analytics.FirebaseAnalytics.getInstance
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.empty_content.view.*
 import kotlinx.android.synthetic.main.fragment_content.*
@@ -56,9 +51,9 @@ class ContentFragment : Fragment() {
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
         contentViewModel.feedType = feedType
         if (savedInstanceState == null) {
-            homeViewModel.isRealtime.observe(this, Observer {
+            homeViewModel.isRealtime.observe(this, Observer { isRealtime: Boolean ->
                 when (feedType) {
-                    MAIN.name -> initializeMainContent(it)
+                    MAIN.name -> initializeMainContent(isRealtime)
                     SAVED.name, ARCHIVED.name -> initializeCategorizedContent(feedType, homeViewModel.user.value!!.uid)
                 }
             })
@@ -136,17 +131,9 @@ class ContentFragment : Fragment() {
     }
 
     private fun observeContentSelected() {
-        contentViewModel.contentSelected.observe(this, Observer { content ->
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube://${content.id}")))
-            var user = FirebaseAuth.getInstance().currentUser
-            if (user != null) {
-                contentViewModel.updateActions(START, content, user)
-            }
-            val bundle = Bundle()
-            bundle.putString(Param.ITEM_NAME, content.contentTitle)
-            bundle.putString(USER_ID_PARAM, user!!.uid)
-            bundle.putString(CREATOR_PARAM, content.creator)
-            analytics.logEvent(START_CONTENT_EVENT, bundle)
+        contentViewModel.contentSelected.observe(viewLifecycleOwner, EventObserver { content ->
+            val youtubeBundle = Bundle().apply { putParcelable(CONTENT_KEY, content) }
+            YouTubeDialogFragment().newInstance(youtubeBundle).show(childFragmentManager, YOUTUBE_DIALOG_FRAGMENT_TAG)
         })
     }
 

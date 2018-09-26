@@ -44,8 +44,13 @@ object PriceRepository {
 
     private lateinit var listenerRegistration: ListenerRegistration
 
-    fun getPrices(isRealtime: Boolean, timeframe: Timeframe) {
+    fun getPrices(isRealtime: Boolean, isOnCreateCall: Boolean, timeframe: Timeframe) {
         if (isRealtime) {
+            if (isOnCreateCall) {
+                exchangeOrdersPointsMap.clear()
+                exchangeOrdersDataMap.clear()
+                index = 0
+            }
             listenerRegistration = priceDifferenceCollection
                     .orderBy(TIMESTAMP, Query.Direction.ASCENDING)
                     .whereGreaterThan(TIMESTAMP, getTimeframe(timeframe))

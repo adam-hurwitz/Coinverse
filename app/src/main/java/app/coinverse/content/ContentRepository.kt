@@ -13,17 +13,23 @@ import app.coinverse.content.models.Content
 import app.coinverse.content.models.UserAction
 import app.coinverse.content.room.ContentDatabase
 import app.coinverse.firebase.FirestoreCollections
-import app.coinverse.firebase.FirestoreCollections.ARCHIVED_ACTION_COLLECTION
+import app.coinverse.firebase.FirestoreCollections.ARCHIVE_ACTION_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.ARCHIVED_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.ARCHIVE_COUNT
 import app.coinverse.firebase.FirestoreCollections.ARCHIVE_SCORE
 import app.coinverse.firebase.FirestoreCollections.CLEAR_FEED_COUNT
+import app.coinverse.firebase.FirestoreCollections.CONSUME_ACTION_COLLECTION
+import app.coinverse.firebase.FirestoreCollections.CONSUME_COUNT
+import app.coinverse.firebase.FirestoreCollections.CONSUME_SCORE
+import app.coinverse.firebase.FirestoreCollections.FINISH_ACTION_COLLECTION
+import app.coinverse.firebase.FirestoreCollections.FINISH_COUNT
+import app.coinverse.firebase.FirestoreCollections.FINISH_SCORE
 import app.coinverse.firebase.FirestoreCollections.INVALID_SCORE
 import app.coinverse.firebase.FirestoreCollections.ORGANIZE_COUNT
-import app.coinverse.firebase.FirestoreCollections.SAVED_ACTION_COLLECTION
+import app.coinverse.firebase.FirestoreCollections.SAVE_ACTION_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.SAVED_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.SAVE_SCORE
-import app.coinverse.firebase.FirestoreCollections.STARTED_ACTION_COLLECTION
+import app.coinverse.firebase.FirestoreCollections.START_ACTION_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.START_COUNT
 import app.coinverse.firebase.FirestoreCollections.START_SCORE
 import app.coinverse.firebase.FirestoreCollections.contentCollection
@@ -252,7 +258,7 @@ class ContentRepository(application: Application) {
     fun updateActionsStatusCheck(actionType: UserActionType, content: Content, user: FirebaseUser) {
         if (actionType == ARCHIVE) {
             // Only count archived if user has not started the content.
-            contentCollection.document(content.id).collection(STARTED_ACTION_COLLECTION)
+            contentCollection.document(content.id).collection(START_ACTION_COLLECTION)
                     .document(user.email!!).get().addOnSuccessListener {
                         if (!it.exists()) {
                             updateActions(actionType, content, user)
@@ -271,9 +277,11 @@ class ContentRepository(application: Application) {
         var countType = ""
 
         when (actionType) {
-            START -> actionCollection = STARTED_ACTION_COLLECTION
-            SAVE -> actionCollection = SAVED_ACTION_COLLECTION
-            ARCHIVE -> actionCollection = ARCHIVED_ACTION_COLLECTION
+            START -> actionCollection = START_ACTION_COLLECTION
+            CONSUME -> actionCollection = CONSUME_ACTION_COLLECTION
+            FINISH -> actionCollection = FINISH_ACTION_COLLECTION
+            SAVE -> actionCollection = SAVE_ACTION_COLLECTION
+            ARCHIVE -> actionCollection = ARCHIVE_ACTION_COLLECTION
         }
 
         val contentUserActionRef = contentCollection
@@ -292,6 +300,25 @@ class ContentRepository(application: Application) {
                         return@Function score
                     }
                 }
+                CONSUME -> {
+                    // Only count unique starts.
+                    if (!contentUserActionSnapshot.exists()) {
+                        score = CONSUME_SCORE
+                        countType = CONSUME_COUNT
+                    } else {
+                        return@Function score
+                    }
+                }
+                FINISH -> {
+                    // Only count unique starts.
+                    if (!contentUserActionSnapshot.exists()) {
+                        score = FINISH_SCORE
+                        countType = FINISH_COUNT
+                    } else {
+                        return@Function score
+                    }
+                }
+                // Only triggered from the Main feed so these actions are intrinsically unique.
                 SAVE -> {
                     score = SAVE_SCORE
                     countType = ORGANIZE_COUNT
@@ -329,7 +356,7 @@ class ContentRepository(application: Application) {
 
     fun updateUserActions(userId: String, actionCollection: String, content: Content, countType: String) {
         usersCollection.document(userId).collection(actionCollection).document(content.id)
-                .set(ContentAction(Date(), content.id, content.contentTitle, content.creator,
+                .set(ContentAction(Date(), content.id, content.title, content.creator,
                         content.qualityScore)).addOnSuccessListener {
                     updateUserActionCounter(userId, countType)
                 }.addOnFailureListener {

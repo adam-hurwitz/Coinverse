@@ -52,7 +52,7 @@
             <TextView
                 android:id="@+id/title"
                 style="@style/contentTitleStyle"
-                android:text='@{data.contentTitle, default="content title"}'
+                android:text='@{data.title, default="content title"}'
                 android:textColor="@color/colorPrimaryDark"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"

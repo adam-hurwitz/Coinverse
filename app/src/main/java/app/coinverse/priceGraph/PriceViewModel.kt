@@ -43,9 +43,9 @@ class PriceViewModel : ViewModel() {
                 Transformations.map(percentPriceDifferenceLiveData) { result -> result }
     }
 
-    fun getPrices(isRealtime: Boolean) {
+    fun getPrices(isRealtime: Boolean, isOnCreateCall: Boolean) {
         this.toInitializePriceGraphData.value = true
-        PriceRepository.getPrices(isRealtime, timeframe.value!!)
+        PriceRepository.getPrices(isRealtime, isOnCreateCall, timeframe.value!!)
     }
 
     val graphLiveData = Transformations.switchMap(toInitializePriceGraphData) {

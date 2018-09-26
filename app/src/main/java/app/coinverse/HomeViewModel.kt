@@ -15,7 +15,7 @@ class HomeViewModel : ViewModel() {
         //TODO: Set ability to toggle based on user configuration.
         //TODO: Return info to ContentFragment observerSignIn().
         //TODO: Toggle with button if subscribed user.
-        isRealtime.value = true
+        isRealtime.value = false
         user.value = getCurrentUser()
     }
 

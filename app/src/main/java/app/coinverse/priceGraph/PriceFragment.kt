@@ -35,6 +35,7 @@ import kotlinx.android.synthetic.main.fragment_price.*
 private val dataPointRadiusValue = TypedValue()
 
 class PriceFragment : Fragment() {
+    private var LOG_TAG = PriceFragment::class.java.simpleName
     private lateinit var binding: FragmentPriceBinding
     private lateinit var priceViewModel: PriceViewModel
     private lateinit var homeViewModel: HomeViewModel
@@ -45,9 +46,10 @@ class PriceFragment : Fragment() {
         super.onCreate(savedInstanceState)
         priceViewModel = ViewModelProviders.of(this).get(PriceViewModel::class.java)
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
+        //FIXME: Potentially refactor.
         if (savedInstanceState == null) {
-            homeViewModel.isRealtime.observe(this, Observer {
-                getPrices(it)
+            homeViewModel.isRealtime.observe(this, Observer { isRealtime: Boolean ->
+                getPrices(isRealtime, true)
             })
         }
     }
@@ -76,8 +78,8 @@ class PriceFragment : Fragment() {
         fun newInstance() = PriceFragment()
     }
 
-    fun getPrices(isRealtime: Boolean) {
-        priceViewModel.getPrices(isRealtime)
+    fun getPrices(isRealtime: Boolean, isOnCreateCall: Boolean) {
+        priceViewModel.getPrices(isRealtime, isOnCreateCall)
     }
 
     private fun setPriceGraphStyle() {
@@ -253,5 +255,4 @@ class PriceFragment : Fragment() {
             baseToQuoteBid.visibility = View.GONE
         }
     }
-
 }

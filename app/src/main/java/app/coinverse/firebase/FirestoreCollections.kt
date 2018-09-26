@@ -17,13 +17,16 @@ object FirestoreCollections {
     const val SAVED_COLLECTION = "savedCollection"
 
     // Actions log.
-    const val STARTED_ACTION_COLLECTION = "startedActions"
-    const val SAVED_ACTION_COLLECTION = "savedActions"
-    const val SHARED_ACTION_COLLECTION = "sharedActions"
-    const val ARCHIVED_ACTION_COLLECTION = "archivedActions"
+    const val START_ACTION_COLLECTION = "startActions"
+    const val CONSUME_ACTION_COLLECTION = "consumeActions"
+    const val FINISH_ACTION_COLLECTION = "finishActions"
+    const val SAVE_ACTION_COLLECTION = "saveActions"
+    const val SHARE_ACTION_COLLECTION = "shareActions"
+    const val ARCHIVE_ACTION_COLLECTION = "archiveActions"
 
     // Actions counters.
     const val VIEW_COUNT = "viewCount"
+    const val CONSUME_COUNT = "consumeCount"
     const val START_COUNT = "startCount"
     const val FINISH_COUNT = "finishCount"
     const val ORGANIZE_COUNT = "organizeCount"
@@ -35,7 +38,9 @@ object FirestoreCollections {
     // Quality scores.
     const val INVALID_SCORE = 0.0
     const val SAVE_SCORE = 1.0
-    const val START_SCORE = 2.0
+    const val START_SCORE = 1.0
+    const val CONSUME_SCORE = 2.0
+    const val FINISH_SCORE = 3.0
     const val SHARE_SCORE = 3.0
     const val ARCHIVE_SCORE = -1.0 // Not opened.
 

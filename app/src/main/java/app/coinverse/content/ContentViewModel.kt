@@ -16,6 +16,7 @@ import app.coinverse.content.models.Content
 import app.coinverse.utils.Constants.PAGE_SIZE
 import app.coinverse.utils.Constants.PREFETCH_DISTANCE
 import app.coinverse.utils.DateAndTime.getTimeframe
+import app.coinverse.utils.livedata.Event
 import com.google.firebase.auth.FirebaseUser
 
 
@@ -25,7 +26,11 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
     var feedType = NONE.name
     //TODO: Add isRealtime Boolean for paid feature.
     var timeframe = MutableLiveData<Timeframe>()
-    var mainFeedEmptied = MutableLiveData<Boolean>()
+
+    private val _contentSelected = MutableLiveData<Event<Content>>()
+    val contentSelected : LiveData<Event<Content>>
+        get() = _contentSelected
+
     val pagedListConfiguration = PagedList.Config.Builder()
             .setEnablePlaceholders(true)
             .setPrefetchDistance(PREFETCH_DISTANCE)
@@ -63,10 +68,8 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    var contentSelected = MutableLiveData<Content>()
-
     fun contentClicked(content: Content) {
-        contentSelected.value = content
+        _contentSelected.value = Event(content)  // Trigger the event by setting a new Event as a new value
     }
 
     fun organizeContent(feedType: String, actionType: UserActionType, user: FirebaseUser,

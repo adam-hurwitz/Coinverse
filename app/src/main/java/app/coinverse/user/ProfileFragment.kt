@@ -16,7 +16,7 @@ import app.coinverse.coin.databinding.FragmentProfileBinding
 import app.coinverse.firebase.FirestoreCollections.ARCHIVED_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.usersCollection
 import app.coinverse.utils.Constants.ON_BACK_PRESS_DELAY_IN_MILLIS
-import app.coinverse.utils.Constants.PROFILE
+import app.coinverse.utils.Constants.PROFILE_VIEW
 import com.firebase.ui.auth.AuthUI
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.analytics.FirebaseAnalytics
@@ -37,7 +37,7 @@ class ProfileFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         analytics = FirebaseAnalytics.getInstance(context!!)
-        analytics.setCurrentScreen(activity!!, PROFILE, null)
+        analytics.setCurrentScreen(activity!!, PROFILE_VIEW, null)
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
     }
 
