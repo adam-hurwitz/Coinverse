@@ -3,6 +3,7 @@ package app.coinverse.content
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.*
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -17,6 +18,7 @@ import app.coinverse.coin.R
 import app.coinverse.coin.databinding.FragmentContentBinding
 import app.coinverse.content.adapter.ContentAdapter
 import app.coinverse.content.adapter.ItemTouchHelper
+import app.coinverse.utils.Constants.CONTENT_FEED_VISIBILITY_DELAY
 import app.coinverse.utils.Constants.CONTENT_KEY
 import app.coinverse.utils.Constants.YOUTUBE_DIALOG_FRAGMENT_TAG
 import app.coinverse.utils.livedata.EventObserver
@@ -53,7 +55,8 @@ class ContentFragment : Fragment() {
             homeViewModel.isRealtime.observe(this, Observer { isRealtime: Boolean ->
                 when (feedType) {
                     MAIN.name -> initializeMainContent(isRealtime)
-                    SAVED.name, ARCHIVED.name -> initializeCategorizedContent(feedType, homeViewModel.user.value!!.uid)
+                    SAVED.name, ARCHIVED.name -> initializeCategorizedContent(feedType,
+                            homeViewModel.user.value!!.uid)
                 }
             })
         }
@@ -103,10 +106,10 @@ class ContentFragment : Fragment() {
             MAIN.name -> {
                 contentViewModel.getMainContentList().observe(viewLifecycleOwner, Observer { homeContentList ->
                     adapter.submitList(homeContentList)
-                    if (adapter.itemCount == 0) {
+                    if (homeContentList.isEmpty()) {
                         setEmptyView()
                     } else {
-                        emptyContent.visibility = View.GONE
+                        emptyContent.visibility = GONE
                     }
                 })
             }
@@ -117,22 +120,25 @@ class ContentFragment : Fragment() {
                 } else if (feedType == ARCHIVED.name) {
                     newFeedType = ARCHIVED
                 }
-                contentViewModel.getCategorizedContentList(newFeedType).observe(viewLifecycleOwner, Observer { contentList ->
-                    adapter.submitList(contentList)
-                    if (contentList.isEmpty()) {
-                        setEmptyView()
-                    }
-                })
+                contentViewModel.getCategorizedContentList(newFeedType).observe(viewLifecycleOwner,
+                        Observer { contentList ->
+                            adapter.submitList(contentList)
+                            if (contentList.isEmpty()) {
+                                setEmptyView()
+                            }
+                        })
             }
         }
         contentFeedRecyclerView.adapter = adapter
-        ItemTouchHelper().build(context!!, feedType, adapter, fragmentManager!!).attachToRecyclerView(contentFeedRecyclerView)
+        ItemTouchHelper(homeViewModel).build(context!!, feedType, adapter, fragmentManager!!)
+                .attachToRecyclerView(contentFeedRecyclerView)
     }
 
     private fun observeContentSelected() {
         contentViewModel.contentSelected.observe(viewLifecycleOwner, EventObserver { content ->
             val youtubeBundle = Bundle().apply { putParcelable(CONTENT_KEY, content) }
-            YouTubeDialogFragment().newInstance(youtubeBundle).show(childFragmentManager, YOUTUBE_DIALOG_FRAGMENT_TAG)
+            YouTubeDialogFragment().newInstance(youtubeBundle).show(childFragmentManager,
+                    YOUTUBE_DIALOG_FRAGMENT_TAG)
         })
     }
 
@@ -144,8 +150,10 @@ class ContentFragment : Fragment() {
     }
 
     fun setEmptyView() {
-        contentFeedRecyclerView.visibility = View.GONE
-        emptyContent.visibility = View.VISIBLE
+        contentFeedRecyclerView.visibility = INVISIBLE
+        emptyContent.visibility = VISIBLE
+        contentFeedRecyclerView.postDelayed({ contentFeedRecyclerView.visibility = VISIBLE },
+                CONTENT_FEED_VISIBILITY_DELAY)
         emptyContent.confirmation.setOnClickListener { view: View ->
             view.findNavController().navigateUp()
         }
@@ -153,26 +161,38 @@ class ContentFragment : Fragment() {
             MAIN.name -> {
                 emptyContent.title.text = getString(R.string.no_content_title)
                 emptyContent.emptyInstructions.text = getString(R.string.no_feed_content_instructions)
-                emptyContent.confirmation.visibility = View.GONE
+                emptyContent.confirmation.visibility = GONE
             }
             SAVED.name -> {
-                emptyContent.emptyImage.setImageDrawable(ContextCompat.getDrawable(context!!, R.drawable.ic_save_color_accent_24dp))
+                emptyContent.emptyImage.setImageDrawable(ContextCompat.getDrawable(context!!,
+                        R.drawable.ic_save_color_accent_24dp))
                 emptyContent.title.text = getString(R.string.no_saved_content_title)
-                emptyContent.swipe_right_one.setImageDrawable(ContextCompat.getDrawable(context!!, R.drawable.ic_chevron_right_color_accent_24dp))
-                emptyContent.swipe_right_two.setImageDrawable(ContextCompat.getDrawable(context!!, R.drawable.ic_chevron_right_color_accent_fade_one_24dp))
-                emptyContent.swipe_right_three.setImageDrawable(ContextCompat.getDrawable(context!!, R.drawable.ic_chevron_right_color_accent_fade_two_24dp))
-                emptyContent.swipe_right_four.setImageDrawable(ContextCompat.getDrawable(context!!, R.drawable.ic_chevron_right_color_accent_fade_three_24dp))
-                emptyContent.swipe_right_five.setImageDrawable(ContextCompat.getDrawable(context!!, R.drawable.ic_chevron_right_color_accent_fade_four_24dp))
+                emptyContent.swipe_right_one.setImageDrawable(ContextCompat.getDrawable(context!!,
+                        R.drawable.ic_chevron_right_color_accent_24dp))
+                emptyContent.swipe_right_two.setImageDrawable(ContextCompat.getDrawable(context!!,
+                        R.drawable.ic_chevron_right_color_accent_fade_one_24dp))
+                emptyContent.swipe_right_three.setImageDrawable(ContextCompat.getDrawable(context!!,
+                        R.drawable.ic_chevron_right_color_accent_fade_two_24dp))
+                emptyContent.swipe_right_four.setImageDrawable(ContextCompat.getDrawable(context!!,
+                        R.drawable.ic_chevron_right_color_accent_fade_three_24dp))
+                emptyContent.swipe_right_five.setImageDrawable(ContextCompat.getDrawable(context!!,
+                        R.drawable.ic_chevron_right_color_accent_fade_four_24dp))
                 emptyContent.emptyInstructions.text = getString(R.string.no_saved_content_instructions)
             }
             ARCHIVED.name -> {
-                emptyContent.emptyImage.setImageDrawable(ContextCompat.getDrawable(context!!, R.drawable.ic_check_color_accent_48dp))
+                emptyContent.emptyImage.setImageDrawable(ContextCompat.getDrawable(context!!,
+                        R.drawable.ic_check_color_accent_48dp))
                 emptyContent.title.text = getString(R.string.no_archived_content_title)
-                emptyContent.swipe_right_one.setImageDrawable(ContextCompat.getDrawable(context!!, R.drawable.ic_chevron_left_color_accent_24dp))
-                emptyContent.swipe_right_two.setImageDrawable(ContextCompat.getDrawable(context!!, R.drawable.ic_chevron_left_color_accent_fade_one_24dp))
-                emptyContent.swipe_right_three.setImageDrawable(ContextCompat.getDrawable(context!!, R.drawable.ic_chevron_left_color_accent_fade_two_24dp))
-                emptyContent.swipe_right_four.setImageDrawable(ContextCompat.getDrawable(context!!, R.drawable.ic_chevron_left_color_accent_fade_three_24dp))
-                emptyContent.swipe_right_five.setImageDrawable(ContextCompat.getDrawable(context!!, R.drawable.ic_chevron_left_color_accent_fade_four_24dp))
+                emptyContent.swipe_right_one.setImageDrawable(ContextCompat.getDrawable(context!!,
+                        R.drawable.ic_chevron_left_color_accent_24dp))
+                emptyContent.swipe_right_two.setImageDrawable(ContextCompat.getDrawable(context!!,
+                        R.drawable.ic_chevron_left_color_accent_fade_one_24dp))
+                emptyContent.swipe_right_three.setImageDrawable(ContextCompat.getDrawable(context!!,
+                        R.drawable.ic_chevron_left_color_accent_fade_two_24dp))
+                emptyContent.swipe_right_four.setImageDrawable(ContextCompat.getDrawable(context!!,
+                        R.drawable.ic_chevron_left_color_accent_fade_three_24dp))
+                emptyContent.swipe_right_five.setImageDrawable(ContextCompat.getDrawable(context!!,
+                        R.drawable.ic_chevron_left_color_accent_fade_four_24dp))
                 emptyContent.emptyInstructions.text = getString(R.string.no_archived_content_instructions)
             }
         }

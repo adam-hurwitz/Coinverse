@@ -21,6 +21,7 @@ object Constants {
     const val YOUTUBE_PORTRAIT_HEIGHT_DIVISOR = 2
     const val YOUTUBE_LANDSCAPE_WIDTH_DIVISOR = 1.2
     const val YOUTUBE_LANDSCAPE_HEIGHT_DIVISOR = 1.2
+    const val CONTENT_FEED_VISIBILITY_DELAY = 300L
 
     // Analytics
     // Views

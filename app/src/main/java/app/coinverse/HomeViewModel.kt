@@ -8,7 +8,8 @@ import com.google.firebase.auth.FirebaseUser
 
 class HomeViewModel : ViewModel() {
     var isRealtime = MutableLiveData<Boolean>()
-    var endSwipeToRefresh = MutableLiveData<Boolean>()
+    var isSwipeToRefreshEnabled = MutableLiveData<Boolean>()
+    var isRefreshing = MutableLiveData<Boolean>()
     var user = MutableLiveData<FirebaseUser>()
 
     init {
@@ -23,8 +24,12 @@ class HomeViewModel : ViewModel() {
         return FirebaseAuth.getInstance().currentUser
     }
 
-    fun disableSwipeToRefresh() {
-        endSwipeToRefresh.value = true
+    fun enableSwipeToRefresh(isEnabled: Boolean) {
+        isSwipeToRefreshEnabled.value = isEnabled
+    }
+
+    fun setSwipeToRefreshState(isRefreshing: Boolean) {
+        this.isRefreshing.value = isRefreshing
     }
 
 }

@@ -6,11 +6,13 @@ import android.graphics.drawable.ColorDrawable
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.ItemTouchHelper.*
 import androidx.recyclerview.widget.RecyclerView
 import app.coinverse.Enums.FeedType.ARCHIVED
 import app.coinverse.Enums.FeedType.SAVED
 import app.coinverse.Enums.UserActionType.ARCHIVE
 import app.coinverse.Enums.UserActionType.SAVE
+import app.coinverse.HomeViewModel
 import app.coinverse.coin.R
 import app.coinverse.user.SignInDialogFragment
 import app.coinverse.utils.Constants
@@ -22,14 +24,15 @@ private val LOG_TAG = ItemTouchHelper::class.java.simpleName
 private const val RIGHT_SWIPE = 8
 private const val LEFT_SWIPE = 4
 
-class ItemTouchHelper {
+class ItemTouchHelper(var homeViewModel: HomeViewModel) {
 
-    fun build(context: Context, feedType: String, adapter: ContentAdapter, fragmentManager: FragmentManager): ItemTouchHelper {
-        return ItemTouchHelper(object : ItemTouchHelper.Callback() {
+    fun build(context: Context, feedType: String, adapter: ContentAdapter,
+              fragmentManager: FragmentManager): ItemTouchHelper {
+        return ItemTouchHelper(object : Callback() {
 
             override fun getMovementFlags(recyclerView: RecyclerView,
                                           viewHolder: RecyclerView.ViewHolder): Int =
-                    makeMovementFlags(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT)
+                    makeMovementFlags(0, LEFT or RIGHT)
 
             override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder,
                                 target: RecyclerView.ViewHolder): Boolean {
@@ -49,12 +52,14 @@ class ItemTouchHelper {
                 }
             }
 
-            override fun onChildDraw(c: Canvas, recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean) {
-                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
-                    var icon = ContextCompat.getDrawable(context, R.drawable.ic_error_outline_black_48dp)
-                    var iconLeft = 0
-                    var iconRight = 0
-
+            override fun onChildDraw(c: Canvas, recyclerView: RecyclerView,
+                                     viewHolder: RecyclerView.ViewHolder, dX: Float, dY: Float,
+                                     actionState: Int, isCurrentlyActive: Boolean) {
+                homeViewModel.enableSwipeToRefresh(false)
+                if (actionState == ACTION_STATE_SWIPE) {
+                    var icon = ContextCompat.getDrawable(context, R.drawable.ic_error_black_48dp)
+                    val iconLeft: Int
+                    val iconRight: Int
                     val background: ColorDrawable
                     val itemView = viewHolder.itemView
                     val margin = Utils.convertDpToPx(Constants.CELL_CONTENT_MARGIN)
@@ -84,6 +89,8 @@ class ItemTouchHelper {
                         icon?.setBounds(iconLeft, iconTop, iconRight, iconBottom)
                         icon?.draw(c)
                         super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                    } else {
+                        homeViewModel.enableSwipeToRefresh(true)
                     }
                 }
             }

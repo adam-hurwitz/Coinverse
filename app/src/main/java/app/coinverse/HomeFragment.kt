@@ -174,15 +174,18 @@ class HomeFragment : Fragment() {
     }
 
     fun setRefresh() {
+        homeViewModel.isSwipeToRefreshEnabled.observe(viewLifecycleOwner, Observer {
+            isEnabled: Boolean -> swipeToRefresh.isEnabled = isEnabled
+        })
+        homeViewModel.isRefreshing.observe(viewLifecycleOwner, Observer {
+            isRefreshing: Boolean -> swipeToRefresh.isRefreshing = isRefreshing
+        })
         swipeToRefresh.setOnRefreshListener {
             (childFragmentManager.findFragmentById(R.id.priceContainer) as PriceFragment)
                     .getPrices(false, false)
             (childFragmentManager.findFragmentById(R.id.contentContainer) as ContentFragment)
                     .initializeMainContent(false)
         }
-        homeViewModel.endSwipeToRefresh.observe(viewLifecycleOwner, Observer { disableSwipeToRefresh: Boolean ->
-            swipeToRefresh.isRefreshing = false
-        })
     }
 
 }

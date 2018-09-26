@@ -221,7 +221,7 @@ class PriceFragment : Fragment() {
             }
 
             setGraphVisibility(View.VISIBLE)
-            homeViewModel.disableSwipeToRefresh()
+            homeViewModel.setSwipeToRefreshState(false)
 
             setOrderPriceGraphStyle(orders, color, thickness)
             if (enabledExchangesList?.contains(exchange) == true) {
