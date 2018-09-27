@@ -89,8 +89,6 @@ class ItemTouchHelper(var homeViewModel: HomeViewModel) {
                         icon?.setBounds(iconLeft, iconTop, iconRight, iconBottom)
                         icon?.draw(c)
                         super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
-                    } else {
-                        homeViewModel.enableSwipeToRefresh(true)
                     }
                 }
             }
