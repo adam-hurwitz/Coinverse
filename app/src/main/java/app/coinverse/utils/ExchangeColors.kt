@@ -4,7 +4,7 @@ import app.coinverse.Enums.Exchange
 import app.coinverse.Enums.Exchange.*
 import app.coinverse.Enums.OrderType
 import app.coinverse.Enums.OrderType.ASK
-import app.coinverse.coin.R
+import app.coinverse.R
 
 object ExchangeColors {
     fun get(exchange: Exchange, orderType: OrderType): Int {

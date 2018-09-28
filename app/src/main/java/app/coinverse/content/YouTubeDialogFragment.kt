@@ -10,12 +10,12 @@ import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
+import app.coinverse.BuildConfig.DEBUG
 import app.coinverse.Enums.UserActionType.*
-import app.coinverse.coin.BuildConfig.DEBUG
-import app.coinverse.coin.R
-import app.coinverse.coin.databinding.FragmentYoutubeDialogBinding
+import app.coinverse.R
 import app.coinverse.content.models.Content
 import app.coinverse.content.room.ContentDatabase
+import app.coinverse.databinding.FragmentYoutubeDialogBinding
 import app.coinverse.utils.Constants
 import app.coinverse.utils.Constants.CONSUME_CONTENT_EVENT
 import app.coinverse.utils.Constants.CONTENT_KEY

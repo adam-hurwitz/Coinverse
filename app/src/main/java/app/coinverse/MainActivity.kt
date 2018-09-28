@@ -4,12 +4,10 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.Navigation.findNavController
-import app.coinverse.coin.R
-import app.coinverse.coin.databinding.ActivityMainBinding
+import app.coinverse.databinding.ActivityMainBinding
 import app.coinverse.firebase.FirestoreHelper
 import app.coinverse.utils.Utils
 import kotlinx.android.synthetic.main.activity_main.*
-
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding

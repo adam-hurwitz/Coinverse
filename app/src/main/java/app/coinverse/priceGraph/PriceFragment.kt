@@ -21,8 +21,8 @@ import app.coinverse.Enums.OrderType.BID
 import app.coinverse.Enums.Timeframe
 import app.coinverse.Enums.Timeframe.DAY
 import app.coinverse.HomeViewModel
-import app.coinverse.coin.R
-import app.coinverse.coin.databinding.FragmentPriceBinding
+import app.coinverse.R
+import app.coinverse.databinding.FragmentPriceBinding
 import app.coinverse.priceGraph.models.PercentDifference
 import app.coinverse.priceGraph.models.PriceGraphData
 import app.coinverse.priceGraph.models.PriceGraphXAndYConstraints

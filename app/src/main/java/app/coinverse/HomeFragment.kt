@@ -13,8 +13,8 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import app.coinverse.Enums.FeedType.MAIN
 import app.coinverse.Enums.FeedType.SAVED
-import app.coinverse.coin.R
-import app.coinverse.coin.databinding.FragmentHomeBinding
+import app.coinverse.R
+import app.coinverse.databinding.FragmentHomeBinding
 import app.coinverse.content.ContentFragment
 import app.coinverse.firebase.FirestoreCollections.usersCollection
 import app.coinverse.priceGraph.PriceFragment

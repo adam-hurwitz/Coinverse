@@ -379,6 +379,7 @@ class ContentRepository(application: Application) {
     }
 
     fun updateQualityScore(score: Double, contentId: String) {
+        //TODO: Add to Firestore rules.
         if (score != 0.0) {
             Log.d(LOG_TAG, "Transaction success: " + score)
             val contentDocRef = FirestoreCollections.contentCollection.document(contentId)

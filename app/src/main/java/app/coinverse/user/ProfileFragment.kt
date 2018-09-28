@@ -11,8 +11,8 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import app.coinverse.Enums
 import app.coinverse.HomeViewModel
-import app.coinverse.coin.R
-import app.coinverse.coin.databinding.FragmentProfileBinding
+import app.coinverse.R
+import app.coinverse.databinding.FragmentProfileBinding
 import app.coinverse.firebase.FirestoreCollections.ARCHIVED_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.usersCollection
 import app.coinverse.utils.Constants.ON_BACK_PRESS_DELAY_IN_MILLIS

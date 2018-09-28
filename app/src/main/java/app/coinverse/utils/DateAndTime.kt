@@ -4,7 +4,7 @@ import android.content.Context
 import app.coinverse.Enums
 import app.coinverse.Enums.Timeframe.DAY
 import app.coinverse.Enums.Timeframe.WEEK
-import app.coinverse.coin.R
+import app.coinverse.R
 import java.util.*
 
 object DateAndTime {

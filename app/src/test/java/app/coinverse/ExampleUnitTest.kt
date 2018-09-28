@@ -1,4 +1,4 @@
-package app.coinverse.coin
+package app.coinverse
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProviders
 import app.coinverse.HomeViewModel
-import app.coinverse.coin.databinding.FragmentSignInDialogBinding
+import app.coinverse.databinding.FragmentSignInDialogBinding
 import app.coinverse.utils.Constants.RC_SIGN_IN
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse

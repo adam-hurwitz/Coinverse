@@ -1,7 +1,7 @@
 package app.coinverse.firebase
 
 import android.content.Context
-import app.coinverse.coin.BuildConfig.DEBUG
+import app.coinverse.BuildConfig.DEBUG
 import app.coinverse.utils.auth.Auth.APP_API_ID_STAGING
 import app.coinverse.utils.auth.Auth.APP_ID_PRODUCTION
 import app.coinverse.utils.auth.Auth.APP_ID_STAGING

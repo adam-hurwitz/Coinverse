@@ -14,8 +14,8 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import app.coinverse.Enums.FeedType.*
 import app.coinverse.HomeViewModel
-import app.coinverse.coin.R
-import app.coinverse.coin.databinding.FragmentContentBinding
+import app.coinverse.R
+import app.coinverse.databinding.FragmentContentBinding
 import app.coinverse.content.adapter.ContentAdapter
 import app.coinverse.content.adapter.ItemTouchHelper
 import app.coinverse.utils.Constants.CONTENT_FEED_VISIBILITY_DELAY

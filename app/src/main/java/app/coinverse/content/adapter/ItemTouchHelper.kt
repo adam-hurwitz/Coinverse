@@ -13,7 +13,7 @@ import app.coinverse.Enums.FeedType.SAVED
 import app.coinverse.Enums.UserActionType.ARCHIVE
 import app.coinverse.Enums.UserActionType.SAVE
 import app.coinverse.HomeViewModel
-import app.coinverse.coin.R
+import app.coinverse.R
 import app.coinverse.user.SignInDialogFragment
 import app.coinverse.utils.Constants
 import app.coinverse.utils.Utils

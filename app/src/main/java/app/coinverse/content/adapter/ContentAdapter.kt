@@ -6,7 +6,7 @@ import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.DiffUtil
 import app.coinverse.Enums.FeedType.MAIN
 import app.coinverse.Enums.UserActionType
-import app.coinverse.coin.databinding.CellContentBinding
+import app.coinverse.databinding.CellContentBinding
 import app.coinverse.content.ContentViewModel
 import app.coinverse.content.models.Content
 import com.google.firebase.auth.FirebaseUser
