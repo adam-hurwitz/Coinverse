@@ -11,6 +11,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import app.coinverse.Enums.UserActionType.*
+import app.coinverse.coin.BuildConfig.DEBUG
 import app.coinverse.coin.R
 import app.coinverse.coin.databinding.FragmentYoutubeDialogBinding
 import app.coinverse.content.models.Content
@@ -31,7 +32,8 @@ import app.coinverse.utils.Constants.YOUTUBE_PORTRAIT_HEIGHT_DIVISOR
 import app.coinverse.utils.Constants.YOUTUBE_VIEW
 import app.coinverse.utils.Utils.getDisplayHeight
 import app.coinverse.utils.Utils.getDisplayWidth
-import app.coinverse.utils.auth.Auth
+import app.coinverse.utils.auth.Auth.APP_API_ID_PRODUCTION
+import app.coinverse.utils.auth.Auth.APP_API_ID_STAGING
 import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
 import com.google.android.youtube.player.YouTubePlayer.OnInitializedListener
@@ -78,7 +80,9 @@ class YouTubeDialogFragment : DialogFragment() {
         analytics.setCurrentScreen(activity!!, YOUTUBE_VIEW, null)
         binding = FragmentYoutubeDialogBinding.inflate(inflater, container, false)
         val youTubePlayerFragment = YouTubePlayerSupportFragment.newInstance()
-        youTubePlayerFragment.initialize(Auth.APP_API_ID, object : OnInitializedListener {
+        val appApiId: String
+        if (DEBUG) { appApiId = APP_API_ID_STAGING } else { appApiId = APP_API_ID_PRODUCTION }
+        youTubePlayerFragment.initialize(appApiId, object : OnInitializedListener {
             override fun onInitializationSuccess(provider: Provider, player: YouTubePlayer, wasRestored: Boolean) {
                 if (!wasRestored) {
                     youtubePlayer = player

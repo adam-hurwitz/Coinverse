@@ -13,8 +13,8 @@ import app.coinverse.content.models.Content
 import app.coinverse.content.models.UserAction
 import app.coinverse.content.room.ContentDatabase
 import app.coinverse.firebase.FirestoreCollections
-import app.coinverse.firebase.FirestoreCollections.ARCHIVE_ACTION_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.ARCHIVED_COLLECTION
+import app.coinverse.firebase.FirestoreCollections.ARCHIVE_ACTION_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.ARCHIVE_COUNT
 import app.coinverse.firebase.FirestoreCollections.ARCHIVE_SCORE
 import app.coinverse.firebase.FirestoreCollections.CLEAR_FEED_COUNT
@@ -26,8 +26,8 @@ import app.coinverse.firebase.FirestoreCollections.FINISH_COUNT
 import app.coinverse.firebase.FirestoreCollections.FINISH_SCORE
 import app.coinverse.firebase.FirestoreCollections.INVALID_SCORE
 import app.coinverse.firebase.FirestoreCollections.ORGANIZE_COUNT
-import app.coinverse.firebase.FirestoreCollections.SAVE_ACTION_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.SAVED_COLLECTION
+import app.coinverse.firebase.FirestoreCollections.SAVE_ACTION_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.SAVE_SCORE
 import app.coinverse.firebase.FirestoreCollections.START_ACTION_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.START_COUNT
@@ -44,7 +44,7 @@ import app.coinverse.utils.Constants.TIMESTAMP
 import app.coinverse.utils.Constants.TIMESTAMP_PARAM
 import app.coinverse.utils.Constants.USER_ID_PARAM
 import app.coinverse.utils.DateAndTime.getTimeframe
-import app.coinverse.utils.auth.Auth
+import app.coinverse.utils.auth.Auth.CONTENT
 import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.auth.FirebaseAuth
@@ -70,7 +70,7 @@ class ContentRepository(application: Application) {
 
     init {
         analytics = FirebaseAnalytics.getInstance(application)
-        contentFirestore = FirebaseFirestore.getInstance(FirebaseApp.getInstance(Auth.CONTENT_FIRESTORE_NAME))
+        contentFirestore = FirebaseFirestore.getInstance(FirebaseApp.getInstance(CONTENT))
         contentDatabase = ContentDatabase.getAppDatabase(application)
     }
 
@@ -79,7 +79,7 @@ class ContentRepository(application: Application) {
         val contentDao = contentDatabase.contentDao()
         val user = FirebaseAuth.getInstance().currentUser
         if (user != null) {
-            val userReference = FirestoreCollections.usersCollection.document(user.uid)
+            val userReference = usersCollection.document(user.uid)
             organizedSet.clear()
             savedListenerRegistration = userReference
                     .collection(FirestoreCollections.SAVED_COLLECTION)

@@ -1,18 +1,16 @@
 package app.coinverse.firebase
 
-import app.coinverse.utils.auth.Auth
+import app.coinverse.utils.auth.Auth.CONTENT
+import app.coinverse.utils.auth.Auth.PRICE
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FirebaseFirestore
 
 object FirestoreCollections {
 
     // Content feed.
-    const val PROD_COLLECTION = "prod"
-    const val QA_COLLECTION = "qa"
-    const val CONTENT = "content"
-    const val FEEDS_COLLECTION = "feeds"
-    const val MAIN = "main"
     const val CONTENT_COLLECTION = "content"
+    const val FEEDS = "feeds"
+    const val MAIN_COLLECTION = "main"
     const val ARCHIVED_COLLECTION = "archivedCollection"
     const val SAVED_COLLECTION = "savedCollection"
 
@@ -33,7 +31,6 @@ object FirestoreCollections {
     const val SHARE_COUNT = "shareCount"
     const val CLEAR_FEED_COUNT = "clearFeedCount"
     const val ARCHIVE_COUNT = "archiveCount"
-    //TODO: main_feed_emptied_count
 
     // Quality scores.
     const val INVALID_SCORE = 0.0
@@ -45,24 +42,20 @@ object FirestoreCollections {
     const val ARCHIVE_SCORE = -1.0 // Not opened.
 
     // Users
-    const val USERS = "users"
     const val USERS_COLLECTION = "users"
 
     private const val MAX_PRICE_DIFFERENCE_COLLECTION = "maximumPercentDifference"
+
     val priceDifferenceCollection = FirebaseFirestore
-            .getInstance(FirebaseApp.getInstance(Auth.PRICE_FIRESTORE_NAME))
+            .getInstance(FirebaseApp.getInstance(PRICE))
             .collection(MAX_PRICE_DIFFERENCE_COLLECTION)
 
     val contentCollection = FirebaseFirestore
-            .getInstance(FirebaseApp.getInstance(Auth.CONTENT_FIRESTORE_NAME))
-            .collection(QA_COLLECTION)
-            .document(CONTENT)
-            .collection(FEEDS_COLLECTION)
-            .document(MAIN)
+            .getInstance(FirebaseApp.getInstance(CONTENT))
             .collection(CONTENT_COLLECTION)
+            .document(FEEDS)
+            .collection(MAIN_COLLECTION)
     val usersCollection = FirebaseFirestore
-            .getInstance(FirebaseApp.getInstance(Auth.CONTENT_FIRESTORE_NAME))
-            .collection(QA_COLLECTION)
-            .document(USERS)
+            .getInstance(FirebaseApp.getInstance(CONTENT))
             .collection(USERS_COLLECTION)
 }
