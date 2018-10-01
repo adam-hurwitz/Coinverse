@@ -13,7 +13,7 @@ import app.coinverse.Enums
 import app.coinverse.HomeViewModel
 import app.coinverse.R
 import app.coinverse.databinding.FragmentProfileBinding
-import app.coinverse.firebase.FirestoreCollections.ARCHIVED_COLLECTION
+import app.coinverse.firebase.FirestoreCollections.ARCHIVE_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.usersCollection
 import app.coinverse.utils.Constants.ON_BACK_PRESS_DELAY_IN_MILLIS
 import app.coinverse.utils.Constants.PROFILE_VIEW
@@ -102,7 +102,7 @@ class ProfileFragment : Fragment() {
                                 //TODO: Refactor to handle on server.
                                 deleteCollection(usersCollection
                                         .document(homeViewModel.user.value!!.uid)
-                                        .collection(ARCHIVED_COLLECTION), 20)
+                                        .collection(ARCHIVE_COLLECTION), 20)
                                 usersCollection
                                         .document(homeViewModel.user.value!!.uid)
                                         .delete()

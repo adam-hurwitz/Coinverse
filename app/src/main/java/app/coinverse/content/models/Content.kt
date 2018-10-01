@@ -10,12 +10,12 @@ import java.util.*
 
 @Entity(tableName = "content")
 data class Content(@PrimaryKey var id: String, var qualityScore: Double,
-                   var type: ContentType, var timestamp: Date, var creator: String,
+                   var contentType: ContentType, var timestamp: Date, var creator: String,
                    var title: String, var previewImage: String, var description: String,
-                   var url: String, var feedType: FeedType, var lastSavedPosition: Int,
-                   var isConsumed: Boolean, var viewCount: Double, var startCount: Double,
-                   var consumeCount: Double, var finishCount: Double, var organizeCount: Double,
-                   var shareCount: Double, var clearFeedCount: Double, var archiveCount: Double) : Parcelable {
+                   var url: String, var feedType: FeedType, var savedPosition: Int,
+                   var viewCount: Double, var startCount: Double, var consumeCount: Double,
+                   var finishCount: Double, var organizeCount: Double, var shareCount: Double,
+                   var clearFeedCount: Double, var archiveCount: Double) : Parcelable {
 
     constructor(parcel: Parcel) : this(
             parcel.readString()!!,
@@ -29,7 +29,6 @@ data class Content(@PrimaryKey var id: String, var qualityScore: Double,
             parcel.readString()!!,
             FeedType.values()[parcel.readInt()],
             parcel.readInt(),
-            parcel.readBoolean(),
             parcel.readDouble(),
             parcel.readDouble(),
             parcel.readDouble(),
@@ -40,14 +39,13 @@ data class Content(@PrimaryKey var id: String, var qualityScore: Double,
             parcel.readDouble())
 
     constructor() : this("", 0.0, ContentType.NONE, Date(), "", "",
-            "", "", "", FeedType.NONE, 0,
-            false, 0.0, 0.0, 0.0, 0.0,
+            "", "", "", FeedType.NONE, 0, 0.0, 0.0, 0.0, 0.0,
             0.0, 0.0, 0.0, 0.0)
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(id)
         parcel.writeDouble(qualityScore)
-        parcel.writeInt(type.ordinal)
+        parcel.writeInt(contentType.ordinal)
         parcel.writeLong(timestamp.time)
         parcel.writeString(creator)
         parcel.writeString(title)
@@ -55,8 +53,7 @@ data class Content(@PrimaryKey var id: String, var qualityScore: Double,
         parcel.writeString(description)
         parcel.writeString(url)
         parcel.writeInt(feedType.ordinal)
-        parcel.writeInt(lastSavedPosition)
-        parcel.writeBoolean(isConsumed)
+        parcel.writeInt(savedPosition)
         parcel.writeDouble(viewCount)
         parcel.writeDouble(startCount)
         parcel.writeDouble(consumeCount)
@@ -80,8 +77,5 @@ data class Content(@PrimaryKey var id: String, var qualityScore: Double,
             return arrayOfNulls(size)
         }
 
-        fun Parcel.readBoolean() = readInt() != 0
-
-        fun Parcel.writeBoolean(value: Boolean) = writeInt(if (value) 1 else 0)
     }
 }

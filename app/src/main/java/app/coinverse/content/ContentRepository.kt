@@ -13,8 +13,8 @@ import app.coinverse.content.models.Content
 import app.coinverse.content.models.UserAction
 import app.coinverse.content.room.ContentDatabase
 import app.coinverse.firebase.FirestoreCollections
-import app.coinverse.firebase.FirestoreCollections.ARCHIVED_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.ARCHIVE_ACTION_COLLECTION
+import app.coinverse.firebase.FirestoreCollections.ARCHIVE_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.ARCHIVE_COUNT
 import app.coinverse.firebase.FirestoreCollections.ARCHIVE_SCORE
 import app.coinverse.firebase.FirestoreCollections.CLEAR_FEED_COUNT
@@ -26,8 +26,8 @@ import app.coinverse.firebase.FirestoreCollections.FINISH_COUNT
 import app.coinverse.firebase.FirestoreCollections.FINISH_SCORE
 import app.coinverse.firebase.FirestoreCollections.INVALID_SCORE
 import app.coinverse.firebase.FirestoreCollections.ORGANIZE_COUNT
-import app.coinverse.firebase.FirestoreCollections.SAVED_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.SAVE_ACTION_COLLECTION
+import app.coinverse.firebase.FirestoreCollections.SAVE_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.SAVE_SCORE
 import app.coinverse.firebase.FirestoreCollections.START_ACTION_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.START_COUNT
@@ -82,7 +82,7 @@ class ContentRepository(application: Application) {
             val userReference = usersCollection.document(user.uid)
             organizedSet.clear()
             savedListenerRegistration = userReference
-                    .collection(FirestoreCollections.SAVED_COLLECTION)
+                    .collection(FirestoreCollections.SAVE_COLLECTION)
                     .orderBy(TIMESTAMP, Query.Direction.DESCENDING)
                     .addSnapshotListener(EventListener { value, error ->
                         error?.run {
@@ -96,7 +96,7 @@ class ContentRepository(application: Application) {
                         }
                     })
             archivedListenerRegistration = userReference
-                    .collection(FirestoreCollections.ARCHIVED_COLLECTION)
+                    .collection(FirestoreCollections.ARCHIVE_COLLECTION)
                     .orderBy(TIMESTAMP, Query.Direction.DESCENDING)
                     .addSnapshotListener(EventListener { value, error ->
                         error?.run {
@@ -165,10 +165,10 @@ class ContentRepository(application: Application) {
         var collectionType = ""
         var newFeedType = FeedType.NONE
         if (feedType == SAVED.name) {
-            collectionType = SAVED_COLLECTION
+            collectionType = SAVE_COLLECTION
             newFeedType = SAVED
         } else if (feedType == ARCHIVED.name) {
-            collectionType = ARCHIVED_COLLECTION
+            collectionType = ARCHIVE_COLLECTION
             newFeedType = ARCHIVED
         }
         FirestoreCollections.contentCollection
@@ -207,18 +207,18 @@ class ContentRepository(application: Application) {
             if (feedType == MAIN.name) {
                 updateActionsStatusCheck(actionType, content!!, user)
             } else if (feedType == ARCHIVED.name) {
-                deleteContent(userReference, ARCHIVED_COLLECTION, content)
+                deleteContent(userReference, ARCHIVE_COLLECTION, content)
             }
             content?.feedType = SAVED
-            setContent(feedType, userReference, SAVED_COLLECTION, content, mainFeedEmptied)
+            setContent(feedType, userReference, SAVE_COLLECTION, content, mainFeedEmptied)
         } else if (actionType == ARCHIVE) {
             if (feedType == MAIN.name) {
                 updateActionsStatusCheck(actionType, content!!, user)
             } else if (feedType == SAVED.name) {
-                deleteContent(userReference, SAVED_COLLECTION, content)
+                deleteContent(userReference, SAVE_COLLECTION, content)
             }
             content?.feedType = ARCHIVED
-            setContent(feedType, userReference, ARCHIVED_COLLECTION, content, mainFeedEmptied)
+            setContent(feedType, userReference, ARCHIVE_COLLECTION, content, mainFeedEmptied)
         }
 
         if (mainFeedEmptied) {

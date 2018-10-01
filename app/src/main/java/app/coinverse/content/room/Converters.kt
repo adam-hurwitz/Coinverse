@@ -24,7 +24,7 @@ class Converters {
         when (contentType) {
             YOUTUBE.code -> return YOUTUBE
             NONE.code -> return ContentType.NONE
-            else -> throw IllegalArgumentException("Could not recognize type")
+            else -> throw IllegalArgumentException("Could not recognize contentType")
         }
     }
 

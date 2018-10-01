@@ -11,8 +11,8 @@ object FirestoreCollections {
     const val CONTENT_COLLECTION = "content"
     const val FEEDS = "feeds"
     const val MAIN_COLLECTION = "main"
-    const val ARCHIVED_COLLECTION = "archivedCollection"
-    const val SAVED_COLLECTION = "savedCollection"
+    const val ARCHIVE_COLLECTION = "archiveCollection"
+    const val SAVE_COLLECTION = "saveCollection"
 
     // Actions log.
     const val START_ACTION_COLLECTION = "startActions"

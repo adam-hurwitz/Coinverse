@@ -130,7 +130,6 @@ class YouTubeDialogFragment : DialogFragment() {
                     youtubePlayer.pause()
                 }
             } else {
-                youtubePlayer.seekToMillis(content.lastSavedPosition)
                 youtubePlayer.play()
             }
         }
@@ -172,7 +171,6 @@ class YouTubeDialogFragment : DialogFragment() {
 
     override fun onPause() {
         super.onPause()
-        content.lastSavedPosition = youtubePlayer.currentTimeMillis
         Thread(Runnable { run { contentDatabase.contentDao().updateContent(content) } }).start()
 
         val watchPercent =
