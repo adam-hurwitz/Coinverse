@@ -44,13 +44,13 @@
                 app:profileImageUrl="@{user.photoUrl.toString()}" />
 
             <TextView
-                android:id="@+id/archivedContent"
+                android:id="@+id/dismissedContent"
                 style="@style/ButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:drawableStart="@drawable/ic_archive_color_primary_dark_24dp"
+                android:drawableStart="@drawable/ic_dismiss_color_primary_dark_24dp"
                 android:drawablePadding="@dimen/padding_small"
-                android:text="@string/archives"
+                android:text="@string/dismisses"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/profieImage" />

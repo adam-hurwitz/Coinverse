@@ -35,7 +35,7 @@ object Constants {
     const val ORGANIZE_EVENT = "organize_content"
     const val SHARE_EVENT = "share_content"
     const val CLEAR_FEED_EVENT = "clear_feed"
-    const val ARCHIVE_EVENT = "archive_content"
+    const val DISMISS_EVENT = "dismiss_content"
     const val CONSUME_THRESHOLD = 0.3333333333
     const val FINISH_THRESHOLD = 0.95
     // Params

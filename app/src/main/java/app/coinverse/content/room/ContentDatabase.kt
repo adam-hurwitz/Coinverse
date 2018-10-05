@@ -7,6 +7,8 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import app.coinverse.content.models.Content
 
+
+
 @Database(entities = arrayOf(Content::class), version = 1)
 @TypeConverters(Converters::class)
 abstract class ContentDatabase : RoomDatabase() {
@@ -20,14 +22,10 @@ abstract class ContentDatabase : RoomDatabase() {
         fun getAppDatabase(context: Context): ContentDatabase {
             if (INSTANCE == null) {
                 INSTANCE = Room.databaseBuilder(context.applicationContext,
-                        ContentDatabase::class.java, "content-database")
-                        .build()
+                        ContentDatabase::class.java, "content-database").build()
             }
             return INSTANCE as ContentDatabase
         }
 
-        fun destroyInstance() {
-            INSTANCE = null
-        }
     }
 }

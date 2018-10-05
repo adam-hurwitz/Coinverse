@@ -28,10 +28,10 @@ object Enums {
     }
 
     enum class UserActionType {
-        START, CONSUME, FINISH, SAVE, ARCHIVE
+        START, CONSUME, FINISH, SAVE, DISMISS
     }
 
     enum class FeedType(val code: Int) {
-        MAIN(1), SAVED(2), ARCHIVED(3), NONE(-1)
+        MAIN(1), SAVED(2), DISMISSED(3), NONE(-1)
     }
 }

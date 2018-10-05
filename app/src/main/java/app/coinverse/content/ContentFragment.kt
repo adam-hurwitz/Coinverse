@@ -55,7 +55,7 @@ class ContentFragment : Fragment() {
             homeViewModel.isRealtime.observe(this, Observer { isRealtime: Boolean ->
                 when (feedType) {
                     MAIN.name -> initializeMainContent(isRealtime)
-                    SAVED.name, ARCHIVED.name -> initializeCategorizedContent(feedType,
+                    SAVED.name, DISMISSED.name -> initializeCategorizedContent(feedType,
                             homeViewModel.user.value!!.uid)
                 }
             })
@@ -85,7 +85,7 @@ class ContentFragment : Fragment() {
     fun setToolbar() {
         when (feedType) {
             SAVED.name -> binding.actionbar.toolbar.title = getString(R.string.saved)
-            ARCHIVED.name -> binding.actionbar.toolbar.title = getString(R.string.archived)
+            DISMISSED.name -> binding.actionbar.toolbar.title = getString(R.string.dismissed)
         }
         (activity as AppCompatActivity).setSupportActionBar(binding.actionbar.toolbar)
         (activity as AppCompatActivity).supportActionBar!!.setDisplayHomeAsUpEnabled(true)
@@ -113,12 +113,12 @@ class ContentFragment : Fragment() {
                     }
                 })
             }
-            SAVED.name, ARCHIVED.name -> {
+            SAVED.name, DISMISSED.name -> {
                 var newFeedType = NONE
                 if (feedType == SAVED.name) {
                     newFeedType = SAVED
-                } else if (feedType == ARCHIVED.name) {
-                    newFeedType = ARCHIVED
+                } else if (feedType == DISMISSED.name) {
+                    newFeedType = DISMISSED
                 }
                 contentViewModel.getCategorizedContentList(newFeedType).observe(viewLifecycleOwner,
                         Observer { contentList ->
@@ -179,10 +179,10 @@ class ContentFragment : Fragment() {
                         R.drawable.ic_chevron_right_color_accent_fade_four_24dp))
                 emptyContent.emptyInstructions.text = getString(R.string.no_saved_content_instructions)
             }
-            ARCHIVED.name -> {
+            DISMISSED.name -> {
                 emptyContent.emptyImage.setImageDrawable(ContextCompat.getDrawable(context!!,
                         R.drawable.ic_check_color_accent_48dp))
-                emptyContent.title.text = getString(R.string.no_archived_content_title)
+                emptyContent.title.text = getString(R.string.no_dismissed_content_title)
                 emptyContent.swipe_right_one.setImageDrawable(ContextCompat.getDrawable(context!!,
                         R.drawable.ic_chevron_left_color_accent_24dp))
                 emptyContent.swipe_right_two.setImageDrawable(ContextCompat.getDrawable(context!!,
@@ -193,7 +193,7 @@ class ContentFragment : Fragment() {
                         R.drawable.ic_chevron_left_color_accent_fade_three_24dp))
                 emptyContent.swipe_right_five.setImageDrawable(ContextCompat.getDrawable(context!!,
                         R.drawable.ic_chevron_left_color_accent_fade_four_24dp))
-                emptyContent.emptyInstructions.text = getString(R.string.no_archived_content_instructions)
+                emptyContent.emptyInstructions.text = getString(R.string.no_dismissed_content_instructions)
             }
         }
     }

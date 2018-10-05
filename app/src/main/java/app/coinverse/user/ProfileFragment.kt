@@ -13,7 +13,7 @@ import app.coinverse.Enums
 import app.coinverse.HomeViewModel
 import app.coinverse.R
 import app.coinverse.databinding.FragmentProfileBinding
-import app.coinverse.firebase.FirestoreCollections.ARCHIVE_COLLECTION
+import app.coinverse.firebase.FirestoreCollections.DISMISS_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.usersCollection
 import app.coinverse.utils.Constants.ON_BACK_PRESS_DELAY_IN_MILLIS
 import app.coinverse.utils.Constants.PROFILE_VIEW
@@ -64,11 +64,11 @@ class ProfileFragment : Fragment() {
 
     fun setClickListeners() {
 
-        archivedContent.setOnClickListener { view: View ->
+        dismissedContent.setOnClickListener { view: View ->
             val action =
-                    ProfileFragmentDirections.actionProfileFragmentToArchivedContentFragment()
-            action.setFeedType(Enums.FeedType.ARCHIVED.name)
-            view.findNavController().navigate(R.id.action_profileFragment_to_archivedContentFragment, action.arguments)
+                    ProfileFragmentDirections.actionProfileFragmentToDismissedContentFragment()
+            action.setFeedType(Enums.FeedType.DISMISSED.name)
+            view.findNavController().navigate(R.id.action_profileFragment_to_dismissedContentFragment, action.arguments)
         }
 
         signOut.setOnClickListener { view: View ->
@@ -102,7 +102,7 @@ class ProfileFragment : Fragment() {
                                 //TODO: Refactor to handle on server.
                                 deleteCollection(usersCollection
                                         .document(homeViewModel.user.value!!.uid)
-                                        .collection(ARCHIVE_COLLECTION), 20)
+                                        .collection(DISMISS_COLLECTION), 20)
                                 usersCollection
                                         .document(homeViewModel.user.value!!.uid)
                                         .delete()

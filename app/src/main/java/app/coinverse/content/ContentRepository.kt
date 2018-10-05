@@ -13,14 +13,14 @@ import app.coinverse.content.models.Content
 import app.coinverse.content.models.UserAction
 import app.coinverse.content.room.ContentDatabase
 import app.coinverse.firebase.FirestoreCollections
-import app.coinverse.firebase.FirestoreCollections.ARCHIVE_ACTION_COLLECTION
-import app.coinverse.firebase.FirestoreCollections.ARCHIVE_COLLECTION
-import app.coinverse.firebase.FirestoreCollections.ARCHIVE_COUNT
-import app.coinverse.firebase.FirestoreCollections.ARCHIVE_SCORE
 import app.coinverse.firebase.FirestoreCollections.CLEAR_FEED_COUNT
 import app.coinverse.firebase.FirestoreCollections.CONSUME_ACTION_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.CONSUME_COUNT
 import app.coinverse.firebase.FirestoreCollections.CONSUME_SCORE
+import app.coinverse.firebase.FirestoreCollections.DISMISS_ACTION_COLLECTION
+import app.coinverse.firebase.FirestoreCollections.DISMISS_COLLECTION
+import app.coinverse.firebase.FirestoreCollections.DISMISS_COUNT
+import app.coinverse.firebase.FirestoreCollections.DISMISS_SCORE
 import app.coinverse.firebase.FirestoreCollections.FINISH_ACTION_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.FINISH_COUNT
 import app.coinverse.firebase.FirestoreCollections.FINISH_SCORE
@@ -35,9 +35,9 @@ import app.coinverse.firebase.FirestoreCollections.START_SCORE
 import app.coinverse.firebase.FirestoreCollections.contentCollection
 import app.coinverse.firebase.FirestoreCollections.usersCollection
 import app.coinverse.user.models.ContentAction
-import app.coinverse.utils.Constants.ARCHIVE_EVENT
 import app.coinverse.utils.Constants.CLEAR_FEED_EVENT
 import app.coinverse.utils.Constants.CREATOR_PARAM
+import app.coinverse.utils.Constants.DISMISS_EVENT
 import app.coinverse.utils.Constants.ORGANIZE_EVENT
 import app.coinverse.utils.Constants.QUALITY_SCORE
 import app.coinverse.utils.Constants.TIMESTAMP
@@ -60,7 +60,7 @@ class ContentRepository(application: Application) {
     private val LOG_TAG = ContentRepository::javaClass.name
 
     private lateinit var savedListenerRegistration: ListenerRegistration
-    private lateinit var archivedListenerRegistration: ListenerRegistration
+    private lateinit var dismissedListenerRegistration: ListenerRegistration
     private lateinit var contentListenerRegistration: ListenerRegistration
 
     private var organizedSet = HashSet<String>()
@@ -95,8 +95,8 @@ class ContentRepository(application: Application) {
                             Thread(Runnable { run { contentDao.updateContent(savedContent) } }).start()
                         }
                     })
-            archivedListenerRegistration = userReference
-                    .collection(FirestoreCollections.ARCHIVE_COLLECTION)
+            dismissedListenerRegistration = userReference
+                    .collection(FirestoreCollections.DISMISS_COLLECTION)
                     .orderBy(TIMESTAMP, Query.Direction.DESCENDING)
                     .addSnapshotListener(EventListener { value, error ->
                         error?.run {
@@ -104,9 +104,9 @@ class ContentRepository(application: Application) {
                             return@EventListener
                         }
                         for (document in value!!.documentChanges) {
-                            val archivedContent = document.document.toObject(Content::class.java)
-                            organizedSet.add(archivedContent.id)
-                            Thread(Runnable { run { contentDao.updateContent(archivedContent) } }).start()
+                            val dismissedContent = document.document.toObject(Content::class.java)
+                            organizedSet.add(dismissedContent.id)
+                            Thread(Runnable { run { contentDao.updateContent(dismissedContent) } }).start()
                         }
                     })
             //Logged in and realtime enabled.
@@ -167,9 +167,9 @@ class ContentRepository(application: Application) {
         if (feedType == SAVED.name) {
             collectionType = SAVE_COLLECTION
             newFeedType = SAVED
-        } else if (feedType == ARCHIVED.name) {
-            collectionType = ARCHIVE_COLLECTION
-            newFeedType = ARCHIVED
+        } else if (feedType == DISMISSED.name) {
+            collectionType = DISMISS_COLLECTION
+            newFeedType = DISMISSED
         }
         FirestoreCollections.contentCollection
                 .document(userId)
@@ -206,19 +206,19 @@ class ContentRepository(application: Application) {
         if (actionType == SAVE) {
             if (feedType == MAIN.name) {
                 updateActionsStatusCheck(actionType, content!!, user)
-            } else if (feedType == ARCHIVED.name) {
-                deleteContent(userReference, ARCHIVE_COLLECTION, content)
+            } else if (feedType == DISMISSED.name) {
+                deleteContent(userReference, DISMISS_COLLECTION, content)
             }
             content?.feedType = SAVED
             setContent(feedType, userReference, SAVE_COLLECTION, content, mainFeedEmptied)
-        } else if (actionType == ARCHIVE) {
+        } else if (actionType == DISMISS) {
             if (feedType == MAIN.name) {
                 updateActionsStatusCheck(actionType, content!!, user)
             } else if (feedType == SAVED.name) {
                 deleteContent(userReference, SAVE_COLLECTION, content)
             }
-            content?.feedType = ARCHIVED
-            setContent(feedType, userReference, ARCHIVE_COLLECTION, content, mainFeedEmptied)
+            content?.feedType = DISMISSED
+            setContent(feedType, userReference, DISMISS_COLLECTION, content, mainFeedEmptied)
         }
 
         if (mainFeedEmptied) {
@@ -256,8 +256,8 @@ class ContentRepository(application: Application) {
     }
 
     fun updateActionsStatusCheck(actionType: UserActionType, content: Content, user: FirebaseUser) {
-        if (actionType == ARCHIVE) {
-            // Only count archived if user has not started the content.
+        if (actionType == DISMISS) {
+            // Only count dismissed if user has not started the content.
             contentCollection.document(content.id).collection(START_ACTION_COLLECTION)
                     .document(user.email!!).get().addOnSuccessListener {
                         if (!it.exists()) {
@@ -281,7 +281,7 @@ class ContentRepository(application: Application) {
             CONSUME -> actionCollection = CONSUME_ACTION_COLLECTION
             FINISH -> actionCollection = FINISH_ACTION_COLLECTION
             SAVE -> actionCollection = SAVE_ACTION_COLLECTION
-            ARCHIVE -> actionCollection = ARCHIVE_ACTION_COLLECTION
+            DISMISS -> actionCollection = DISMISS_ACTION_COLLECTION
         }
 
         val contentUserActionRef = contentCollection
@@ -323,9 +323,9 @@ class ContentRepository(application: Application) {
                     score = SAVE_SCORE
                     countType = ORGANIZE_COUNT
                 }
-                ARCHIVE -> {
-                    score = ARCHIVE_SCORE
-                    countType = ARCHIVE_COUNT
+                DISMISS -> {
+                    score = DISMISS_SCORE
+                    countType = DISMISS_COUNT
                 }
             }
             // Add user action to content's collection.
@@ -402,8 +402,8 @@ class ContentRepository(application: Application) {
             var logEvent = ""
             if (content.feedType == SAVED) {
                 logEvent = ORGANIZE_EVENT
-            } else if (content.feedType == ARCHIVED) {
-                logEvent = ARCHIVE_EVENT
+            } else if (content.feedType == DISMISSED) {
+                logEvent = DISMISS_EVENT
             }
             val bundle = Bundle()
             bundle.putString(FirebaseAnalytics.Param.ITEM_ID, content.id)

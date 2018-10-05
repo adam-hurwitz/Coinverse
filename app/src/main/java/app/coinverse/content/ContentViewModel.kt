@@ -63,7 +63,7 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
 
     fun getToolbarVisibility(): Int {
         when (feedType) {
-            SAVED.name, ARCHIVED.name -> return View.VISIBLE
+            SAVED.name, DISMISSED.name -> return View.VISIBLE
             else -> return View.GONE
         }
     }

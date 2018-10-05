@@ -15,7 +15,7 @@ data class Content(@PrimaryKey var id: String, var qualityScore: Double,
                    var url: String, var feedType: FeedType, var savedPosition: Int,
                    var viewCount: Double, var startCount: Double, var consumeCount: Double,
                    var finishCount: Double, var organizeCount: Double, var shareCount: Double,
-                   var clearFeedCount: Double, var archiveCount: Double) : Parcelable {
+                   var clearFeedCount: Double, var dismissCount: Double) : Parcelable {
 
     constructor(parcel: Parcel) : this(
             parcel.readString()!!,
@@ -61,7 +61,7 @@ data class Content(@PrimaryKey var id: String, var qualityScore: Double,
         parcel.writeDouble(organizeCount)
         parcel.writeDouble(shareCount)
         parcel.writeDouble(clearFeedCount)
-        parcel.writeDouble(archiveCount)
+        parcel.writeDouble(dismissCount)
     }
 
     override fun describeContents(): Int {

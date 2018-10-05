@@ -11,7 +11,7 @@ object FirestoreCollections {
     const val CONTENT_COLLECTION = "content"
     const val FEEDS = "feeds"
     const val MAIN_COLLECTION = "main"
-    const val ARCHIVE_COLLECTION = "archiveCollection"
+    const val DISMISS_COLLECTION = "dismissCollection"
     const val SAVE_COLLECTION = "saveCollection"
 
     // Actions log.
@@ -20,7 +20,7 @@ object FirestoreCollections {
     const val FINISH_ACTION_COLLECTION = "finishActions"
     const val SAVE_ACTION_COLLECTION = "saveActions"
     const val SHARE_ACTION_COLLECTION = "shareActions"
-    const val ARCHIVE_ACTION_COLLECTION = "archiveActions"
+    const val DISMISS_ACTION_COLLECTION = "dismissActions"
 
     // Actions counters.
     const val VIEW_COUNT = "viewCount"
@@ -30,7 +30,7 @@ object FirestoreCollections {
     const val ORGANIZE_COUNT = "organizeCount"
     const val SHARE_COUNT = "shareCount"
     const val CLEAR_FEED_COUNT = "clearFeedCount"
-    const val ARCHIVE_COUNT = "archiveCount"
+    const val DISMISS_COUNT = "dismissCount"
 
     // Quality scores.
     const val INVALID_SCORE = 0.0
@@ -39,23 +39,19 @@ object FirestoreCollections {
     const val CONSUME_SCORE = 2.0
     const val FINISH_SCORE = 3.0
     const val SHARE_SCORE = 3.0
-    const val ARCHIVE_SCORE = -1.0 // Not opened.
+    const val DISMISS_SCORE = -1.0 // Not opened.
 
     // Users
     const val USERS_COLLECTION = "users"
 
     private const val MAX_PRICE_DIFFERENCE_COLLECTION = "maximumPercentDifference"
 
-    val priceDifferenceCollection = FirebaseFirestore
-            .getInstance(FirebaseApp.getInstance(PRICE))
+    val priceDifferenceCollection = FirebaseFirestore.getInstance(FirebaseApp.getInstance(PRICE))
             .collection(MAX_PRICE_DIFFERENCE_COLLECTION)
 
     val contentCollection = FirebaseFirestore
-            .getInstance(FirebaseApp.getInstance(CONTENT))
-            .collection(CONTENT_COLLECTION)
-            .document(FEEDS)
-            .collection(MAIN_COLLECTION)
-    val usersCollection = FirebaseFirestore
-            .getInstance(FirebaseApp.getInstance(CONTENT))
+            .getInstance(FirebaseApp.getInstance(CONTENT)).collection(CONTENT_COLLECTION)
+            .document(FEEDS).collection(MAIN_COLLECTION)
+    val usersCollection = FirebaseFirestore.getInstance(FirebaseApp.getInstance(CONTENT))
             .collection(USERS_COLLECTION)
 }

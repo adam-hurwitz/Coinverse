@@ -36,8 +36,8 @@
             android:name="user"
             app:argType="com.google.firebase.auth.FirebaseUser" />
         <action
-            android:id="@+id/action_profileFragment_to_archivedContentFragment"
-            app:destination="@id/archivedContentFragment"
+            android:id="@+id/action_profileFragment_to_dismissedContentFragment"
+            app:destination="@id/dismissedContentFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_pop_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
@@ -53,12 +53,12 @@
             app:argType="string" />
     </fragment>
     <fragment
-        android:id="@+id/archivedContentFragment"
+        android:id="@+id/dismissedContentFragment"
         android:name="app.coinverse.content.ContentFragment"
-        android:label="ArchivedContentFragment">
+        android:label="DismissedContentFragment">
         <argument
             android:name="feedType"
-            android:defaultValue="app.carpecoin.Enums.FeedType.ARCHIVED.name"
+            android:defaultValue="app.carpecoin.Enums.FeedType.DISMISSED.name"
             app:argType="string" />
     </fragment>
 </navigation>

@@ -8,9 +8,9 @@ import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ItemTouchHelper.*
 import androidx.recyclerview.widget.RecyclerView
-import app.coinverse.Enums.FeedType.ARCHIVED
+import app.coinverse.Enums.FeedType.DISMISSED
 import app.coinverse.Enums.FeedType.SAVED
-import app.coinverse.Enums.UserActionType.ARCHIVE
+import app.coinverse.Enums.UserActionType.DISMISS
 import app.coinverse.Enums.UserActionType.SAVE
 import app.coinverse.HomeViewModel
 import app.coinverse.R
@@ -44,8 +44,8 @@ class ItemTouchHelper(var homeViewModel: HomeViewModel) {
                 if (user != null) {
                     if (direction == RIGHT_SWIPE && feedType != SAVED.name) { // Save
                         adapter.organizeContent(feedType, SAVE, viewHolder.adapterPosition, user)
-                    } else if (direction == LEFT_SWIPE && feedType != ARCHIVED.name) { // Archive
-                        adapter.organizeContent(feedType, ARCHIVE, viewHolder.adapterPosition, user)
+                    } else if (direction == LEFT_SWIPE && feedType != DISMISSED.name) { // Dismiss
+                        adapter.organizeContent(feedType, DISMISS, viewHolder.adapterPosition, user)
                     }
                 } else {
                     signInDialog(viewHolder as ViewHolder)
@@ -79,7 +79,7 @@ class ItemTouchHelper(var homeViewModel: HomeViewModel) {
                         icon?.setBounds(iconLeft, iconTop, iconRight, iconBottom)
                         icon?.draw(c)
                         super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
-                    } else if (dX < 0 && feedType != ARCHIVED.name) { // Archive
+                    } else if (dX < 0 && feedType != DISMISSED.name) { // Dismiss
                         icon = ContextCompat.getDrawable(context, R.drawable.ic_check_white_48dp)
                         background = ColorDrawable(ContextCompat.getColor(context, R.color.colorAccent))
                         background.setBounds((itemView.right - dX).toInt(), itemView.top, 0, itemView.bottom)

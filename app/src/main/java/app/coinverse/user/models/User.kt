@@ -7,4 +7,4 @@ data class User(var id: String, var username: String?, var email: String?,
                 var lastSignInTimestamp: Date, var providerId: String, var viewCount: Double,
                 var startCount: Double, var consumeContent: Double, var finishCount: Double,
                 var organizeCount: Double, var shareCount: Double, var clearFeedCount: Double,
-                var archiveCount: Double)
+                var dismissCount: Double)

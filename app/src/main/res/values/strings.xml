@@ -30,17 +30,17 @@
     <string name="swipe_right_image">Content swipe right image.</string>
     <string name="no_content_title">All of the content is organized!</string>
     <string name="no_saved_content_title">No Content Saved</string>
-    <string name="no_archived_content_title">No Content Archived</string>
+    <string name="no_dismissed_content_title">No Content Dismissed</string>
     <string name="no_feed_content_instructions">Explore your saved content or put away the phone and go for a walk.</string>
     <string name="no_saved_content_instructions">Swipe right to save content.</string>
-    <string name="no_archived_content_instructions">Swipe left to archive content.</string>
+    <string name="no_dismissed_content_instructions">Swipe left to dismiss content.</string>
     <string name="letsGo">Let\'s go!</string>
     <string name="saved">Saved</string>
-    <string name="archived">Archived</string>
+    <string name="dismissed">Dismissed</string>
 
     <!--Profile-->
     <string name="profile_image">User profile image.</string>
-    <string name="archives">Archived Content</string>
+    <string name="dismisses">Dismissed Content</string>
     <string name="sign_out">Sign Out</string>
     <string name="signed_out">Sign Out Successful. See you soon!</string>
     <string name="already_signed_out">You\'re already signed out.</string>

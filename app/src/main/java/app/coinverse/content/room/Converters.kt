@@ -38,7 +38,7 @@ class Converters {
         when (feedType) {
             MAIN.code -> return MAIN
             SAVED.code -> return SAVED
-            ARCHIVED.code -> return ARCHIVED
+            DISMISSED.code -> return DISMISSED
             NONE.code -> return NONE
             else -> throw IllegalArgumentException("Could not recognize feedType")
         }
