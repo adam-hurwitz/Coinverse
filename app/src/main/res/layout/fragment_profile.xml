@@ -48,7 +48,7 @@
                 style="@style/ButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:drawableStart="@drawable/ic_dismiss_color_primary_dark_24dp"
+                android:drawableStart="@drawable/ic_dismiss_planet_light_48dp"
                 android:drawablePadding="@dimen/padding_small"
                 android:text="@string/dismisses"
                 app:layout_constraintLeft_toLeftOf="parent"

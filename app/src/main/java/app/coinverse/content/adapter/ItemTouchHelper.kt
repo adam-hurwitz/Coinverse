@@ -2,6 +2,7 @@ package app.coinverse.content.adapter
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Paint
 import android.graphics.drawable.ColorDrawable
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
@@ -16,7 +17,9 @@ import app.coinverse.HomeViewModel
 import app.coinverse.R
 import app.coinverse.user.SignInDialogFragment
 import app.coinverse.utils.Constants
-import app.coinverse.utils.Utils
+import app.coinverse.utils.Constants.CELL_CONTENT_MARGIN
+import app.coinverse.utils.Constants.SWIPE_CONTENT_Y_MARGIN_DP
+import app.coinverse.utils.Utils.convertDpToPx
 import com.google.firebase.auth.FirebaseAuth
 
 private val LOG_TAG = ItemTouchHelper::class.java.simpleName
@@ -62,15 +65,22 @@ class ItemTouchHelper(var homeViewModel: HomeViewModel) {
                     val iconRight: Int
                     val background: ColorDrawable
                     val itemView = viewHolder.itemView
-                    val margin = Utils.convertDpToPx(Constants.CELL_CONTENT_MARGIN)
+                    val margin = convertDpToPx(CELL_CONTENT_MARGIN)
                     val iconWidth = icon!!.intrinsicWidth
                     val iconHeight = icon.intrinsicHeight
                     val cellHeight = itemView.bottom - itemView.top
                     val iconTop = itemView.top + (cellHeight - iconHeight) / 2
                     val iconBottom = iconTop + iconHeight
+                    val paint = Paint()
+                    paint.textSize = context.resources.getDimension(R.dimen.text_size_normal)
+                    paint.color = context.getColor(android.R.color.white)
+                    var action = ""
+                    val xTextPosition: Float
+                    val yTextPosition: Float
 
                     if (dX > 0 && feedType != SAVED.name) { // Save
-                        icon = ContextCompat.getDrawable(context, R.drawable.ic_save_white_48dp)
+                        // Draw icon.
+                        icon = ContextCompat.getDrawable(context, R.drawable.ic_save_planet_dark_48dp)
                         background = ColorDrawable(ContextCompat.getColor(context, R.color.colorPrimary))
                         background.setBounds(0, itemView.top, (itemView.left + dX).toInt(), itemView.bottom)
                         iconLeft = margin
@@ -79,8 +89,15 @@ class ItemTouchHelper(var homeViewModel: HomeViewModel) {
                         icon?.setBounds(iconLeft, iconTop, iconRight, iconBottom)
                         icon?.draw(c)
                         super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                        // Draw text.
+                        action = context.getString(R.string.save)
+                        val actionTextLength = paint.measureText(action)
+                        xTextPosition = (margin + ((iconWidth - actionTextLength) / 2))
+                        yTextPosition = (iconBottom + convertDpToPx(SWIPE_CONTENT_Y_MARGIN_DP)).toFloat()
+                        c.drawText(action, xTextPosition, yTextPosition, paint)
                     } else if (dX < 0 && feedType != DISMISSED.name) { // Dismiss
-                        icon = ContextCompat.getDrawable(context, R.drawable.ic_check_white_48dp)
+                        // Draw icon.
+                        icon = ContextCompat.getDrawable(context, R.drawable.ic_dismiss_planet_light_48dp)
                         background = ColorDrawable(ContextCompat.getColor(context, R.color.colorAccent))
                         background.setBounds((itemView.right - dX).toInt(), itemView.top, 0, itemView.bottom)
                         iconLeft = itemView.right - margin - iconWidth
@@ -89,6 +106,12 @@ class ItemTouchHelper(var homeViewModel: HomeViewModel) {
                         icon?.setBounds(iconLeft, iconTop, iconRight, iconBottom)
                         icon?.draw(c)
                         super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                        // Draw text.
+                        action = context.getString(R.string.dismiss)
+                        val actionTextLength = paint.measureText(action)
+                        xTextPosition = (itemView.right - margin - ((iconWidth + actionTextLength) / 2))
+                        yTextPosition = (iconBottom + convertDpToPx(SWIPE_CONTENT_Y_MARGIN_DP)).toFloat()
+                        c.drawText(action, xTextPosition, yTextPosition, paint)
                     }
                 }
             }

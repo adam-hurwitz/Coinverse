@@ -14,6 +14,7 @@ object Constants {
     const val CONTENT_KEY = "contentKey"
     const val CELL_CONTENT_MARGIN = 32
     const val PREFETCH_DISTANCE = 24
+    const val SWIPE_CONTENT_Y_MARGIN_DP = 16
     const val PAGE_SIZE = 12
     const val YOUTUBE_DIALOG_FRAGMENT_TAG = "youtubeDialogFragmentTag"
     const val YOUTUBE_IS_PLAYING_KEY = "youtubeIsPlayingKey"

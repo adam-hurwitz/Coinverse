@@ -165,7 +165,7 @@ class ContentFragment : Fragment() {
             }
             SAVED.name -> {
                 emptyContent.emptyImage.setImageDrawable(ContextCompat.getDrawable(context!!,
-                        R.drawable.ic_save_color_accent_24dp))
+                        R.drawable.ic_save_planet_dark_48dp))
                 emptyContent.title.text = getString(R.string.no_saved_content_title)
                 emptyContent.swipe_right_one.setImageDrawable(ContextCompat.getDrawable(context!!,
                         R.drawable.ic_chevron_right_color_accent_24dp))
@@ -181,7 +181,7 @@ class ContentFragment : Fragment() {
             }
             DISMISSED.name -> {
                 emptyContent.emptyImage.setImageDrawable(ContextCompat.getDrawable(context!!,
-                        R.drawable.ic_check_color_accent_48dp))
+                        R.drawable.ic_dismiss_planet_light_48dp))
                 emptyContent.title.text = getString(R.string.no_dismissed_content_title)
                 emptyContent.swipe_right_one.setImageDrawable(ContextCompat.getDrawable(context!!,
                         R.drawable.ic_chevron_left_color_accent_24dp))

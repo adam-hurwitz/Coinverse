@@ -4,8 +4,8 @@ link: https://www.iconfinder.com/iconsets/out-of-the-world
 modifications: color
 creative commons license: https://creativecommons.org/licenses/by/3.0/legalcode-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp"
-    android:height="24dp"
+    android:width="48dp"
+    android:height="48dp"
     android:viewportWidth="512"
     android:viewportHeight="512">
     <path

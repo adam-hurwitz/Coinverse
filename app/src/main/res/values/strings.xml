@@ -37,6 +37,8 @@
     <string name="letsGo">Let\'s go!</string>
     <string name="saved">Saved</string>
     <string name="dismissed">Dismissed</string>
+    <string name="save">save</string>
+    <string name="dismiss">dismiss</string>
 
     <!--Profile-->
     <string name="profile_image">User profile image.</string>

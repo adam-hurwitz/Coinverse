@@ -1,0 +1,42 @@
+<!--creator: Brian Ondari
+title: Out of the World
+link: https://www.iconfinder.com/iconsets/out-of-the-world
+modifications: color, mirroring
+creative commons license: https://creativecommons.org/licenses/by/3.0/legalcode-->
+<vector android:height="24dp" android:viewportHeight="512"
+    android:viewportWidth="512" android:width="24dp" xmlns:android="http://schemas.android.com/apk/res/android">
+    <path android:fillColor="@color/colorPrimary"
+        android:pathData="M221.458,268.6m195.1,0a195.1,195.1 0,1 0,-390.2 0a195.1,195.1 0,1 0,390.2 0"
+        android:strokeColor="#414042" android:strokeWidth="20"/>
+    <path android:fillColor="@color/fadedColorPrimaryDarker" android:pathData="m37.958,265.5c0,95.9 54.1,164.9 151.4,178.5 96.5,13.5 201.6,-82.6 201.6,-178.5 0,-95.9 -79,-183.2 -176.5,-183.2 -97.5,0 -176.5,87.3 -176.5,183.2z"/>
+    <path android:fillColor="@color/fadedColorPrimaryDarker" android:pathData="m47.858,269.3c0,97.3 53.5,167.3 149.8,181.1 95.5,13.7 199.4,-83.8 199.4,-181.1 0,-97.3 -78.3,-186.1 -174.7,-187.1 -113.3,-1.1 -174.5,89.9 -174.5,187.1z"/>
+    <path android:fillColor="@color/colorPrimary"
+        android:pathData="M131.158,103.1m40.3,0a40.3,40.3 0,1 0,-80.6 0a40.3,40.3 0,1 0,80.6 0"
+        android:strokeColor="#414042" android:strokeWidth="16"/>
+    <path android:fillColor="@color/colorAccent"
+        android:pathData="M176.158,455.3m22.6,0a22.6,22.6 0,1 0,-45.2 0a22.6,22.6 0,1 0,45.2 0"
+        android:strokeColor="#414042" android:strokeWidth="16"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M441.158,207.2L224.158,207.2"
+        android:strokeColor="#414042" android:strokeLineCap="round" android:strokeWidth="20"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M261.858,259.2L148.558,259.2"
+        android:strokeColor="#414042" android:strokeLineCap="round" android:strokeWidth="20"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M486.958,315.2L242.758,315.2"
+        android:strokeColor="#414042" android:strokeLineCap="round" android:strokeWidth="20"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M250.658,355.2L33.658,355.2"
+        android:strokeColor="#414042" android:strokeLineCap="round" android:strokeWidth="20"/>
+    <path android:fillColor="#414042" android:pathData="M218.858,315.2m9.5,0a9.5,9.5 0,1 0,-19 0a9.5,9.5 0,1 0,19 0"/>
+    <path android:fillColor="#414042" android:pathData="M193.758,207.2m7.9,0a7.9,7.9 0,1 0,-15.8 0a7.9,7.9 0,1 0,15.8 0"/>
+    <path android:fillColor="#414042" android:pathData="M121.158,259.2m11.3,0a11.3,11.3 0,1 0,-22.6 0a11.3,11.3 0,1 0,22.6 0"/>
+    <path android:fillColor="#00000000"
+        android:pathData="m351.758,363.6c0,11.6 -7.5,21 -16.7,21"
+        android:strokeColor="#414042" android:strokeLineCap="round"
+        android:strokeLineJoin="round" android:strokeWidth="10"/>
+    <path android:fillColor="#414042" android:pathData="M305.858,50.2m5,0a5,5 0,1 0,-10 0a5,5 0,1 0,10 0"/>
+    <path android:fillColor="#414042" android:pathData="M162.158,45.2m5,0a5,5 0,1 0,-10 0a5,5 0,1 0,10 0"/>
+    <path android:fillColor="#414042" android:pathData="M74.158,121.2m5,0a5,5 0,1 0,-10 0a5,5 0,1 0,10 0"/>
+    <path android:fillColor="#414042" android:pathData="M90.858,33.9m7.7,0a7.7,7.7 0,1 0,-15.4 0a7.7,7.7 0,1 0,15.4 0"/>
+</vector>
