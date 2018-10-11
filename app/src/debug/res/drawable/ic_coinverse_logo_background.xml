@@ -3,16 +3,18 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:fillColor="@color/colorAccentFadeOne"
-        android:pathData="M54,54m-54,0a54,54 0,1 1,108 0a54,54 0,1 1,-108 0" />
-    <path
-        android:fillColor="#E8F7FC"
-        android:pathData="M53,54m-27,0a27,27 0,1 1,54 0a27,27 0,1 1,-54 0" />
-    <path
-        android:fillColor="@color/colorAccentFadeOne"
-        android:pathData="M53,54m-26,0a26,26 0,1 1,52 0a26,26 0,1 1,-52 0" />
-    <path
-        android:fillColor="#5FC7E6"
-        android:pathData="M53,54m-7,0a7,7 0,1 1,14 0a7,7 0,1 1,-14 0" />
+  <path
+      android:pathData="M54,54m-54,0a54,54 0,1 1,108 0a54,54 0,1 1,-108 0"
+      android:fillColor="@color/colorAccentFadeOne"/>
+  <path
+      android:pathData="M54,54m-26,0a26,26 0,1 1,52 0a26,26 0,1 1,-52 0"
+      android:strokeWidth="2"
+      android:fillColor="#00000000"
+      android:strokeColor="@android:color/white"/>
+  <path
+      android:pathData="M46.731,54a7.269,7.269 0,1 0,14.538 0a7.269,7.269 0,1 0,-14.538 0z"
+      android:fillColor="#5FC7E6"/>
+  <path
+      android:pathData="M36,72m-7,0a7,7 0,1 1,14 0a7,7 0,1 1,-14 0"
+      android:fillColor="@color/colorAccentFadeOne"/>
 </vector>
