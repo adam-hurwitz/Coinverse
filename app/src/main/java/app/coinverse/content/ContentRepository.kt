@@ -135,7 +135,7 @@ class ContentRepository(application: Application) {
                         .get()
                         .addOnCompleteListener {
                             val contentList = arrayListOf<Content?>()
-                            for (document in it.result.documentChanges) {
+                            for (document in it.result!!.documentChanges) {
                                 val content = document.document.toObject(Content::class.java)
                                 if (!organizedSet.contains(content.id)) {
                                     contentList.add(content)
@@ -152,7 +152,7 @@ class ContentRepository(application: Application) {
                     .get()
                     .addOnCompleteListener {
                         val contentList = arrayListOf<Content?>()
-                        for (document in it.result.documents) {
+                        for (document in it.result!!.documents) {
                             val content = document.toObject(Content::class.java)
                             contentList.add(content)
                         }

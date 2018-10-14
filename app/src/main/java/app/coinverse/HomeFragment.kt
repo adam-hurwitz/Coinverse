@@ -153,7 +153,7 @@ class HomeFragment : Fragment() {
             setProfileButton(user != null)
             if (user != null) {
                 usersCollection.document(user.uid).get().addOnCompleteListener { userQuery ->
-                    if (!userQuery.result.exists()) {
+                    if (!userQuery.result!!.exists()) {
                         usersCollection.document(user.uid).set(
                                 User(user.uid, user.displayName, user.email, user.phoneNumber,
                                         user.photoUrl.toString(),

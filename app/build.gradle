@@ -4,11 +4,11 @@ apply plugin: 'kotlin-android'
 
 apply plugin: 'kotlin-android-extensions'
 
-apply plugin: 'com.google.gms.google-services'
-
 apply plugin: "androidx.navigation.safeargs"
 
 apply plugin: 'kotlin-kapt'
+
+apply plugin: 'com.google.gms.google-services'
 
 android {
     compileSdkVersion 28
@@ -16,8 +16,8 @@ android {
         applicationId "app.coinverse"
         minSdkVersion 27
         targetSdkVersion 28
-        versionCode 12
-        versionName "0.11"
+        versionCode 13
+        versionName "0.12"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
             annotationProcessorOptions {
@@ -60,11 +60,13 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-reactivestreams-ktx:$lifecycle_version"
     implementation "androidx.paging:paging-runtime:$paging_version"
     implementation "androidx.paging:paging-rxjava2:$paging_version"
+    implementation 'com.google.android.gms:play-services-auth:16.0.1'
     implementation 'com.firebase:firebase-client-android:2.5.2'
-    implementation 'com.google.firebase:firebase-core:16.0.3'
-    implementation 'com.google.firebase:firebase-firestore:17.1.0'
-    implementation 'com.firebaseui:firebase-ui-firestore:4.1.0'
-    implementation 'com.firebaseui:firebase-ui-auth:4.0.0'
+    implementation 'com.google.firebase:firebase-core:16.0.4'
+    implementation 'com.google.firebase:firebase-firestore:17.1.1'
+    implementation 'com.google.firebase:firebase-auth:16.0.4'
+    implementation 'com.firebaseui:firebase-ui-firestore:4.2.0'
+    implementation 'com.firebaseui:firebase-ui-auth:4.1.0'
     implementation 'com.jjoe64:graphview:4.2.2'
     implementation files('libs/YouTubeAndroidPlayerApi.jar')
     implementation 'io.reactivex.rxjava2:rxjava:2.2.0'

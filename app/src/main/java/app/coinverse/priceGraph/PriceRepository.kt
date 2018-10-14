@@ -70,7 +70,7 @@ object PriceRepository {
                     .whereGreaterThan(TIMESTAMP, getTimeframe(timeframe))
                     .get()
                     .addOnCompleteListener {
-                        parsePriceData(it.result.documentChanges)
+                        parsePriceData(it.result!!.documentChanges)
                     }
         }
     }

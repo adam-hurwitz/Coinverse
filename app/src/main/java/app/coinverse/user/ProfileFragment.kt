@@ -138,7 +138,7 @@ class ProfileFragment : Fragment() {
                     .limit(batchSize.toLong())
                     .get()
                     .addOnCompleteListener {
-                        for (document in it.result.documents) {
+                        for (document in it.result!!.documents) {
                             document.reference.delete()
                             ++deleted
                         }
