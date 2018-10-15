@@ -34,11 +34,13 @@ import app.coinverse.utils.Utils.getDisplayHeight
 import app.coinverse.utils.Utils.getDisplayWidth
 import app.coinverse.utils.auth.Auth.APP_API_ID_PRODUCTION
 import app.coinverse.utils.auth.Auth.APP_API_ID_STAGING
+import app.coinverse.utils.auth.Auth.CONTENT
 import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
 import com.google.android.youtube.player.YouTubePlayer.OnInitializedListener
 import com.google.android.youtube.player.YouTubePlayer.Provider
 import com.google.android.youtube.player.YouTubePlayerSupportFragment
+import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.FirebaseAnalytics.Param
 import com.google.firebase.analytics.FirebaseAnalytics.getInstance
@@ -70,7 +72,7 @@ class YouTubeDialogFragment : DialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        analytics = getInstance(context!!)
+        analytics = getInstance(FirebaseApp.getInstance(CONTENT).applicationContext)
         content = arguments!!.getParcelable(CONTENT_KEY)!!
         contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
         contentDatabase = ContentDatabase.getAppDatabase(context!!)
@@ -138,7 +140,7 @@ class YouTubeDialogFragment : DialogFragment() {
 
         override fun onVideoStarted() {
             val bundle = Bundle()
-            val user = FirebaseAuth.getInstance().currentUser
+            val user = FirebaseAuth.getInstance(FirebaseApp.getInstance(CONTENT)).currentUser
             bundle.putString(Param.ITEM_NAME, content.title)
             if (user != null) {
                 contentViewModel.updateActions(START, content, user)
@@ -178,7 +180,7 @@ class YouTubeDialogFragment : DialogFragment() {
                         / youtubePlayer.durationMillis)
         if (watchPercent >= FINISH_THRESHOLD) {
             val bundle = Bundle()
-            val user = FirebaseAuth.getInstance().currentUser
+            val user = FirebaseAuth.getInstance(FirebaseApp.getInstance(CONTENT)).currentUser
             bundle.putString(Param.ITEM_NAME, content.title)
             if (user != null) {
                 contentViewModel.updateActions(FINISH, content, user)
@@ -188,7 +190,7 @@ class YouTubeDialogFragment : DialogFragment() {
             analytics.logEvent(FINISH_CONTENT_EVENT, bundle)
         } else if (watchPercent >= Constants.CONSUME_THRESHOLD) {
             val bundle = Bundle()
-            val user = FirebaseAuth.getInstance().currentUser
+            val user = FirebaseAuth.getInstance(FirebaseApp.getInstance(CONTENT)).currentUser
             bundle.putString(Param.ITEM_NAME, content.title)
             if (user != null) {
                 contentViewModel.updateActions(CONSUME, content, user)

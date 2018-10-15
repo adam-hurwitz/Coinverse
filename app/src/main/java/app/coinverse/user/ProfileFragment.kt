@@ -17,8 +17,10 @@ import app.coinverse.firebase.FirestoreCollections.DISMISS_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.usersCollection
 import app.coinverse.utils.Constants.ON_BACK_PRESS_DELAY_IN_MILLIS
 import app.coinverse.utils.Constants.PROFILE_VIEW
+import app.coinverse.utils.auth.Auth.CONTENT
 import com.firebase.ui.auth.AuthUI
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -36,7 +38,7 @@ class ProfileFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        analytics = FirebaseAnalytics.getInstance(context!!)
+        analytics = FirebaseAnalytics.getInstance(FirebaseApp.getInstance(CONTENT).applicationContext)
         analytics.setCurrentScreen(activity!!, PROFILE_VIEW, null)
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
     }
@@ -73,8 +75,8 @@ class ProfileFragment : Fragment() {
 
         signOut.setOnClickListener { view: View ->
             var message: Int
-            if (FirebaseAuth.getInstance().currentUser != null) {
-                AuthUI.getInstance()
+            if (FirebaseAuth.getInstance(FirebaseApp.getInstance(CONTENT)).currentUser != null) {
+                AuthUI.getInstance(FirebaseApp.getInstance(CONTENT))
                         .signOut(context!!)
                         .addOnCompleteListener {
                             if (it.isSuccessful) {
@@ -94,8 +96,8 @@ class ProfileFragment : Fragment() {
         }
         delete.setOnClickListener { view: View ->
             var message: Int
-            if (FirebaseAuth.getInstance().currentUser != null) {
-                AuthUI.getInstance()
+            if (FirebaseAuth.getInstance(FirebaseApp.getInstance(CONTENT)).currentUser != null) {
+                AuthUI.getInstance(FirebaseApp.getInstance(CONTENT))
                         .delete(context!!)
                         .addOnCompleteListener {
                             if (it.isSuccessful) {

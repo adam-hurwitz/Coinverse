@@ -69,7 +69,7 @@ class ContentRepository(application: Application) {
     private var contentDatabase: ContentDatabase
 
     init {
-        analytics = FirebaseAnalytics.getInstance(application)
+        analytics = FirebaseAnalytics.getInstance(FirebaseApp.getInstance(CONTENT).applicationContext)
         contentFirestore = FirebaseFirestore.getInstance(FirebaseApp.getInstance(CONTENT))
         contentDatabase = ContentDatabase.getAppDatabase(application)
     }
@@ -77,7 +77,7 @@ class ContentRepository(application: Application) {
     fun initializeMainRoomContent(isRealtime: Boolean, timeframe: Enums.Timeframe) {
 
         val contentDao = contentDatabase.contentDao()
-        val user = FirebaseAuth.getInstance().currentUser
+        val user = FirebaseAuth.getInstance(FirebaseApp.getInstance(CONTENT)).currentUser
         if (user != null) {
             val userReference = usersCollection.document(user.uid)
             organizedSet.clear()
@@ -257,6 +257,7 @@ class ContentRepository(application: Application) {
 
     fun updateActionsStatusCheck(actionType: UserActionType, content: Content, user: FirebaseUser) {
         if (actionType == DISMISS) {
+            //TODO: Create Firebase security rule.
             // Only count dismissed if user has not started the content.
             contentCollection.document(content.id).collection(START_ACTION_COLLECTION)
                     .document(user.email!!).get().addOnSuccessListener {
@@ -292,6 +293,7 @@ class ContentRepository(application: Application) {
             val contentUserActionSnapshot = transaction.get(contentUserActionRef)
             when (actionType) {
                 START -> {
+                    //TODO: Create Firebase security rule.
                     // Only count unique starts.
                     if (!contentUserActionSnapshot.exists()) {
                         score = START_SCORE
@@ -301,6 +303,7 @@ class ContentRepository(application: Application) {
                     }
                 }
                 CONSUME -> {
+                    //TODO: Create Firebase security rule.
                     // Only count unique starts.
                     if (!contentUserActionSnapshot.exists()) {
                         score = CONSUME_SCORE
@@ -310,6 +313,7 @@ class ContentRepository(application: Application) {
                     }
                 }
                 FINISH -> {
+                    //TODO: Create Firebase security rule.
                     // Only count unique starts.
                     if (!contentUserActionSnapshot.exists()) {
                         score = FINISH_SCORE
@@ -407,7 +411,7 @@ class ContentRepository(application: Application) {
             }
             val bundle = Bundle()
             bundle.putString(FirebaseAnalytics.Param.ITEM_ID, content.id)
-            bundle.putString(USER_ID_PARAM, FirebaseAuth.getInstance().currentUser?.uid)
+            bundle.putString(USER_ID_PARAM, FirebaseAuth.getInstance(FirebaseApp.getInstance(CONTENT)).currentUser?.uid)
             bundle.putString(CREATOR_PARAM, content.creator)
             analytics.logEvent(logEvent, bundle)
         }

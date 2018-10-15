@@ -21,6 +21,7 @@ import com.google.firebase.FirebaseOptions
 import com.google.firebase.firestore.FirebaseFirestore
 
 object FirestoreHelper {
+
     fun initialize(context: Context) {
         Firebase.setAndroidContext(context)
         var priceFirestoreEnabled = false

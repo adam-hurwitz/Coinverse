@@ -21,7 +21,9 @@ import app.coinverse.content.adapter.ItemTouchHelper
 import app.coinverse.utils.Constants.CONTENT_FEED_VISIBILITY_DELAY
 import app.coinverse.utils.Constants.CONTENT_KEY
 import app.coinverse.utils.Constants.YOUTUBE_DIALOG_FRAGMENT_TAG
+import app.coinverse.utils.auth.Auth.CONTENT
 import app.coinverse.utils.livedata.EventObserver
+import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.FirebaseAnalytics.getInstance
 import com.google.firebase.auth.FirebaseUser
@@ -47,7 +49,7 @@ class ContentFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         feedType = ContentFragmentArgs.fromBundle(arguments).feedType
-        analytics = getInstance(context!!)
+        analytics = getInstance(FirebaseApp.getInstance(CONTENT).applicationContext)
         contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
         contentViewModel.feedType = feedType
