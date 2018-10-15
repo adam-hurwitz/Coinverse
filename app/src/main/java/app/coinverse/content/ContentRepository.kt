@@ -205,7 +205,7 @@ class ContentRepository(application: Application) {
         // Add content to new collection.
         if (actionType == SAVE) {
             if (feedType == MAIN.name) {
-                updateActionsStatusCheck(actionType, content!!, user)
+                updateActions(actionType, content!!, user)
             } else if (feedType == DISMISSED.name) {
                 deleteContent(userReference, DISMISS_COLLECTION, content)
             }
@@ -213,7 +213,7 @@ class ContentRepository(application: Application) {
             setContent(feedType, userReference, SAVE_COLLECTION, content, mainFeedEmptied)
         } else if (actionType == DISMISS) {
             if (feedType == MAIN.name) {
-                updateActionsStatusCheck(actionType, content!!, user)
+                updateActions(actionType, content!!, user)
             } else if (feedType == SAVED.name) {
                 deleteContent(userReference, SAVE_COLLECTION, content)
             }
@@ -255,93 +255,44 @@ class ContentRepository(application: Application) {
                 }
     }
 
-    fun updateActionsStatusCheck(actionType: UserActionType, content: Content, user: FirebaseUser) {
-        if (actionType == DISMISS) {
-            //TODO: Create Firebase security rule.
-            // Only count dismissed if user has not started the content.
-            contentCollection.document(content.id).collection(START_ACTION_COLLECTION)
-                    .document(user.email!!).get().addOnSuccessListener {
-                        if (!it.exists()) {
-                            updateActions(actionType, content, user)
-                        }
-                    }.addOnFailureListener {
-                        Log.w(LOG_TAG, "FAILED to get user started content.")
-                    }
-        } else {
-            updateActions(actionType, content, user)
-        }
-    }
-
     fun updateActions(actionType: UserActionType, content: Content, user: FirebaseUser) {
         var actionCollection = ""
         var score = INVALID_SCORE
         var countType = ""
-
         when (actionType) {
-            START -> actionCollection = START_ACTION_COLLECTION
-            CONSUME -> actionCollection = CONSUME_ACTION_COLLECTION
-            FINISH -> actionCollection = FINISH_ACTION_COLLECTION
-            SAVE -> actionCollection = SAVE_ACTION_COLLECTION
-            DISMISS -> actionCollection = DISMISS_ACTION_COLLECTION
+            START -> {
+                actionCollection = START_ACTION_COLLECTION
+                score = START_SCORE
+                countType = START_COUNT
+            }
+            CONSUME -> {
+                actionCollection = CONSUME_ACTION_COLLECTION
+                score = CONSUME_SCORE
+                countType = CONSUME_COUNT
+            }
+            FINISH -> {
+                actionCollection = FINISH_ACTION_COLLECTION
+                score = FINISH_SCORE
+                countType = FINISH_COUNT
+            }
+            SAVE -> {
+                actionCollection = SAVE_ACTION_COLLECTION
+                score = SAVE_SCORE
+                countType = ORGANIZE_COUNT
+            }
+            DISMISS -> {
+                actionCollection = DISMISS_ACTION_COLLECTION
+                score = DISMISS_SCORE
+                countType = DISMISS_COUNT
+            }
         }
-
-        val contentUserActionRef = contentCollection
-                .document(content.id)
-                .collection(actionCollection)
-                .document(user.email!!)
-        contentFirestore.runTransaction(Transaction.Function<Double> { transaction ->
-            val contentUserActionSnapshot = transaction.get(contentUserActionRef)
-            when (actionType) {
-                START -> {
-                    //TODO: Create Firebase security rule.
-                    // Only count unique starts.
-                    if (!contentUserActionSnapshot.exists()) {
-                        score = START_SCORE
-                        countType = START_COUNT
-                    } else {
-                        return@Function score
-                    }
-                }
-                CONSUME -> {
-                    //TODO: Create Firebase security rule.
-                    // Only count unique starts.
-                    if (!contentUserActionSnapshot.exists()) {
-                        score = CONSUME_SCORE
-                        countType = CONSUME_COUNT
-                    } else {
-                        return@Function score
-                    }
-                }
-                FINISH -> {
-                    //TODO: Create Firebase security rule.
-                    // Only count unique starts.
-                    if (!contentUserActionSnapshot.exists()) {
-                        score = FINISH_SCORE
-                        countType = FINISH_COUNT
-                    } else {
-                        return@Function score
-                    }
-                }
-                // Only triggered from the Main feed so these actions are intrinsically unique.
-                SAVE -> {
-                    score = SAVE_SCORE
-                    countType = ORGANIZE_COUNT
-                }
-                DISMISS -> {
-                    score = DISMISS_SCORE
-                    countType = DISMISS_COUNT
-                }
-            }
-            // Add user action to content's collection.
-            if (score != INVALID_SCORE) {
-                transaction.set(contentUserActionRef, UserAction(Date(), user.email!!))
-            }
-            return@Function score
-        }).addOnSuccessListener { score ->
-            updateContentActionCounter(content.id, countType)
-            updateUserActions(user.uid, actionCollection, content, countType)
-            updateQualityScore(score, content.id)
-        }.addOnFailureListener { e -> Log.w(LOG_TAG, "Transaction failure.", e) }
+        contentCollection.document(content.id).collection(actionCollection)
+                .document(user.email!!).set(UserAction(Date(), user.email!!))
+                .addOnSuccessListener { status ->
+                    updateContentActionCounter(content.id, countType)
+                    updateUserActions(user.uid, actionCollection, content, countType)
+                    updateQualityScore(score, content.id)
+                }.addOnFailureListener { e -> Log.w(LOG_TAG, "Transaction failure.", e) }
     }
 
     fun updateContentActionCounter(contentId: String, counterType: String) {
@@ -383,7 +334,6 @@ class ContentRepository(application: Application) {
     }
 
     fun updateQualityScore(score: Double, contentId: String) {
-        //TODO: Add to Firestore rules.
         if (score != 0.0) {
             Log.d(LOG_TAG, "Transaction success: " + score)
             val contentDocRef = FirestoreCollections.contentCollection.document(contentId)
@@ -416,5 +366,4 @@ class ContentRepository(application: Application) {
             analytics.logEvent(logEvent, bundle)
         }
     }
-
 }

@@ -78,7 +78,7 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun updateActions(actionType: UserActionType, content: Content, user: FirebaseUser) {
-        contentRepository.updateActionsStatusCheck(actionType, content, user)
+        contentRepository.updateActions(actionType, content, user)
     }
 
 }
