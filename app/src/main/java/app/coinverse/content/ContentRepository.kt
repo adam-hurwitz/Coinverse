@@ -231,10 +231,7 @@ class ContentRepository(application: Application) {
 
     fun setContent(feedType: String, userReference: DocumentReference, collection: String,
                    content: Content?, mainFeedEmptied: Boolean) {
-        userReference
-                .collection(collection)
-                .document(content!!.id)
-                .set(content)
+        userReference.collection(collection).document(content!!.id).set(content)
                 .addOnSuccessListener {
                     Log.v(LOG_TAG, String.format("Content added to collection:%s", it))
                     logCategorizeContentAnalyticsEvent(feedType, content, mainFeedEmptied)
@@ -334,21 +331,19 @@ class ContentRepository(application: Application) {
     }
 
     fun updateQualityScore(score: Double, contentId: String) {
-        if (score != 0.0) {
-            Log.d(LOG_TAG, "Transaction success: " + score)
-            val contentDocRef = FirestoreCollections.contentCollection.document(contentId)
-            contentFirestore.runTransaction(object : Transaction.Function<Void> {
-                @Throws(FirebaseFirestoreException::class)
-                override fun apply(transaction: Transaction): Void? {
-                    val snapshot = transaction.get(contentDocRef)
-                    val newQualityScore = snapshot.getDouble(QUALITY_SCORE)!! + score
-                    transaction.update(contentDocRef, QUALITY_SCORE, newQualityScore)
-                    // Success
-                    return null
-                }
-            }).addOnSuccessListener({ Log.d(LOG_TAG, "Transaction success!") })
-                    .addOnFailureListener({ e -> Log.w(LOG_TAG, "Transaction failure.", e) })
-        }
+        Log.d(LOG_TAG, "Transaction success: " + score)
+        val contentDocRef = FirestoreCollections.contentCollection.document(contentId)
+        contentFirestore.runTransaction(object : Transaction.Function<Void> {
+            @Throws(FirebaseFirestoreException::class)
+            override fun apply(transaction: Transaction): Void? {
+                val snapshot = transaction.get(contentDocRef)
+                val newQualityScore = snapshot.getDouble(QUALITY_SCORE)!! + score
+                transaction.update(contentDocRef, QUALITY_SCORE, newQualityScore)
+                // Success
+                return null
+            }
+        }).addOnSuccessListener({ Log.d(LOG_TAG, "Transaction success!") })
+                .addOnFailureListener({ e -> Log.w(LOG_TAG, "Transaction failure.", e) })
     }
 
     fun logCategorizeContentAnalyticsEvent(feedType: String, content: Content, mainFeedEmptied: Boolean) {

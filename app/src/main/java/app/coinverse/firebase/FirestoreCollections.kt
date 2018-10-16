@@ -49,9 +49,8 @@ object FirestoreCollections {
     val priceDifferenceCollection = FirebaseFirestore.getInstance(FirebaseApp.getInstance(PRICE))
             .collection(MAX_PRICE_DIFFERENCE_COLLECTION)
 
-    val contentCollection = FirebaseFirestore
-            .getInstance(FirebaseApp.getInstance(CONTENT)).collection(CONTENT_COLLECTION)
-            .document(FEEDS).collection(MAIN_COLLECTION)
+    val contentCollection = FirebaseFirestore.getInstance(FirebaseApp.getInstance(CONTENT))
+            .collection(CONTENT_COLLECTION).document(FEEDS).collection(MAIN_COLLECTION)
     val usersCollection = FirebaseFirestore.getInstance(FirebaseApp.getInstance(CONTENT))
             .collection(USERS_COLLECTION)
 }

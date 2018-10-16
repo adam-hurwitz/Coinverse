@@ -18,6 +18,7 @@ import app.coinverse.content.room.ContentDatabase
 import app.coinverse.databinding.FragmentYoutubeDialogBinding
 import app.coinverse.utils.Constants
 import app.coinverse.utils.Constants.CONSUME_CONTENT_EVENT
+import app.coinverse.utils.Constants.CONSUME_THRESHOLD
 import app.coinverse.utils.Constants.CONTENT_KEY
 import app.coinverse.utils.Constants.CREATOR_PARAM
 import app.coinverse.utils.Constants.FINISH_CONTENT_EVENT
@@ -188,7 +189,7 @@ class YouTubeDialogFragment : DialogFragment() {
             }
             bundle.putString(CREATOR_PARAM, content.creator)
             analytics.logEvent(FINISH_CONTENT_EVENT, bundle)
-        } else if (watchPercent >= Constants.CONSUME_THRESHOLD) {
+        } else if (watchPercent >= CONSUME_THRESHOLD) {
             val bundle = Bundle()
             val user = FirebaseAuth.getInstance(FirebaseApp.getInstance(CONTENT)).currentUser
             bundle.putString(Param.ITEM_NAME, content.title)
