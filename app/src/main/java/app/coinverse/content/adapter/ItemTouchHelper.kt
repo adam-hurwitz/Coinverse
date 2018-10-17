@@ -20,8 +20,6 @@ import app.coinverse.utils.Constants
 import app.coinverse.utils.Constants.CELL_CONTENT_MARGIN
 import app.coinverse.utils.Constants.SWIPE_CONTENT_Y_MARGIN_DP
 import app.coinverse.utils.Utils.convertDpToPx
-import app.coinverse.utils.auth.Auth.CONTENT
-import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 
 private val LOG_TAG = ItemTouchHelper::class.java.simpleName
@@ -45,7 +43,7 @@ class ItemTouchHelper(var homeViewModel: HomeViewModel) {
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val user = FirebaseAuth.getInstance(FirebaseApp.getInstance(CONTENT)).currentUser
+                val user = FirebaseAuth.getInstance().currentUser
                 if (user != null) {
                     if (direction == RIGHT_SWIPE && feedType != SAVED.name) { // Save
                         adapter.organizeContent(feedType, SAVE, viewHolder.adapterPosition, user)

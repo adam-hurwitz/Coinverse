@@ -2,8 +2,6 @@ package app.coinverse
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import app.coinverse.utils.auth.Auth.CONTENT
-import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 
@@ -23,7 +21,7 @@ class HomeViewModel : ViewModel() {
     }
 
     fun getCurrentUser(): FirebaseUser? {
-        return FirebaseAuth.getInstance(FirebaseApp.getInstance(CONTENT)).currentUser
+        return FirebaseAuth.getInstance().currentUser
     }
 
     fun enableSwipeToRefresh(isEnabled: Boolean) {

@@ -15,13 +15,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import app.coinverse.Enums.FeedType.*
 import app.coinverse.HomeViewModel
 import app.coinverse.R
-import app.coinverse.databinding.FragmentContentBinding
 import app.coinverse.content.adapter.ContentAdapter
 import app.coinverse.content.adapter.ItemTouchHelper
+import app.coinverse.databinding.FragmentContentBinding
 import app.coinverse.utils.Constants.CONTENT_FEED_VISIBILITY_DELAY
 import app.coinverse.utils.Constants.CONTENT_KEY
 import app.coinverse.utils.Constants.YOUTUBE_DIALOG_FRAGMENT_TAG
-import app.coinverse.utils.auth.Auth.CONTENT
 import app.coinverse.utils.livedata.EventObserver
 import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
@@ -49,7 +48,7 @@ class ContentFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         feedType = ContentFragmentArgs.fromBundle(arguments).feedType
-        analytics = getInstance(FirebaseApp.getInstance(CONTENT).applicationContext)
+        analytics = getInstance(FirebaseApp.getInstance()!!.applicationContext)
         contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
         contentViewModel.feedType = feedType

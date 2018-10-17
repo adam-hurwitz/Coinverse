@@ -44,8 +44,6 @@ import app.coinverse.utils.Constants.TIMESTAMP
 import app.coinverse.utils.Constants.TIMESTAMP_PARAM
 import app.coinverse.utils.Constants.USER_ID_PARAM
 import app.coinverse.utils.DateAndTime.getTimeframe
-import app.coinverse.utils.auth.Auth.CONTENT
-import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -69,15 +67,15 @@ class ContentRepository(application: Application) {
     private var contentDatabase: ContentDatabase
 
     init {
-        analytics = FirebaseAnalytics.getInstance(FirebaseApp.getInstance(CONTENT).applicationContext)
-        contentFirestore = FirebaseFirestore.getInstance(FirebaseApp.getInstance(CONTENT))
+        analytics = FirebaseAnalytics.getInstance(application)
+        contentFirestore = FirebaseFirestore.getInstance()
         contentDatabase = ContentDatabase.getAppDatabase(application)
     }
 
     fun initializeMainRoomContent(isRealtime: Boolean, timeframe: Enums.Timeframe) {
 
         val contentDao = contentDatabase.contentDao()
-        val user = FirebaseAuth.getInstance(FirebaseApp.getInstance(CONTENT)).currentUser
+        val user = FirebaseAuth.getInstance().currentUser
         if (user != null) {
             val userReference = usersCollection.document(user.uid)
             organizedSet.clear()
@@ -323,11 +321,8 @@ class ContentRepository(application: Application) {
             val newCounter = userSnapshot.getDouble(counterType)!! + 1.0
             counterTransaction.update(userRef, counterType, newCounter)
             return@Function "User counter update SUCCESS."
-        }).addOnSuccessListener { status ->
-            Log.w(LOG_TAG, status)
-        }.addOnFailureListener { e ->
-            Log.w(LOG_TAG, "user counter update FAIL.", e)
-        }
+        }).addOnSuccessListener { status -> Log.w(LOG_TAG, status) }
+                .addOnFailureListener { e -> Log.w(LOG_TAG, "user counter update FAIL.", e) }
     }
 
     fun updateQualityScore(score: Double, contentId: String) {
@@ -356,7 +351,7 @@ class ContentRepository(application: Application) {
             }
             val bundle = Bundle()
             bundle.putString(FirebaseAnalytics.Param.ITEM_ID, content.id)
-            bundle.putString(USER_ID_PARAM, FirebaseAuth.getInstance(FirebaseApp.getInstance(CONTENT)).currentUser?.uid)
+            bundle.putString(USER_ID_PARAM, FirebaseAuth.getInstance().currentUser?.uid)
             bundle.putString(CREATOR_PARAM, content.creator)
             analytics.logEvent(logEvent, bundle)
         }

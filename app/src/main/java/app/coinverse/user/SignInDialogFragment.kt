@@ -11,10 +11,8 @@ import androidx.lifecycle.ViewModelProviders
 import app.coinverse.HomeViewModel
 import app.coinverse.databinding.FragmentSignInDialogBinding
 import app.coinverse.utils.Constants.RC_SIGN_IN
-import app.coinverse.utils.auth.Auth.CONTENT
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
-import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.fragment_sign_in_dialog.*
 
@@ -37,8 +35,7 @@ class SignInDialogFragment : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         signIn.setOnClickListener {
             startActivityForResult(
-                    AuthUI.getInstance(FirebaseApp.getInstance(CONTENT))
-                            .createSignInIntentBuilder()
+                    AuthUI.getInstance().createSignInIntentBuilder()
                             .setAvailableProviders(listOf(AuthUI.IdpConfig.GoogleBuilder().build()))
                             .build(),
                     RC_SIGN_IN)
@@ -56,7 +53,7 @@ class SignInDialogFragment : DialogFragment() {
         if (requestCode == RC_SIGN_IN) {
             val response = IdpResponse.fromResultIntent(data)
             if (resultCode == Activity.RESULT_OK) {
-                val user = FirebaseAuth.getInstance(FirebaseApp.getInstance(CONTENT)).currentUser
+                val user = FirebaseAuth.getInstance().currentUser
                 homeViewModel.user.value = user
                 dismiss()
             } else {

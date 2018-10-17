@@ -6,7 +6,7 @@ import app.coinverse.Enums.Exchange
 import app.coinverse.Enums.Status
 import app.coinverse.Enums.Status.SUCCESS
 import app.coinverse.Enums.Timeframe
-import app.coinverse.firebase.FirestoreCollections.priceDifferenceCollection
+import app.coinverse.firebase.FirestoreCollections.priceCollection
 import app.coinverse.priceGraph.models.*
 import app.coinverse.utils.Constants.TIMESTAMP
 import app.coinverse.utils.DateAndTime.getTimeframe
@@ -51,7 +51,7 @@ object PriceRepository {
                 exchangeOrdersDataMap.clear()
                 index = 0
             }
-            listenerRegistration = priceDifferenceCollection
+            listenerRegistration = priceCollection
                     .orderBy(TIMESTAMP, Query.Direction.ASCENDING)
                     .whereGreaterThan(TIMESTAMP, getTimeframe(timeframe))
                     .addSnapshotListener(EventListener { value, error ->
@@ -65,7 +65,7 @@ object PriceRepository {
             exchangeOrdersPointsMap.clear()
             exchangeOrdersDataMap.clear()
             index = 0
-            priceDifferenceCollection
+            priceCollection
                     .orderBy(TIMESTAMP, Query.Direction.ASCENDING)
                     .whereGreaterThan(TIMESTAMP, getTimeframe(timeframe))
                     .get()

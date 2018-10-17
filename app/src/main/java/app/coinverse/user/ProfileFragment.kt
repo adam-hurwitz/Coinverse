@@ -17,7 +17,6 @@ import app.coinverse.firebase.FirestoreCollections.DISMISS_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.usersCollection
 import app.coinverse.utils.Constants.ON_BACK_PRESS_DELAY_IN_MILLIS
 import app.coinverse.utils.Constants.PROFILE_VIEW
-import app.coinverse.utils.auth.Auth.CONTENT
 import com.firebase.ui.auth.AuthUI
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.FirebaseApp
@@ -38,7 +37,7 @@ class ProfileFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        analytics = FirebaseAnalytics.getInstance(FirebaseApp.getInstance(CONTENT).applicationContext)
+        analytics = FirebaseAnalytics.getInstance(FirebaseApp.getInstance()!!.applicationContext)
         analytics.setCurrentScreen(activity!!, PROFILE_VIEW, null)
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
     }
@@ -75,20 +74,18 @@ class ProfileFragment : Fragment() {
 
         signOut.setOnClickListener { view: View ->
             var message: Int
-            if (FirebaseAuth.getInstance(FirebaseApp.getInstance(CONTENT)).currentUser != null) {
-                AuthUI.getInstance(FirebaseApp.getInstance(CONTENT))
-                        .signOut(context!!)
-                        .addOnCompleteListener {
-                            if (it.isSuccessful) {
-                                homeViewModel.user.value = null
-                                message = R.string.signed_out
-                                Snackbar.make(view, getString(message), Snackbar.LENGTH_SHORT).show()
-                                signOut.postDelayed({
-                                    activity?.onBackPressed()
-                                }, ON_BACK_PRESS_DELAY_IN_MILLIS)
-                            }
-                            //TODO: Add retry.
-                        }
+            if (FirebaseAuth.getInstance().currentUser != null) {
+                AuthUI.getInstance().signOut(context!!).addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        homeViewModel.user.value = null
+                        message = R.string.signed_out
+                        Snackbar.make(view, getString(message), Snackbar.LENGTH_SHORT).show()
+                        signOut.postDelayed({
+                            activity?.onBackPressed()
+                        }, ON_BACK_PRESS_DELAY_IN_MILLIS)
+                    }
+                    //TODO: Add retry.
+                }
             } else {
                 message = R.string.already_signed_out
                 Snackbar.make(view, getString(message), Snackbar.LENGTH_SHORT).show()
@@ -96,35 +93,33 @@ class ProfileFragment : Fragment() {
         }
         delete.setOnClickListener { view: View ->
             var message: Int
-            if (FirebaseAuth.getInstance(FirebaseApp.getInstance(CONTENT)).currentUser != null) {
-                AuthUI.getInstance(FirebaseApp.getInstance(CONTENT))
-                        .delete(context!!)
-                        .addOnCompleteListener {
-                            if (it.isSuccessful) {
-                                //TODO: Refactor to handle on server.
-                                deleteCollection(usersCollection
-                                        .document(homeViewModel.user.value!!.uid)
-                                        .collection(DISMISS_COLLECTION), 20)
-                                usersCollection
-                                        .document(homeViewModel.user.value!!.uid)
-                                        .delete()
-                                        .addOnSuccessListener {
-                                            homeViewModel.user.value = null
-                                            message = R.string.deleted
-                                            Snackbar.make(view, getString(message), Snackbar.LENGTH_SHORT).show()
-                                            delete.postDelayed({
-                                                activity?.onBackPressed()
-                                            }, ON_BACK_PRESS_DELAY_IN_MILLIS)
-                                            Log.v(LOG_TAG, String.format("Delete user success:%s", it))
-                                        }.addOnFailureListener {
-                                            //TODO: Add retry.
-                                            Log.v(LOG_TAG, String.format("Delete user failure:%s", it))
-                                        }
-                            }
-                        }.addOnFailureListener {
-                            //TODO: Add retry.
-                            Log.v(LOG_TAG, String.format("Delete user failure:%s", it))
-                        }
+            if (FirebaseAuth.getInstance().currentUser != null) {
+                AuthUI.getInstance().delete(context!!).addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        //TODO: Refactor to handle on server.
+                        deleteCollection(usersCollection
+                                .document(homeViewModel.user.value!!.uid)
+                                .collection(DISMISS_COLLECTION), 20)
+                        usersCollection
+                                .document(homeViewModel.user.value!!.uid)
+                                .delete()
+                                .addOnSuccessListener {
+                                    homeViewModel.user.value = null
+                                    message = R.string.deleted
+                                    Snackbar.make(view, getString(message), Snackbar.LENGTH_SHORT).show()
+                                    delete.postDelayed({
+                                        activity?.onBackPressed()
+                                    }, ON_BACK_PRESS_DELAY_IN_MILLIS)
+                                    Log.v(LOG_TAG, String.format("Delete user success:%s", it))
+                                }.addOnFailureListener {
+                                    //TODO: Add retry.
+                                    Log.v(LOG_TAG, String.format("Delete user failure:%s", it))
+                                }
+                    }
+                }.addOnFailureListener {
+                    //TODO: Add retry.
+                    Log.v(LOG_TAG, String.format("Delete user failure:%s", it))
+                }
             } else {
                 message = R.string.unable_to_delete
                 Snackbar.make(view, getString(message), Snackbar.LENGTH_SHORT).show()

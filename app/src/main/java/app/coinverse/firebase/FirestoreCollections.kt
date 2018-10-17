@@ -1,18 +1,20 @@
 package app.coinverse.firebase
 
-import app.coinverse.utils.auth.Auth.CONTENT
-import app.coinverse.utils.auth.Auth.PRICE
-import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FirebaseFirestore
 
 object FirestoreCollections {
 
+    // Prices
+    val priceCollection = FirebaseFirestore.getInstance().collection("prices")
+
     // Content feed.
-    const val CONTENT_COLLECTION = "content"
-    const val FEEDS = "feeds"
-    const val MAIN_COLLECTION = "main"
     const val DISMISS_COLLECTION = "dismissCollection"
     const val SAVE_COLLECTION = "saveCollection"
+    val contentCollection = FirebaseFirestore.getInstance().collection("content")
+            .document("feeds").collection("main")
+
+    // Users
+    val usersCollection = FirebaseFirestore.getInstance().collection("users")
 
     // Actions log.
     const val START_ACTION_COLLECTION = "startActions"
@@ -40,17 +42,4 @@ object FirestoreCollections {
     const val FINISH_SCORE = 3.0
     const val SHARE_SCORE = 3.0
     const val DISMISS_SCORE = -1.0 // Not opened.
-
-    // Users
-    const val USERS_COLLECTION = "users"
-
-    private const val MAX_PRICE_DIFFERENCE_COLLECTION = "maximumPercentDifference"
-
-    val priceDifferenceCollection = FirebaseFirestore.getInstance(FirebaseApp.getInstance(PRICE))
-            .collection(MAX_PRICE_DIFFERENCE_COLLECTION)
-
-    val contentCollection = FirebaseFirestore.getInstance(FirebaseApp.getInstance(CONTENT))
-            .collection(CONTENT_COLLECTION).document(FEEDS).collection(MAIN_COLLECTION)
-    val usersCollection = FirebaseFirestore.getInstance(FirebaseApp.getInstance(CONTENT))
-            .collection(USERS_COLLECTION)
 }
