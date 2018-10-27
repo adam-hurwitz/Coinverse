@@ -6,7 +6,7 @@ import java.util.*
 data class MaximumPercentPriceDifference(
         val timestamp: Date,
         val pair: String,
-        val gdaxExchangeOrderData: ExchangeOrderData,
+        val coinbaseExchangeOrderData: ExchangeOrderData,
         val krakenExchangeOrderData: ExchangeOrderData,
         val binanceExchangeOrderData: ExchangeOrderData,
         val kucoinExchangeOrderData: ExchangeOrderData,

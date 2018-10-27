@@ -6,16 +6,16 @@
     <color name="transparent">#80000000</color>
 
     <!-- Exchange colors-->
-    <color name="coinbaseAsks">#FF2F3D44</color>
-    <color name="coinbaseBids">#402F3D44</color>
-    <color name="binanceAsks">#FFF5BC01</color>
-    <color name="binanceBids">#40F5BC01</color>
-    <color name="geminiAsks">#FF49DCFA</color>
-    <color name="geminiBids">#4049DCFA</color>
-    <color name="kucoinAsks">#FF68B92E</color>
-    <color name="kucoinBids">#4068B92E</color>
-    <color name="krakenAsks">#FF4F6E88</color>
-    <color name="krakenBids">#404F6E88</color>
+    <color name="coinbaseAsks">#401952F0</color>
+    <color name="coinbaseBids">#FF1952F0</color>
+    <color name="binanceAsks">#40F5BC01</color>
+    <color name="binanceBids">#FFF5BC01</color>
+    <color name="geminiAsks">#4049DCFA</color>
+    <color name="geminiBids">#FF49DCFA</color>
+    <color name="kucoinAsks">#4068B92E</color>
+    <color name="kucoinBids">#FF68B92E</color>
+    <color name="krakenAsks">#403098D4</color>
+    <color name="krakenBids">#FF3098D4</color>
 
     <!--Saved and dismissed screens-->
     <color name="colorAccentFadeOne">#CC4081</color>

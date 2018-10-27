@@ -8,7 +8,10 @@ import app.coinverse.Enums
 import app.coinverse.Enums.Currency.BTC
 import app.coinverse.Enums.Currency.ETH
 import app.coinverse.Enums.Exchange
-import app.coinverse.Enums.Exchange.GDAX
+import app.coinverse.Enums.Exchange.COINBASE
+import app.coinverse.Enums.Exchange.EMPTY
+import app.coinverse.Enums.OrderType
+import app.coinverse.Enums.OrderType.BID
 import app.coinverse.Enums.Timeframe
 import app.coinverse.Enums.Timeframe.DAY
 import app.coinverse.priceGraph.models.PercentDifference
@@ -20,14 +23,16 @@ class PriceViewModel : ViewModel() {
 
     //TODO: Set timeframe from UI.
     var timeframe = MutableLiveData<Timeframe>()
+    var priceSelected = MutableLiveData<Pair<Exchange, String>>()
+    var enabledOrderTypes = MutableLiveData<ArrayList<OrderType?>>()
     var enabledExchanges = MutableLiveData<ArrayList<Exchange?>>()
-    var priceDifferenceDetailsLiveData: LiveData<PercentDifference>
+    var minAndMaxPriceLiveData: LiveData<PercentDifference>
 
     //TODO: Query Firebase by pricePair.
     var pricePair = PricePair(ETH, BTC)
 
     var graphSeriesMap = hashMapOf(
-            Pair(Enums.Exchange.GDAX, PriceGraphData(LineGraphSeries(), LineGraphSeries())),
+            Pair(Enums.Exchange.COINBASE, PriceGraphData(LineGraphSeries(), LineGraphSeries())),
             Pair(Enums.Exchange.BINANCE, PriceGraphData(LineGraphSeries(), LineGraphSeries())),
             Pair(Enums.Exchange.GEMINI, PriceGraphData(LineGraphSeries(), LineGraphSeries())),
             Pair(Enums.Exchange.KUCOIN, PriceGraphData(LineGraphSeries(), LineGraphSeries())),
@@ -38,8 +43,9 @@ class PriceViewModel : ViewModel() {
     init {
         val percentPriceDifferenceLiveData = PriceRepository.priceDifferenceDetailsLiveData
         timeframe.value = DAY
-        enabledExchanges.value = arrayListOf(GDAX)
-        this.priceDifferenceDetailsLiveData =
+        enabledOrderTypes.value = arrayListOf(BID)
+        enabledExchanges.value = arrayListOf(COINBASE)
+        this.minAndMaxPriceLiveData =
                 Transformations.map(percentPriceDifferenceLiveData) { result -> result }
     }
 
@@ -56,7 +62,7 @@ class PriceViewModel : ViewModel() {
         PriceRepository.graphConstraintsLiveData
     }
 
-    fun addOrRemoveEnabledExchanges(exchange: Exchange) {
+    fun exchangeToggle(exchange: Exchange) {
         val currentEnabledExchanges = enabledExchanges.value
         var updatedEnabledExchanges = ArrayList<Exchange?>()
         if (currentEnabledExchanges?.contains(exchange) != true && currentEnabledExchanges != null
@@ -68,7 +74,18 @@ class PriceViewModel : ViewModel() {
             currentEnabledExchanges.remove(exchange)
             updatedEnabledExchanges = currentEnabledExchanges
         }
+        if (!updatedEnabledExchanges.contains(priceSelected.value?.first))
+            priceSelected.value = Pair(EMPTY, "")
         this.enabledExchanges.value = updatedEnabledExchanges
     }
 
+    fun orderToggle(orderType: OrderType) {
+        val enabledOrderTypes = enabledOrderTypes.value
+        if (!enabledOrderTypes!!.contains(orderType)) enabledOrderTypes.add(orderType)
+        else {
+            enabledOrderTypes.remove(orderType)
+            priceSelected.value = Pair(EMPTY, "")
+        }
+        this.enabledOrderTypes.value = enabledOrderTypes
+    }
 }

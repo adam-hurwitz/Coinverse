@@ -7,12 +7,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
-import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import app.coinverse.Enums
 import app.coinverse.Enums.Exchange
 import app.coinverse.Enums.Exchange.*
 import app.coinverse.Enums.OrderType
@@ -23,14 +21,15 @@ import app.coinverse.Enums.Timeframe.DAY
 import app.coinverse.HomeViewModel
 import app.coinverse.R
 import app.coinverse.databinding.FragmentPriceBinding
-import app.coinverse.priceGraph.models.PercentDifference
 import app.coinverse.priceGraph.models.PriceGraphData
 import app.coinverse.priceGraph.models.PriceGraphXAndYConstraints
-import app.coinverse.utils.ExchangeColors
+import app.coinverse.utils.getExchangeColor
 import com.jjoe64.graphview.GridLabelRenderer
 import com.jjoe64.graphview.series.DataPoint
 import com.jjoe64.graphview.series.LineGraphSeries
 import kotlinx.android.synthetic.main.fragment_price.*
+
+
 
 private val dataPointRadiusValue = TypedValue()
 
@@ -40,7 +39,13 @@ class PriceFragment : Fragment() {
     private lateinit var priceViewModel: PriceViewModel
     private lateinit var homeViewModel: HomeViewModel
 
-    private var enabledExchangesList: ArrayList<Enums.Exchange?>? = ArrayList()
+    private var enabledOrderTypeList: ArrayList<OrderType?>? = ArrayList()
+    private var enabledExchangeList: ArrayList<Exchange?>? = ArrayList()
+
+    companion object {
+        @JvmStatic
+        fun newInstance() = PriceFragment()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,15 +71,12 @@ class PriceFragment : Fragment() {
         setPriceGraphStyle()
         setGraphVisibility(View.GONE)
 
+        observeOrderTypesEnabled()
         observeExchangesEnabled()
+        observePriceSelected()
         observeGraphData()
         observeGraphConstraints()
         observePriceDifferenceDetails()
-    }
-
-    companion object {
-        @JvmStatic
-        fun newInstance() = PriceFragment()
     }
 
     fun getPrices(isRealtime: Boolean, isOnCreateCall: Boolean) {
@@ -82,8 +84,8 @@ class PriceFragment : Fragment() {
     }
 
     private fun setPriceGraphStyle() {
-        priceGraph.viewport.isXAxisBoundsManual = true
-        val graphLabels = priceGraph.gridLabelRenderer
+        graph.viewport.isXAxisBoundsManual = true
+        val graphLabels = graph.gridLabelRenderer
         graphLabels.gridStyle = GridLabelRenderer.GridStyle.NONE
         graphLabels.isHorizontalLabelsVisible = false
         graphLabels.isVerticalLabelsVisible = false
@@ -96,41 +98,61 @@ class PriceFragment : Fragment() {
         })
     }
 
+    private fun observeOrderTypesEnabled() {
+        priceViewModel.enabledOrderTypes.observe(viewLifecycleOwner, Observer { enabledOrderTypeList ->
+            if (enabledExchangeList!!.isNotEmpty()) {
+                graph.removeAllSeries()
+                for (exchange in enabledExchangeList!!) {
+                    val graphSeriesMap = priceViewModel.graphSeriesMap[exchange]
+                    if (enabledOrderTypeList.contains(BID)) graph.addSeries(graphSeriesMap?.bids)
+                    else graph.removeSeries(graphSeriesMap?.bids)
+                    if (enabledOrderTypeList.contains(ASK)) graph.addSeries(graphSeriesMap?.asks)
+                    else graph.removeSeries(graphSeriesMap?.asks)
+                }
+            }
+            setExchangeToggleColor(enabledOrderTypeList.contains(BID), bidsToggle)
+            setExchangeToggleColor(enabledOrderTypeList.contains(ASK), asksToggle)
+            this.enabledOrderTypeList = enabledOrderTypeList
+        })
+    }
+
     private fun observeExchangesEnabled() {
-        priceViewModel.enabledExchanges.observe(viewLifecycleOwner, Observer { enabledExchangeList: ArrayList<Exchange?>? ->
-
-            enabledExchangesList = enabledExchangeList
-            priceGraph.removeAllSeries()
-
-            setPriceGraphToggleColor(enabledExchangeList?.contains(GDAX) ?: false,
-                    coinbaseToggle)
-            setPriceGraphToggleColor(enabledExchangeList?.contains(BINANCE) ?: false,
-                    binanceToggle)
-            setPriceGraphToggleColor(enabledExchangeList?.contains(GEMINI) ?: false,
-                    geminiToggle)
-            setPriceGraphToggleColor(enabledExchangeList?.contains(KUCOIN) ?: false,
-                    kucoinToggle)
-            setPriceGraphToggleColor(enabledExchangeList?.contains(KRAKEN) ?: false,
-                    krakenToggle)
+        priceViewModel.enabledExchanges.observe(viewLifecycleOwner, Observer { enabledExchangeList ->
+            this.enabledExchangeList = enabledExchangeList
+            graph.removeAllSeries()
+            setExchangeToggleColor(COINBASE, enabledExchangeList, coinbaseToggle)
+            setExchangeToggleColor(BINANCE, enabledExchangeList, binanceToggle)
+            setExchangeToggleColor(GEMINI, enabledExchangeList, geminiToggle)
+            setExchangeToggleColor(KUCOIN, enabledExchangeList, kucoinToggle)
+            setExchangeToggleColor(KRAKEN, enabledExchangeList, krakenToggle)
 
             for (exchange in enabledExchangeList!!) {
                 val graphSeriesMap = priceViewModel.graphSeriesMap[exchange]
                 val asks = graphSeriesMap?.asks
                 val bids = graphSeriesMap?.bids
                 if (enabledExchangeList.contains(exchange)) {
-                    priceGraph.addSeries(asks)
-                    priceGraph.addSeries(bids)
-                } else {
-                    priceGraph.removeSeries(asks)
-                    priceGraph.removeSeries(bids)
+                    if (enabledOrderTypeList!!.contains(ASK)) graph.addSeries(asks)
+                    if (enabledOrderTypeList!!.contains(BID)) graph.addSeries(bids)
                 }
             }
-            priceGraph.refreshDrawableState()
         })
     }
 
-    private fun setPriceGraphToggleColor(isToggled: Boolean?,
-                                         toggleView: TextView) {
+    private fun observePriceSelected() {
+        priceViewModel.priceSelected.observe(viewLifecycleOwner, Observer { selected ->
+            priceSelected.setTextColor(context!!.getColor(getExchangeColor(selected.first)))
+            priceSelected.text = selected.second
+        })
+    }
+
+    private fun setExchangeToggleColor(exchange: Exchange, enabledExchangeList: ArrayList<Exchange?>?,
+                                       toggleView: TextView) {
+        if (enabledExchangeList!!.contains(exchange))
+            toggleView.setTextColor(ContextCompat.getColor(context!!, getExchangeColor(exchange)))
+        else toggleView.setTextColor(ContextCompat.getColor(context!!, R.color.colorPrimaryDark))
+    }
+
+    private fun setExchangeToggleColor(isToggled: Boolean?, toggleView: TextView) {
         if (isToggled == true) {
             toggleView.setTextColor(ContextCompat.getColor(context!!, R.color.colorAccent))
         } else {
@@ -139,13 +161,12 @@ class PriceFragment : Fragment() {
     }
 
     private fun observeGraphData() {
-        priceViewModel.graphLiveData.observe(
-                viewLifecycleOwner, Observer { priceGraphDataMap: HashMap<Exchange, PriceGraphData>? ->
+        priceViewModel.graphLiveData.observe(viewLifecycleOwner, Observer { priceGraphDataMap ->
             for (priceGraphData in priceGraphDataMap!!.entries) {
                 val exchange = priceGraphData.key
                 val graphSeriesMap = priceViewModel.graphSeriesMap[exchange]
-                setExchangeGraphDataAndStyle(exchange, ASK, graphSeriesMap?.asks, priceGraphDataMap)
-                setExchangeGraphDataAndStyle(exchange, BID, graphSeriesMap?.bids, priceGraphDataMap)
+                setGraph(exchange, ASK, graphSeriesMap?.asks, priceGraphDataMap)
+                setGraph(exchange, BID, graphSeriesMap?.bids, priceGraphDataMap)
             }
         })
     }
@@ -154,79 +175,59 @@ class PriceFragment : Fragment() {
         priceViewModel.priceGraphXAndYConstraintsLiveData.observe(
                 viewLifecycleOwner,
                 Observer { priceGraphXAndYConstraints: PriceGraphXAndYConstraints? ->
-                    priceGraph.viewport.setMinY(priceGraphXAndYConstraints?.minY
+                    graph.viewport.setMinY(priceGraphXAndYConstraints?.minY
                             ?: 0.0)
-                    priceGraph.viewport.setMaxY(priceGraphXAndYConstraints?.maxY
+                    graph.viewport.setMaxY(priceGraphXAndYConstraints?.maxY
                             ?: 0.0)
-                    priceGraph.viewport.setMinX(priceGraphXAndYConstraints?.minX
+                    graph.viewport.setMinX(priceGraphXAndYConstraints?.minX
                             ?: 0.0)
-                    priceGraph.viewport.setMaxX(priceGraphXAndYConstraints?.maxX
+                    graph.viewport.setMaxX(priceGraphXAndYConstraints?.maxX
                             ?: 0.0)
-                    priceGraph.onDataChanged(true, false)
+                    graph.onDataChanged(true, false)
                 })
     }
 
     private fun observePriceDifferenceDetails() {
-        priceViewModel.priceDifferenceDetailsLiveData.observe(viewLifecycleOwner, Observer { percentDifference: PercentDifference? ->
-            //TODO: Make prices adjacent or below / above and smaller if min/max exchange is the same.
-            //TODO: Pass in 1) isSameExchange: Boolean 2) otherPriceViewId
-            updatePriceDifferenceIndicators(ConstraintSet(), percentDifference?.askExchange,
-                    baseToQuoteAsk.id)
-            updatePriceDifferenceIndicators(ConstraintSet(), percentDifference?.bidExchange,
-                    baseToQuoteBid.id)
+        priceViewModel.minAndMaxPriceLiveData.observe(viewLifecycleOwner, Observer { minAndMaxPriceData ->
+            maxBid.tooltipText = String.format(getString(R.string.max_min_format),
+                    minAndMaxPriceData?.bidExchange, minAndMaxPriceData?.baseToQuoteBid?.toFloat())
+            minAsk.tooltipText = String.format(getString(R.string.max_min_format),
+                    minAndMaxPriceData?.askExchange, minAndMaxPriceData?.baseToQuoteAsk?.toFloat())
         })
     }
 
-    private fun updatePriceDifferenceIndicators(constraintSet: ConstraintSet, exchange: Exchange?,
-                                                orderLayoutId: Int) {
-        constraintSet.clone(card_price_constraint)
-        val textViewId: Int
-        val margin = resources.getInteger(R.integer.price_graph_base_to_quote_margin)
-        when (exchange) {
-            GDAX -> textViewId = coinbaseToggle.id
-            BINANCE -> textViewId = binanceToggle.id
-            GEMINI -> textViewId = geminiToggle.id
-            KUCOIN -> textViewId = kucoinToggle.id
-            KRAKEN -> textViewId = krakenToggle.id
-            else -> textViewId = 0
-        }
-        constraintSet.connect(orderLayoutId, ConstraintSet.TOP, textViewId,
-                ConstraintSet.BOTTOM, margin)
-        constraintSet.connect(orderLayoutId, ConstraintSet.LEFT, textViewId,
-                ConstraintSet.LEFT, margin)
-        constraintSet.connect(orderLayoutId, ConstraintSet.RIGHT, textViewId,
-                ConstraintSet.RIGHT, margin)
-        constraintSet.applyTo(card_price_constraint)
-    }
-
-    private fun setExchangeGraphDataAndStyle(exchange: Exchange, orderType: OrderType,
-                                             orders: LineGraphSeries<DataPoint>?,
-                                             priceGraphDataMap: HashMap<Exchange, PriceGraphData>?) {
+    private fun setGraph(exchange: Exchange, orderType: OrderType, orders: LineGraphSeries<DataPoint>?,
+                         priceGraphDataMap: HashMap<Exchange, PriceGraphData>?) {
         if (priceGraphDataMap != null) {
-            priceGraph.removeSeries(orders)
+            graph.removeSeries(orders)
             val orders: LineGraphSeries<DataPoint>?
             val color: Int
             val thickness: Int
             val graphSeriesMap = priceViewModel.graphSeriesMap[exchange]
-            if (orderType == ASK) {
-                graphSeriesMap?.asks = priceGraphDataMap[exchange]?.asks
-                orders = graphSeriesMap?.asks
-                color = ExchangeColors.get(exchange, ASK)
-                thickness = resources.getInteger(R.integer.price_graph_asks_thickness)
-            } else {
+            val priceLabel: String
+            if (orderType == BID) {
                 graphSeriesMap?.bids = priceGraphDataMap[exchange]?.bids
                 orders = graphSeriesMap?.bids
-                color = ExchangeColors.get(exchange, BID)
+                color = getExchangeColor(exchange, BID)
                 thickness = resources.getInteger(R.integer.price_graph_bids_thickness)
+                priceLabel = getString(R.string.bid)
+            } else {
+                graphSeriesMap?.asks = priceGraphDataMap[exchange]?.asks
+                orders = graphSeriesMap?.asks
+                color = getExchangeColor(exchange, ASK)
+                thickness = resources.getInteger(R.integer.price_graph_asks_thickness)
+                priceLabel = getString(R.string.ask)
             }
-
+            setOrderPriceGraphStyle(orders, color, thickness)
+            if (enabledExchangeList?.contains(exchange) == true &&
+                    enabledOrderTypeList!!.contains(orderType)) graph.addSeries(orders)
             setGraphVisibility(View.VISIBLE)
             homeViewModel.setSwipeToRefreshState(false)
-
-            setOrderPriceGraphStyle(orders, color, thickness)
-            if (enabledExchangesList?.contains(exchange) == true) {
-                priceGraph.addSeries(orders)
+            orders?.setOnDataPointTapListener { series, dataPoint ->
+                priceViewModel.priceSelected.value =
+                        Pair(exchange, String.format("%.5f %s", dataPoint.y.toFloat(), priceLabel))
             }
+
         }
     }
 
@@ -240,17 +241,11 @@ class PriceFragment : Fragment() {
 
     private fun setGraphVisibility(visibility: Int) {
         if (visibility == View.VISIBLE) {
-            priceGraph.visibility = View.VISIBLE
+            graph.visibility = View.VISIBLE
             progressBar.visibility = ProgressBar.GONE
-            percentDifference.visibility = View.VISIBLE
-            baseToQuoteAsk.visibility = View.VISIBLE
-            baseToQuoteBid.visibility = View.VISIBLE
         } else {
-            priceGraph.visibility = View.INVISIBLE
+            graph.visibility = View.INVISIBLE
             progressBar.progress = ProgressBar.VISIBLE
-            percentDifference.visibility = View.INVISIBLE
-            baseToQuoteAsk.visibility = View.GONE
-            baseToQuoteBid.visibility = View.GONE
         }
     }
 }

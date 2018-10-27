@@ -5,7 +5,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 object FirestoreCollections {
 
     // Prices
-    val priceCollection = FirebaseFirestore.getInstance().collection("prices")
+    val priceCollection = FirebaseFirestore.getInstance().collection("price")
+            .document("eth-btc").collection("prices")
 
     // Content feed.
     const val DISMISS_COLLECTION = "dismissCollection"

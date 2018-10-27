@@ -24,11 +24,11 @@
 
     <style name="ButtonStyle" parent="Base.Widget.AppCompat.Button.Borderless">
         <item name="android:theme">@style/SelectableItemTheme</item>
-        <item name="android:textSize">@dimen/button_text_size</item>
+        <item name="background">?attr/selectableItemBackground</item>
+        <item name="android:textSize">@dimen/text_size_caption</item>
         <item name="android:textColor">@color/colorPrimaryDark</item>
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="background">?attr/selectableItemBackground</item>
     </style>
 
     <style name="ButtonStyleSmall" parent="ButtonStyle">
@@ -37,20 +37,14 @@
 
     <!--Price graph-->
 
-    <style name="PriceGraphLegendStyle">
+    <style name="OrderToggleStyle">
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_width">wrap_content</item>
-        <item name="android:textSize">@dimen/legend_text_size</item>
-        <item name="android:layout_marginLeft">@dimen/margin_small</item>
-        <item name="android:layout_marginRight">@dimen/margin_small</item>
-        <item name="android:drawablePadding">@dimen/max_and_min_top_padding</item>
-    </style>
-
-    <style name="PriceGraphMinAndMaxStyle">
-        <item name="android:drawablePadding">@dimen/max_and_min_top_padding</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:paddingBottom">@dimen/margin_medium</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:clickable">true</item>
+        <item name="android:textSize">@dimen/text_size_small</item>
+        <item name="android:padding">@dimen/margin_small</item>
+        <item name="android:theme">@style/SelectableItemTheme</item>
     </style>
 
     <!--Content feed-->

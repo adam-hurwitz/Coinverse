@@ -84,7 +84,7 @@ object PriceRepository {
             //TODO: Refactor axis to use dates.
 
             compositeDisposable.add(Observable.zip(
-                    generateGraphData(Exchange.GDAX, priceData.gdaxExchangeOrderData).subscribeOn(Schedulers.io()),
+                    generateGraphData(Exchange.COINBASE, priceData.coinbaseExchangeOrderData).subscribeOn(Schedulers.io()),
                     generateGraphData(Exchange.BINANCE, priceData.binanceExchangeOrderData).subscribeOn(Schedulers.io()),
                     generateGraphData(Exchange.GEMINI, priceData.geminiExchangeOrderData).subscribeOn(Schedulers.io()),
                     generateGraphData(Exchange.KUCOIN, priceData.kucoinExchangeOrderData).subscribeOn(Schedulers.io()),
@@ -140,12 +140,12 @@ object PriceRepository {
             HashMap<Exchange, PriceGraphData>,
             HashMap<Exchange, PriceGraphData>,
             Status> {
-        return Function5 { gdaxPriceGraphData,
+        return Function5 { coinbasePriceGraphData,
                            binancePriceGraphData,
                            geminiPriceGraphData,
                            kucoinPriceGraphData,
                            krakenPriceGraphData ->
-            graphLiveData.postValue(gdaxPriceGraphData)
+            graphLiveData.postValue(coinbasePriceGraphData)
             graphLiveData.postValue(binancePriceGraphData)
             graphLiveData.postValue(geminiPriceGraphData)
             graphLiveData.postValue(kucoinPriceGraphData)
