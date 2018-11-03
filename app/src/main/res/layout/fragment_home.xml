@@ -37,8 +37,8 @@
 
                         <ImageView
                             android:id="@+id/profileButton"
-                            android:layout_width="@dimen/profileButton"
-                            android:layout_height="@dimen/profileButton"
+                            android:layout_width="@dimen/profile_button"
+                            android:layout_height="@dimen/profile_button"
                             android:contentDescription="@string/profile_content_description"
                             android:src="@drawable/ic_astronaut_color_accent_24dp" />
 
@@ -65,16 +65,43 @@
                 android:layout_height="match_parent"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/fab"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center|bottom"
-                android:layout_margin="@dimen/padding_medium"
-                android:src="@drawable/ic_star_border_color_primary_dark_24dp"
-                app:layout_anchor="@id/contentContainer"
-                app:layout_anchorGravity="center|bottom"
-                app:rippleColor="@android:color/darker_gray" />
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/bottomSheet"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+                <ImageView
+                    android:id="@+id/bottom_handle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/ic_bottom_sheet_handle"
+                    android:contentDescription="@string/saved_bottomsheet_handle_content_description"
+                    android:elevation="@dimen/bottom_sheet_elevation_height"
+                    android:src="@drawable/ic_save_planet_dark_48dp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageView
+                    android:id="@+id/bottom_handle_elevation"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/bottom_sheet_elevation_height"
+                    android:background="@color/bottom_sheet_handle_elevation"
+                    android:contentDescription="@string/saved_bottomsheet_handle_content_description"
+                    app:layout_constraintBottom_toBottomOf="@id/bottom_handle"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent" />
+
+                <FrameLayout
+                    android:id="@+id/savedContentContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:background="@android:color/white"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/bottom_handle_elevation" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

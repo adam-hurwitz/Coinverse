@@ -4,13 +4,10 @@ import android.content.Context
 import android.content.res.Resources
 import android.util.DisplayMetrics
 
-object Utils {
-    lateinit var resources: Resources
+lateinit var resourcesUtil: Resources
 
-    fun convertDpToPx(dp: Int) = Math.round(dp * (resources.displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT))
+fun convertDpToPx(dp: Int) = Math.round(dp * (resourcesUtil.displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT))
 
-    fun getDisplayWidth(context: Context) = context.getResources().getDisplayMetrics().widthPixels
+fun getDisplayWidth(context: Context) = context.getResources().getDisplayMetrics().widthPixels
 
-    fun getDisplayHeight(context: Context) = context.getResources().getDisplayMetrics().heightPixels
-
-}
+fun getDisplayHeight(context: Context) = context.getResources().getDisplayMetrics().heightPixels

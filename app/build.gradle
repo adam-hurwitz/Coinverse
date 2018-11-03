@@ -63,13 +63,13 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth:16.0.1'
     implementation 'com.firebase:firebase-client-android:2.5.2'
     implementation 'com.google.firebase:firebase-core:16.0.4'
-    implementation 'com.google.firebase:firebase-firestore:17.1.1'
-    implementation 'com.google.firebase:firebase-auth:16.0.4'
+    implementation 'com.google.firebase:firebase-firestore:17.1.2'
+    implementation 'com.google.firebase:firebase-auth:16.0.5'
     implementation 'com.firebaseui:firebase-ui-firestore:4.2.0'
     implementation 'com.firebaseui:firebase-ui-auth:4.1.0'
     implementation 'com.jjoe64:graphview:4.2.2'
     implementation files('libs/YouTubeAndroidPlayerApi.jar')
-    implementation 'io.reactivex.rxjava2:rxjava:2.2.0'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.2'
     implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
     implementation "android.arch.navigation:navigation-fragment-ktx:$nav_version"
     implementation "android.arch.navigation:navigation-ui-ktx:$nav_version"
@@ -83,8 +83,8 @@ dependencies {
 
     // Testing
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test:runner:1.1.0-beta01'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0-beta01'
+    androidTestImplementation 'androidx.test:runner:1.1.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
     testImplementation "androidx.arch.core:core-testing:$lifecycle_version"
     androidTestImplementation "android.arch.navigation:navigation-testing:$nav_version"
     testImplementation "androidx.room:room-testing:$room_version"

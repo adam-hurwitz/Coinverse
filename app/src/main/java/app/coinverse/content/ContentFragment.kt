@@ -18,16 +18,20 @@ import app.coinverse.R
 import app.coinverse.content.adapter.ContentAdapter
 import app.coinverse.content.adapter.ItemTouchHelper
 import app.coinverse.databinding.FragmentContentBinding
-import app.coinverse.utils.Constants.CONTENT_FEED_VISIBILITY_DELAY
-import app.coinverse.utils.Constants.CONTENT_KEY
-import app.coinverse.utils.Constants.YOUTUBE_DIALOG_FRAGMENT_TAG
+import app.coinverse.utils.CONTENT_FEED_VISIBILITY_DELAY
+import app.coinverse.utils.CONTENT_KEY
+import app.coinverse.utils.YOUTUBE_DIALOG_FRAGMENT_TAG
 import app.coinverse.utils.livedata.EventObserver
+import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
+import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
 import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.FirebaseAnalytics.getInstance
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.empty_content.view.*
 import kotlinx.android.synthetic.main.fragment_content.*
+import kotlinx.android.synthetic.main.toolbar.view.*
+
 
 private val LOG_TAG = ContentFragment::class.java.simpleName
 
@@ -85,11 +89,17 @@ class ContentFragment : Fragment() {
 
     fun setToolbar() {
         when (feedType) {
-            SAVED.name -> binding.actionbar.toolbar.title = getString(R.string.saved)
-            DISMISSED.name -> binding.actionbar.toolbar.title = getString(R.string.dismissed)
+            SAVED.name -> {
+                //TODO: center Saved, style, size
+                binding.actionbar.toolbar.savedContentTitle.visibility = View.VISIBLE
+
+            }
+            DISMISSED.name -> {
+                binding.actionbar.toolbar.title = getString(R.string.dismissed)
+                (activity as AppCompatActivity).setSupportActionBar(binding.actionbar.toolbar)
+                (activity as AppCompatActivity).supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+            }
         }
-        (activity as AppCompatActivity).setSupportActionBar(binding.actionbar.toolbar)
-        (activity as AppCompatActivity).supportActionBar!!.setDisplayHomeAsUpEnabled(true)
     }
 
     fun initializeMainContent(isRealtime: Boolean) {
@@ -107,26 +117,20 @@ class ContentFragment : Fragment() {
             MAIN.name -> {
                 contentViewModel.getMainContentList().observe(viewLifecycleOwner, Observer { homeContentList ->
                     adapter.submitList(homeContentList)
-                    if (homeContentList.isEmpty()) {
-                        setEmptyView()
-                    } else {
-                        emptyContent.visibility = GONE
-                    }
+                    if (homeContentList.isEmpty()) setEmptyView()
+                    else emptyContent.visibility = GONE
                 })
             }
             SAVED.name, DISMISSED.name -> {
+                //FIXME: showing after adding content.
                 var newFeedType = NONE
-                if (feedType == SAVED.name) {
-                    newFeedType = SAVED
-                } else if (feedType == DISMISSED.name) {
-                    newFeedType = DISMISSED
-                }
+                if (feedType == SAVED.name) newFeedType = SAVED
+                else if (feedType == DISMISSED.name) newFeedType = DISMISSED
                 contentViewModel.getCategorizedContentList(newFeedType).observe(viewLifecycleOwner,
                         Observer { contentList ->
                             adapter.submitList(contentList)
-                            if (contentList.isEmpty()) {
-                                setEmptyView()
-                            }
+                            if (contentList.isEmpty()) setEmptyView()
+                            else emptyContent.visibility = GONE
                         })
             }
         }
@@ -156,7 +160,9 @@ class ContentFragment : Fragment() {
         contentFeedRecyclerView.postDelayed({ contentFeedRecyclerView.visibility = VISIBLE },
                 CONTENT_FEED_VISIBILITY_DELAY)
         emptyContent.confirmation.setOnClickListener { view: View ->
-            view.findNavController().navigateUp()
+            if (homeViewModel.bottomSheetState.value == STATE_EXPANDED)
+                homeViewModel.bottomSheetState.value = STATE_COLLAPSED
+            else view.findNavController().navigateUp()
         }
         when (feedType) {
             MAIN.name -> {

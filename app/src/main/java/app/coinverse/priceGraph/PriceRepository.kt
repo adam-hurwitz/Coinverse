@@ -8,8 +8,8 @@ import app.coinverse.Enums.Status.SUCCESS
 import app.coinverse.Enums.Timeframe
 import app.coinverse.firebase.FirestoreCollections.priceCollection
 import app.coinverse.priceGraph.models.*
-import app.coinverse.utils.Constants.TIMESTAMP
 import app.coinverse.utils.DateAndTime.getTimeframe
+import app.coinverse.utils.TIMESTAMP
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.ListenerRegistration

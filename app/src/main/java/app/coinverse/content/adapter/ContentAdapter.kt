@@ -6,9 +6,9 @@ import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.DiffUtil
 import app.coinverse.Enums.FeedType.MAIN
 import app.coinverse.Enums.UserActionType
-import app.coinverse.databinding.CellContentBinding
 import app.coinverse.content.ContentViewModel
 import app.coinverse.content.models.Content
+import app.coinverse.databinding.CellContentBinding
 import com.google.firebase.auth.FirebaseUser
 
 private val LOG_TAG = ContentAdapter::class.java.simpleName
@@ -36,9 +36,7 @@ class ContentAdapter(var contentViewmodel: ContentViewModel) : PagedListAdapter<
 
     fun organizeContent(feedType: String, actionType: UserActionType, itemPosition: Int, user: FirebaseUser) {
         var mainFeedEmptied = false
-        if (feedType == MAIN.name) {
-            mainFeedEmptied = itemCount == 1
-        }
+        if (feedType == MAIN.name) mainFeedEmptied = itemCount == 1
         contentViewmodel.organizeContent(feedType, actionType, user, getItem(itemPosition), mainFeedEmptied)
     }
 

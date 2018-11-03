@@ -15,8 +15,8 @@ import app.coinverse.R
 import app.coinverse.databinding.FragmentProfileBinding
 import app.coinverse.firebase.FirestoreCollections.DISMISS_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.usersCollection
-import app.coinverse.utils.Constants.ON_BACK_PRESS_DELAY_IN_MILLIS
-import app.coinverse.utils.Constants.PROFILE_VIEW
+import app.coinverse.utils.ON_BACK_PRESS_DELAY_IN_MILLIS
+import app.coinverse.utils.PROFILE_VIEW
 import com.firebase.ui.auth.AuthUI
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.FirebaseApp

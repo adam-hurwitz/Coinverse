@@ -6,6 +6,15 @@
         <variable
             name="viewmodel"
             type="app.coinverse.content.ContentViewModel" />
+
+        <variable
+            name="view"
+            type="android.view.View" />
+
+        <variable
+            name="feedType"
+            type="app.coinverse.Enums.FeedType" />
+
     </data>
 
     <com.google.android.material.appbar.AppBarLayout
@@ -18,7 +27,19 @@
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/savedContentTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/saved"
+                android:textColor="@color/colorAccent"
+                android:textSize="@dimen/text_size_medium"
+                android:visibility="gone" />
+
+        </androidx.appcompat.widget.Toolbar>
 
     </com.google.android.material.appbar.AppBarLayout>
 </layout>

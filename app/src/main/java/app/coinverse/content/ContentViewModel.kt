@@ -13,9 +13,9 @@ import app.coinverse.Enums.FeedType.*
 import app.coinverse.Enums.Timeframe
 import app.coinverse.Enums.UserActionType
 import app.coinverse.content.models.Content
-import app.coinverse.utils.Constants.PAGE_SIZE
-import app.coinverse.utils.Constants.PREFETCH_DISTANCE
 import app.coinverse.utils.DateAndTime.getTimeframe
+import app.coinverse.utils.PAGE_SIZE
+import app.coinverse.utils.PREFETCH_DISTANCE
 import app.coinverse.utils.livedata.Event
 import com.google.firebase.auth.FirebaseUser
 
@@ -74,6 +74,7 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
 
     fun organizeContent(feedType: String, actionType: UserActionType, user: FirebaseUser,
                         content: Content?, mainFeedEmptied: Boolean) {
+        //FIXME: Keep bottom sheet open if feedType = 'Saved' and actionType = 'Save'
         contentRepository.organizeContent(feedType, actionType, content, user, mainFeedEmptied)
     }
 

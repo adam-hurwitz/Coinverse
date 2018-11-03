@@ -10,7 +10,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProviders
 import app.coinverse.HomeViewModel
 import app.coinverse.databinding.FragmentSignInDialogBinding
-import app.coinverse.utils.Constants.RC_SIGN_IN
+import app.coinverse.utils.RC_SIGN_IN
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.auth.FirebaseAuth
@@ -42,10 +42,7 @@ class SignInDialogFragment : DialogFragment() {
         }
     }
 
-    companion object {
-        @JvmStatic
-        fun newInstance() = SignInDialogFragment()
-    }
+    companion object { fun newInstance() = SignInDialogFragment() }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)

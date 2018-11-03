@@ -27,4 +27,7 @@
     <color name="fadedColorPrimary">#e8f7fc</color>
     <color name="fadedColorPrimaryDarker">#c6e9f4</color>
 
+    <!--Home screen-->
+    <color name="bottom_sheet_handle_elevation">#8CB4B4B4</color>
+
 </resources>

@@ -27,7 +27,8 @@
     <dimen name="text_size_title">22sp</dimen>
 
     <!--Home Fragment-->
-    <dimen name="profileButton">24dp</dimen>
+    <dimen name="profile_button">24dp</dimen>
+    <dimen name="bottom_sheet_elevation_height">1dp</dimen>
 
     <!--Price Graph-->
     <dimen name="price_graph_height">350dp</dimen>
@@ -47,6 +48,7 @@
     <dimen name="swipe_icon_dimen">48dp</dimen>
     <dimen name="empty_content_image_dimen">96dp</dimen>
     <integer name="maxLines">2</integer>
+    <dimen name="saved_bottomsheet_background_handle">48dp</dimen>
 
     <!--Sign In-->
     <dimen name="save_icon_dimen">24dp</dimen>

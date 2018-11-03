@@ -16,10 +16,10 @@ import app.coinverse.Enums.UserActionType.SAVE
 import app.coinverse.HomeViewModel
 import app.coinverse.R
 import app.coinverse.user.SignInDialogFragment
-import app.coinverse.utils.Constants
-import app.coinverse.utils.Constants.CELL_CONTENT_MARGIN
-import app.coinverse.utils.Constants.SWIPE_CONTENT_Y_MARGIN_DP
-import app.coinverse.utils.Utils.convertDpToPx
+import app.coinverse.utils.CELL_CONTENT_MARGIN
+import app.coinverse.utils.SIGNIN_DIALOG_FRAGMENT_TAG
+import app.coinverse.utils.SWIPE_CONTENT_Y_MARGIN_DP
+import app.coinverse.utils.convertDpToPx
 import com.google.firebase.auth.FirebaseAuth
 
 private val LOG_TAG = ItemTouchHelper::class.java.simpleName
@@ -117,7 +117,7 @@ class ItemTouchHelper(var homeViewModel: HomeViewModel) {
             }
 
             private fun signInDialog(viewHolder: ViewHolder) {
-                SignInDialogFragment.newInstance().show(fragmentManager, Constants.SIGNIN_DIALOG_FRAGMENT_TAG)
+                SignInDialogFragment.newInstance().show(fragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
                 adapter.notifyItemChanged(viewHolder.adapterPosition)
             }
 

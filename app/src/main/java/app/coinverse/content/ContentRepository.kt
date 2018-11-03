@@ -35,14 +35,7 @@ import app.coinverse.firebase.FirestoreCollections.START_SCORE
 import app.coinverse.firebase.FirestoreCollections.contentCollection
 import app.coinverse.firebase.FirestoreCollections.usersCollection
 import app.coinverse.user.models.ContentAction
-import app.coinverse.utils.Constants.CLEAR_FEED_EVENT
-import app.coinverse.utils.Constants.CREATOR_PARAM
-import app.coinverse.utils.Constants.DISMISS_EVENT
-import app.coinverse.utils.Constants.ORGANIZE_EVENT
-import app.coinverse.utils.Constants.QUALITY_SCORE
-import app.coinverse.utils.Constants.TIMESTAMP
-import app.coinverse.utils.Constants.TIMESTAMP_PARAM
-import app.coinverse.utils.Constants.USER_ID_PARAM
+import app.coinverse.utils.*
 import app.coinverse.utils.DateAndTime.getTimeframe
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.auth.FirebaseAuth

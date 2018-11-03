@@ -20,6 +20,7 @@
     <string name="first_dismiss_attempt">"firstDismiss"</string>
     <string name="preview_content_description">Preview image for content item.</string>
     <string name="profile_content_description">User profile login button.</string>
+    <string name="saved_bottomsheet_handle_content_description">Handle to swipe up Saved content screen.</string>
     <string name="empty_content_feed_content_description">Empty main content feed message image.</string>
     <string name="just_now">just now</string>
     <string name="a_minute_ago">a minute ago</string>
