@@ -1,0 +1,141 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "f7a6c12811819d2f8b47ad4d089da8a3",
+    "entities": [
+      {
+        "tableName": "content",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `qualityScore` REAL NOT NULL, `contentType` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `creator` TEXT NOT NULL, `title` TEXT NOT NULL, `previewImage` TEXT NOT NULL, `description` TEXT NOT NULL, `url` TEXT NOT NULL, `feedType` INTEGER NOT NULL, `savedPosition` INTEGER NOT NULL, `viewCount` REAL NOT NULL, `startCount` REAL NOT NULL, `consumeCount` REAL NOT NULL, `finishCount` REAL NOT NULL, `organizeCount` REAL NOT NULL, `shareCount` REAL NOT NULL, `clearFeedCount` REAL NOT NULL, `dismissCount` REAL NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "qualityScore",
+            "columnName": "qualityScore",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentType",
+            "columnName": "contentType",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "creator",
+            "columnName": "creator",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "previewImage",
+            "columnName": "previewImage",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "url",
+            "columnName": "url",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "feedType",
+            "columnName": "feedType",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "savedPosition",
+            "columnName": "savedPosition",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "viewCount",
+            "columnName": "viewCount",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startCount",
+            "columnName": "startCount",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "consumeCount",
+            "columnName": "consumeCount",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "finishCount",
+            "columnName": "finishCount",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "organizeCount",
+            "columnName": "organizeCount",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "shareCount",
+            "columnName": "shareCount",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "clearFeedCount",
+            "columnName": "clearFeedCount",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dismissCount",
+            "columnName": "dismissCount",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"f7a6c12811819d2f8b47ad4d089da8a3\")"
+    ]
+  }
+}

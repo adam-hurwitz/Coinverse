@@ -11,7 +11,7 @@ import app.coinverse.Enums.UserActionType
 import app.coinverse.Enums.UserActionType.*
 import app.coinverse.content.models.Content
 import app.coinverse.content.models.UserAction
-import app.coinverse.content.room.ContentDatabase
+import app.coinverse.content.room.CoinverseDatabase
 import app.coinverse.firebase.FirestoreCollections
 import app.coinverse.firebase.FirestoreCollections.CLEAR_FEED_COUNT
 import app.coinverse.firebase.FirestoreCollections.CONSUME_ACTION_COLLECTION
@@ -56,18 +56,18 @@ class ContentRepository(application: Application) {
 
     private var organizedSet = HashSet<String>()
     private var analytics: FirebaseAnalytics
-    private var contentFirestore: FirebaseFirestore
-    private var contentDatabase: ContentDatabase
+    private var firestore: FirebaseFirestore
+    private var database: CoinverseDatabase
 
     init {
         analytics = FirebaseAnalytics.getInstance(application)
-        contentFirestore = FirebaseFirestore.getInstance()
-        contentDatabase = ContentDatabase.getAppDatabase(application)
+        firestore = FirebaseFirestore.getInstance()
+        database = CoinverseDatabase.getAppDatabase(application)
     }
 
     fun initializeMainRoomContent(isRealtime: Boolean, timeframe: Enums.Timeframe) {
 
-        val contentDao = contentDatabase.contentDao()
+        val contentDao = database.contentDao()
         val user = FirebaseAuth.getInstance().currentUser
         if (user != null) {
             val userReference = usersCollection.document(user.uid)
@@ -177,16 +177,16 @@ class ContentRepository(application: Application) {
                         content.feedType = newFeedType
                         contentList.add(content)
                     }
-                    Thread(Runnable { run { contentDatabase.contentDao().insertContent(contentList) } }).start()
+                    Thread(Runnable { run { database.contentDao().insertContent(contentList) } }).start()
                 })
     }
 
     fun getMainContent(timeframe: Date): DataSource.Factory<Int, Content> {
-        return contentDatabase.contentDao().getMainContent(timeframe, MAIN)
+        return database.contentDao().getMainContent(timeframe, MAIN)
     }
 
     fun getCategorizedContent(feedType: FeedType): DataSource.Factory<Int, Content> {
-        return contentDatabase.contentDao().getCategorizedContent(feedType)
+        return database.contentDao().getCategorizedContent(feedType)
     }
 
     fun organizeContent(feedType: String, actionType: UserActionType, content: Content?,
@@ -285,7 +285,7 @@ class ContentRepository(application: Application) {
 
     fun updateContentActionCounter(contentId: String, counterType: String) {
         val contentRef = contentCollection.document(contentId)
-        contentFirestore.runTransaction(Transaction.Function<String> { counterTransaction ->
+        firestore.runTransaction(Transaction.Function<String> { counterTransaction ->
             val contentSnapshot = counterTransaction.get(contentRef)
             val newCounter = contentSnapshot.getDouble(counterType)!! + 1.0
             counterTransaction.update(contentRef, counterType, newCounter)
@@ -309,7 +309,7 @@ class ContentRepository(application: Application) {
 
     fun updateUserActionCounter(userId: String, counterType: String) {
         val userRef = usersCollection.document(userId)
-        contentFirestore.runTransaction(Transaction.Function<String> { counterTransaction ->
+        firestore.runTransaction(Transaction.Function<String> { counterTransaction ->
             val userSnapshot = counterTransaction.get(userRef)
             val newCounter = userSnapshot.getDouble(counterType)!! + 1.0
             counterTransaction.update(userRef, counterType, newCounter)
@@ -321,7 +321,7 @@ class ContentRepository(application: Application) {
     fun updateQualityScore(score: Double, contentId: String) {
         Log.d(LOG_TAG, "Transaction success: " + score)
         val contentDocRef = FirestoreCollections.contentCollection.document(contentId)
-        contentFirestore.runTransaction(object : Transaction.Function<Void> {
+        firestore.runTransaction(object : Transaction.Function<Void> {
             @Throws(FirebaseFirestoreException::class)
             override fun apply(transaction: Transaction): Void? {
                 val snapshot = transaction.get(contentDocRef)

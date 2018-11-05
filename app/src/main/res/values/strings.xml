@@ -1,5 +1,9 @@
 <resources>
     <string name="app_name">coinverse</string>
+
+    <!--Home-->
+    <string name="message_center">Message Center</string>
+
     <!--Price graphs-->
     <string name="asks">asks</string>
     <string name="bids">bids</string>
@@ -20,15 +24,21 @@
     <string name="first_dismiss_attempt">"firstDismiss"</string>
     <string name="preview_content_description">Preview image for content item.</string>
     <string name="profile_content_description">User profile login button.</string>
+    <string name="notification_content_description">Message center button.</string>
     <string name="saved_bottomsheet_handle_content_description">Handle to swipe up Saved content screen.</string>
     <string name="empty_content_feed_content_description">Empty main content feed message image.</string>
-    <string name="just_now">just now</string>
+    <string name="now">now</string>
     <string name="a_minute_ago">a minute ago</string>
+    <string name="a_minute_ago_abbreviate">1 min</string>
     <string name="minutes_ago">minutes ago</string>
+    <string name="minutes_ago_abbreviate">min</string>
     <string name="an_hour_ago">an hour ago</string>
+    <string name="an_hour_ago_abbreviate">1 hr</string>
     <string name="hours_ago">hours ago</string>
+    <string name="hours_ago_abbreviate">hrs</string>
     <string name="yesterday">yesterday</string>
     <string name="days_ago">days ago</string>
+    <string name="days_ago_abbreviate">days</string>
     <string name="swipe_right_image">Content swipe right image.</string>
     <string name="no_content_title">All of the content is organized!</string>
     <string name="no_saved_content_title">No Content Saved</string>

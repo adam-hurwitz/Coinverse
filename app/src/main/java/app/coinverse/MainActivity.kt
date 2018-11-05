@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.Navigation.findNavController
 import app.coinverse.databinding.ActivityMainBinding
 import app.coinverse.firebase.FirestoreHelper
+import app.coinverse.home.HomeViewModel
 import app.coinverse.utils.resourcesUtil
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED

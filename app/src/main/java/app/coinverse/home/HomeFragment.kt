@@ -1,20 +1,28 @@
-package app.coinverse
+package app.coinverse.home
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Typeface
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.StyleSpan
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
+import app.coinverse.BuildConfig.VERSION_NAME
 import app.coinverse.Enums.FeedType.MAIN
 import app.coinverse.Enums.FeedType.SAVED
+import app.coinverse.R
 import app.coinverse.content.ContentFragment
 import app.coinverse.databinding.FragmentHomeBinding
 import app.coinverse.firebase.FirestoreCollections.usersCollection
@@ -22,6 +30,7 @@ import app.coinverse.priceGraph.PriceFragment
 import app.coinverse.user.SignInDialogFragment
 import app.coinverse.user.models.User
 import app.coinverse.utils.*
+import app.coinverse.utils.DateAndTime.getTimeAgo
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.firebase.ui.auth.IdpResponse
@@ -31,8 +40,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior.*
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.fragment_home.*
 import java.util.*
-
-
+import kotlin.collections.ArrayList
 
 
 private val LOG_TAG = HomeFragment::class.java.simpleName
@@ -62,6 +70,7 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         user = homeViewModel.getCurrentUser()
         initProfileButton(user != null)
+        initMessageCenter()
         initSavedBottomSheet()
         initCollapsingToolbarStates()
         setClickListeners()
@@ -97,6 +106,41 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun initMessageCenter() {
+        //TODO: Move to ViewModel.
+        val messagesList = ArrayList<MessageCenterUpdate>()
+        homeViewModel.syncMessageCenterUpdates()
+        homeViewModel.messageCenterLiveData.observe(viewLifecycleOwner, Observer { messages ->
+            messages.all { message ->
+                if (!messagesList.contains(message)) messagesList.add(message)
+                true
+            }
+        })
+        var unreadCount = 0.0
+        homeViewModel.messageCenterUnreadCountLiveData.observe(this, Observer { count ->
+            unreadCount = count
+            if (count > 0) messageCenterButton.setImageResource(R.drawable.ic_message_center_unread)
+            else messageCenterButton.setImageResource(R.drawable.ic_message_center_read)
+        })
+        messageCenterButton.setOnClickListener { view ->
+            val menu = PopupMenu(context!!, view)
+            val header = SpannableString(getString(R.string.message_center))
+            header.setSpan(StyleSpan(Typeface.BOLD), 0, header.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            menu.menu.add(Menu.NONE, 0, 0, header)
+            for (i in 0..messagesList.size - 1) {
+                val message = messagesList[i]
+                val id = i + 1
+                if (VERSION_NAME.equals(message.versionName)) {
+                    val date = message.timestamp
+                    val timeAgo = getTimeAgo(context!!, date.time, true)
+                    menu.menu.add(Menu.NONE, id, id, String.format("%s (%s)", message.message, timeAgo))
+                    if (unreadCount == 0.0) menu.menu.getItem(id).setEnabled(false)
+                }
+            }
+            menu.show()
+            homeViewModel.clearUnreadMessageCenterCount()
+        }
+    }
 
     private fun initCollapsingToolbarStates() {
         appBar.addOnOffsetChangedListener(object : AppBarLayout.OnOffsetChangedListener {
@@ -119,8 +163,7 @@ class HomeFragment : Fragment() {
 
     private fun initProfileButton(isLoggedIn: Boolean) {
         if (isLoggedIn) {
-            Glide.with(this)
-                    .load(user?.photoUrl.toString())
+            Glide.with(this).load(user?.photoUrl.toString())
                     .apply(RequestOptions.circleCropTransform())
                     .into(profileButton)
         } else {
@@ -154,6 +197,7 @@ class HomeFragment : Fragment() {
                     bottom_handle_elevation.visibility = VISIBLE
                 }
             }
+
             override fun onSlide(bottomSheet: View, slideOffset: Float) {}
         })
         observeBottomSheetBackPressed()
@@ -201,7 +245,7 @@ class HomeFragment : Fragment() {
                                         Date(user.metadata!!.lastSignInTimestamp), user.providerId,
                                         0.0, 0.0, 0.0,
                                         0.0, 0.0, 0.0,
-                                        0.0, 0.0))
+                                        0.0, 0.0, 0.0))
                                 .addOnSuccessListener {
                                     Log.v(LOG_TAG, String.format("New user added success:%s", it))
                                 }.addOnFailureListener {

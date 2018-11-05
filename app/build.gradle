@@ -67,6 +67,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth:16.0.5'
     implementation 'com.firebaseui:firebase-ui-firestore:4.2.0'
     implementation 'com.firebaseui:firebase-ui-auth:4.1.0'
+    implementation 'com.google.firebase:firebase-inappmessaging-display:17.0.3'
     implementation 'com.jjoe64:graphview:4.2.2'
     implementation files('libs/YouTubeAndroidPlayerApi.jar')
     implementation 'io.reactivex.rxjava2:rxjava:2.2.2'

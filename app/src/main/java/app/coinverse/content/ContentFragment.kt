@@ -13,11 +13,11 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import app.coinverse.Enums.FeedType.*
-import app.coinverse.HomeViewModel
 import app.coinverse.R
 import app.coinverse.content.adapter.ContentAdapter
 import app.coinverse.content.adapter.ItemTouchHelper
 import app.coinverse.databinding.FragmentContentBinding
+import app.coinverse.home.HomeViewModel
 import app.coinverse.utils.CONTENT_FEED_VISIBILITY_DELAY
 import app.coinverse.utils.CONTENT_KEY
 import app.coinverse.utils.YOUTUBE_DIALOG_FRAGMENT_TAG

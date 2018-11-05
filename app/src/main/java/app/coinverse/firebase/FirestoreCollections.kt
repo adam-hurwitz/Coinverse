@@ -4,6 +4,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 object FirestoreCollections {
 
+    // Home
+    val messageCenterCollection = FirebaseFirestore.getInstance().collection("messageCenter")
+
     // Prices
     val priceCollection = FirebaseFirestore.getInstance().collection("price")
             .document("eth-btc").collection("prices")
@@ -16,6 +19,7 @@ object FirestoreCollections {
 
     // Users
     val usersCollection = FirebaseFirestore.getInstance().collection("users")
+    val userMessageCenter = "messageCenter"
 
     // Actions log.
     const val START_ACTION_COLLECTION = "startActions"
@@ -34,6 +38,7 @@ object FirestoreCollections {
     const val SHARE_COUNT = "shareCount"
     const val CLEAR_FEED_COUNT = "clearFeedCount"
     const val DISMISS_COUNT = "dismissCount"
+    const val MESSAGE_CENTER_UNREAD_COUNT = "messageCenterUnreadCount"
 
     // Quality scores.
     const val INVALID_SCORE = 0.0

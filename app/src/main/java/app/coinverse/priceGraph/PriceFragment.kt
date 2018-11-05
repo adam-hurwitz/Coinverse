@@ -18,9 +18,9 @@ import app.coinverse.Enums.OrderType.ASK
 import app.coinverse.Enums.OrderType.BID
 import app.coinverse.Enums.Timeframe
 import app.coinverse.Enums.Timeframe.DAY
-import app.coinverse.HomeViewModel
 import app.coinverse.R
 import app.coinverse.databinding.FragmentPriceBinding
+import app.coinverse.home.HomeViewModel
 import app.coinverse.priceGraph.models.PriceGraphData
 import app.coinverse.priceGraph.models.PriceGraphXAndYConstraints
 import app.coinverse.utils.getExchangeColor

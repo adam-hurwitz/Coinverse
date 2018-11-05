@@ -6,23 +6,24 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import app.coinverse.content.models.Content
+import app.coinverse.utils.DATABASE_NAME
 
 @Database(entities = arrayOf(Content::class), version = 1)
 @TypeConverters(Converters::class)
-abstract class ContentDatabase : RoomDatabase() {
+abstract class CoinverseDatabase : RoomDatabase() {
 
     abstract fun contentDao(): ContentDao
 
     companion object {
 
-        private var INSTANCE: ContentDatabase? = null
+        private var INSTANCE: CoinverseDatabase? = null
 
-        fun getAppDatabase(context: Context): ContentDatabase {
+        fun getAppDatabase(context: Context): CoinverseDatabase {
             if (INSTANCE == null) {
                 INSTANCE = Room.databaseBuilder(context.applicationContext,
-                        ContentDatabase::class.java, "content-database").build()
+                        CoinverseDatabase::class.java, DATABASE_NAME).build()
             }
-            return INSTANCE as ContentDatabase
+            return INSTANCE as CoinverseDatabase
         }
 
     }

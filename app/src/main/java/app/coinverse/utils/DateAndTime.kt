@@ -42,7 +42,7 @@ object DateAndTime {
     private val DAY_MILLIS = 24 * HOUR_MILLIS
 
 
-    fun getTimeAgo(context: Context, time: Long): String? {
+    fun getTimeAgo(context: Context, time: Long, abbreviate: Boolean): String? {
         var time = time
         if (time < 1000000000000L) {
             // if timestamp given in seconds, convert to millis
@@ -57,19 +57,24 @@ object DateAndTime {
         // TODO: localize.
         val diff = now - time
         return if (diff < MINUTE_MILLIS) {
-            context.getString(R.string.just_now)
+            context.getString(R.string.now)
         } else if (diff < 2 * MINUTE_MILLIS) {
+            if (abbreviate) context.getString(R.string.a_minute_ago_abbreviate)
             context.getString(R.string.a_minute_ago)
         } else if (diff < 50 * MINUTE_MILLIS) {
-            String.format("%s %s", (diff / MINUTE_MILLIS).toString(), context.getString(R.string.minutes_ago))
+            if (abbreviate) String.format("%s %s", (diff / MINUTE_MILLIS).toString(), context.getString(R.string.minutes_ago_abbreviate))
+            else String.format("%s %s", (diff / MINUTE_MILLIS).toString(), context.getString(R.string.minutes_ago))
         } else if (diff < 90 * MINUTE_MILLIS) {
-            context.getString(R.string.an_hour_ago)
+            if (abbreviate) context.getString(R.string.an_hour_ago_abbreviate)
+            else context.getString(R.string.an_hour_ago)
         } else if (diff < 24 * HOUR_MILLIS) {
-            String.format("%s %s", (diff / HOUR_MILLIS).toString(), context.getString(R.string.hours_ago))
+            if (abbreviate) String.format("%s %s", (diff / HOUR_MILLIS).toString(), context.getString(R.string.hours_ago_abbreviate))
+            else String.format("%s %s", (diff / HOUR_MILLIS).toString(), context.getString(R.string.hours_ago))
         } else if (diff < 48 * HOUR_MILLIS) {
             context.getString(R.string.yesterday)
         } else {
-            String.format("%s %s", (diff / DAY_MILLIS).toString(), context.getString(R.string.days_ago))
+            if (abbreviate) String.format("%s %s", (diff / DAY_MILLIS).toString(), context.getString(R.string.days_ago_abbreviate))
+            else String.format("%s %s", (diff / DAY_MILLIS).toString(), context.getString(R.string.days_ago))
         }
     }
 }

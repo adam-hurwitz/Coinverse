@@ -5,6 +5,9 @@ const val RC_SIGN_IN = 123
 const val TIMESTAMP = "timestamp"
 const val QUALITY_SCORE = "qualityScore"
 
+// Room
+const val DATABASE_NAME = "coinverse-db"
+
 // Home
 const val ON_BACK_PRESS_DELAY_IN_MILLIS = 500L
 const val SAVED_BOTTOM_SHEET_PEEK_HEIGHT = 128

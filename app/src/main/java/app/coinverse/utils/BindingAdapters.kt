@@ -24,5 +24,5 @@ fun ImageView.setProfileImageUrl(url: String?) {
 
 @BindingAdapter("timePostedAgo")
 fun TextView.setTimePostedAgo(time: Long) {
-    this.text = DateAndTime.getTimeAgo(context, time)
+    this.text = DateAndTime.getTimeAgo(context, time, false)
 }

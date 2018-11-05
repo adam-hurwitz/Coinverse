@@ -27,7 +27,7 @@
     <dimen name="text_size_title">22sp</dimen>
 
     <!--Home Fragment-->
-    <dimen name="profile_button">24dp</dimen>
+    <dimen name="toolbar_button_dimen">24dp</dimen>
     <dimen name="bottom_sheet_elevation_height">1dp</dimen>
 
     <!--Price Graph-->

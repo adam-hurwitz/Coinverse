@@ -13,7 +13,7 @@ import app.coinverse.Enums.FeedType.DISMISSED
 import app.coinverse.Enums.FeedType.SAVED
 import app.coinverse.Enums.UserActionType.DISMISS
 import app.coinverse.Enums.UserActionType.SAVE
-import app.coinverse.HomeViewModel
+import app.coinverse.home.HomeViewModel
 import app.coinverse.R
 import app.coinverse.user.SignInDialogFragment
 import app.coinverse.utils.CELL_CONTENT_MARGIN

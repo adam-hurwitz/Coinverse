@@ -28,7 +28,7 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
     var timeframe = MutableLiveData<Timeframe>()
 
     private val _contentSelected = MutableLiveData<Event<Content>>()
-    val contentSelected : LiveData<Event<Content>>
+    val contentSelected: LiveData<Event<Content>>
         get() = _contentSelected
 
     val pagedListConfiguration = PagedList.Config.Builder()
