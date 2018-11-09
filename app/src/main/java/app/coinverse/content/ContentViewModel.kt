@@ -74,7 +74,6 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
 
     fun organizeContent(feedType: String, actionType: UserActionType, user: FirebaseUser,
                         content: Content?, mainFeedEmptied: Boolean) {
-        //FIXME: Keep bottom sheet open if feedType = 'Saved' and actionType = 'Save'
         contentRepository.organizeContent(feedType, actionType, content, user, mainFeedEmptied)
     }
 
