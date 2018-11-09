@@ -1,6 +1,7 @@
 package app.coinverse.content
 
 import android.app.Application
+import android.content.Context
 import android.view.View
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -8,17 +9,19 @@ import androidx.lifecycle.MutableLiveData
 import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import app.coinverse.Enums
+import app.coinverse.Enums.ContentType
+import app.coinverse.Enums.ContentType.YOUTUBE
 import app.coinverse.Enums.FeedType
 import app.coinverse.Enums.FeedType.*
 import app.coinverse.Enums.Timeframe
 import app.coinverse.Enums.UserActionType
+import app.coinverse.R
 import app.coinverse.content.models.Content
 import app.coinverse.utils.DateAndTime.getTimeframe
 import app.coinverse.utils.PAGE_SIZE
 import app.coinverse.utils.PREFETCH_DISTANCE
 import app.coinverse.utils.livedata.Event
 import com.google.firebase.auth.FirebaseUser
-
 
 class ContentViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -50,23 +53,26 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
         contentRepository.initializeCategorizedRoomContent(feedType, userId)
     }
 
-    fun getMainContentList(): LiveData<PagedList<Content>> {
-        return LivePagedListBuilder(
-                contentRepository.getMainContent(getTimeframe(timeframe.value)),
-                pagedListConfiguration).build()
-    }
+    fun getMainContentList() =
+            LivePagedListBuilder(
+                    contentRepository.getMainContent(getTimeframe(timeframe.value)),
+                    pagedListConfiguration).build()
 
-    fun getCategorizedContentList(feedType: FeedType): LiveData<PagedList<Content>> {
-        return LivePagedListBuilder(contentRepository.getCategorizedContent(feedType),
-                pagedListConfiguration).build()
-    }
+    fun getCategorizedContentList(feedType: FeedType) =
+            LivePagedListBuilder(contentRepository.getCategorizedContent(feedType),
+                    pagedListConfiguration).build()
 
-    fun getToolbarVisibility(): Int {
-        when (feedType) {
-            SAVED.name, DISMISSED.name -> return View.VISIBLE
-            else -> return View.GONE
-        }
-    }
+    fun getToolbarVisibility() =
+            when (feedType) {
+                SAVED.name, DISMISSED.name -> View.VISIBLE
+                else -> View.GONE
+            }
+
+    fun getContentTypeIcon(context: Context, contentType: ContentType) =
+            when (contentType) {
+                YOUTUBE -> context.getDrawable(R.drawable.ic_video)
+                ContentType.NONE -> 0
+            }
 
     fun contentClicked(content: Content) {
         _contentSelected.value = Event(content)  // Trigger the event by setting a new Event as a new value

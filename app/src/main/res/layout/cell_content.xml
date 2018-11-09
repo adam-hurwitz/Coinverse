@@ -41,13 +41,22 @@
                 tools:text="time ago posted" />
 
             <ImageView
+                android:id="@+id/contentTypeLogo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/youtube_content_type_content_description"
+                android:src="@{viewmodel.getContentTypeIcon(context, data.contentType)}"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="@id/creator" />
+
+            <ImageView
                 android:id="@+id/preview"
                 style="@style/contentPreviewImageStyle"
                 app:imageUrl="@{data.previewImage}"
                 app:layout_constraintBottom_toTopOf="@id/title"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/creator" />
+                app:layout_constraintTop_toBottomOf="@id/contentTypeLogo" />
 
             <TextView
                 android:id="@+id/title"
