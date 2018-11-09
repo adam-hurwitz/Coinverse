@@ -49,6 +49,7 @@
     <dimen name="empty_content_image_dimen">96dp</dimen>
     <integer name="maxLines">2</integer>
     <dimen name="saved_bottomsheet_background_handle">48dp</dimen>
+    <item name="content_transparency" format="float" type="dimen">0.90</item>
 
     <!--Sign In-->
     <dimen name="save_icon_dimen">24dp</dimen>
