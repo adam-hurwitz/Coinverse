@@ -78,9 +78,8 @@ dependencies {
     kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-rxjava2:$room_version"
     implementation "androidx.room:room-guava:$room_version"
-    //FIXME: Filed StackOverflow issue: https://stackoverflow.com/questions/51791067/glide-unable-to-build-appglidemodule-compilesdkversion-28.
-    implementation 'com.github.bumptech.glide:glide:4.7.1'
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.7.1'
+    implementation 'com.github.bumptech.glide:glide:4.8.0'
+    kapt 'com.github.bumptech.glide:compiler:4.8.0'
 
     // Testing
     testImplementation 'junit:junit:4.12'

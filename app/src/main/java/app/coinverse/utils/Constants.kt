@@ -18,6 +18,7 @@ const val SIGNIN_DIALOG_FRAGMENT_TAG = "signinDialogFragmentTag"
 const val CONTENT_FEED_FRAGMENT_TAG = "contentFeedFragmentTag"
 const val SAVED_CONTENT_TAG = "savedContentTag"
 const val YOUTUBE_DIALOG_FRAGMENT_TAG = "youtubeDialogFragmentKey"
+const val CONTENT_IMAGE_CORNER_RADIUS = 56
 
 const val FEED_TYPE_KEY = "feedType"
 const val CONTENT_KEY = "contentKey"
