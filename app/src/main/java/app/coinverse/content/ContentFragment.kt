@@ -1,6 +1,7 @@
 package app.coinverse.content
 
 import android.os.Bundle
+import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.*
@@ -20,7 +21,9 @@ import app.coinverse.databinding.FragmentContentBinding
 import app.coinverse.home.HomeViewModel
 import app.coinverse.utils.CONTENT_FEED_VISIBILITY_DELAY
 import app.coinverse.utils.CONTENT_KEY
+import app.coinverse.utils.CONTENT_RECYCLER_VIEW_STATE
 import app.coinverse.utils.YOUTUBE_DIALOG_FRAGMENT_TAG
+import app.coinverse.utils.livedata.Event
 import app.coinverse.utils.livedata.EventObserver
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
@@ -32,10 +35,11 @@ import kotlinx.android.synthetic.main.empty_content.view.*
 import kotlinx.android.synthetic.main.fragment_content.*
 import kotlinx.android.synthetic.main.toolbar.view.*
 
-
 private val LOG_TAG = ContentFragment::class.java.simpleName
 
 class ContentFragment : Fragment() {
+    private var savedRecyclerLayoutState: Parcelable? = null
+
     private lateinit var feedType: String
     private lateinit var analytics: FirebaseAnalytics
     private lateinit var binding: FragmentContentBinding
@@ -46,6 +50,29 @@ class ContentFragment : Fragment() {
         @JvmStatic
         fun newInstance(contentBundle: Bundle) = ContentFragment().apply {
             arguments = contentBundle
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        when (feedType) {
+            MAIN.name, DISMISSED.name -> {
+                if (contentRecyclerView != null)
+                    outState.putParcelable(CONTENT_RECYCLER_VIEW_STATE,
+                            contentRecyclerView.layoutManager!!.onSaveInstanceState())
+            }
+            //TODO: Refactor to use outState.
+            SAVED.name -> homeViewModel.savedContentState = contentRecyclerView.layoutManager?.onSaveInstanceState()
+        }
+    }
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        if (savedInstanceState != null) {
+            when (feedType) {
+                MAIN.name, DISMISSED.name ->
+                    savedRecyclerLayoutState = savedInstanceState.getParcelable(CONTENT_RECYCLER_VIEW_STATE)
+            }
         }
     }
 
@@ -81,7 +108,6 @@ class ContentFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setToolbar()
-        //TODO: Handle savedInstanceState adapter position.
         initializeAdapter()
         observeSignIn()
         observeContentSelected()
@@ -92,7 +118,6 @@ class ContentFragment : Fragment() {
             SAVED.name -> {
                 //TODO: center Saved, style, size
                 binding.actionbar.toolbar.savedContentTitle.visibility = View.VISIBLE
-
             }
             DISMISSED.name -> {
                 binding.actionbar.toolbar.title = getString(R.string.dismissed)
@@ -112,38 +137,50 @@ class ContentFragment : Fragment() {
 
     private fun initializeAdapter() {
         val adapter = ContentAdapter(contentViewModel)
-        contentFeedRecyclerView.layoutManager = LinearLayoutManager(context)
+        contentRecyclerView.layoutManager = LinearLayoutManager(context)
         when (feedType) {
             MAIN.name -> {
                 contentViewModel.getMainContentList().observe(viewLifecycleOwner, Observer { homeContentList ->
                     adapter.submitList(homeContentList)
-                    if (homeContentList.isEmpty()) setEmptyView()
-                    else emptyContent.visibility = GONE
+                    if (homeContentList.isNotEmpty()) {
+                        emptyContent.visibility = GONE
+                        if (savedRecyclerLayoutState != null)
+                            contentRecyclerView.layoutManager?.onRestoreInstanceState(savedRecyclerLayoutState)
+                    } else setEmptyView()
                 })
             }
             SAVED.name, DISMISSED.name -> {
-                //FIXME: showing after adding content.
                 var newFeedType = NONE
                 if (feedType == SAVED.name) newFeedType = SAVED
                 else if (feedType == DISMISSED.name) newFeedType = DISMISSED
-                contentViewModel.getCategorizedContentList(newFeedType).observe(viewLifecycleOwner,
-                        Observer { contentList ->
-                            adapter.submitList(contentList)
-                            if (contentList.isEmpty()) setEmptyView()
-                            else emptyContent.visibility = GONE
-                        })
+                contentViewModel.getCategorizedContentList(newFeedType).observe(viewLifecycleOwner, Observer { contentList ->
+                    adapter.submitList(contentList)
+                    if (contentList.isNotEmpty()) {
+                        emptyContent.visibility = GONE
+                        if (feedType == SAVED.name && homeViewModel.savedContentState != null)
+                            contentRecyclerView.layoutManager?.onRestoreInstanceState(homeViewModel.savedContentState)
+                        if (feedType == DISMISSED.name)
+                            contentRecyclerView.layoutManager?.onRestoreInstanceState(savedRecyclerLayoutState)
+                    } else setEmptyView()
+                })
             }
         }
-        contentFeedRecyclerView.adapter = adapter
+        contentRecyclerView.adapter = adapter
         ItemTouchHelper(homeViewModel).build(context!!, feedType, adapter, fragmentManager!!)
-                .attachToRecyclerView(contentFeedRecyclerView)
+                .attachToRecyclerView(contentRecyclerView)
     }
 
     private fun observeContentSelected() {
         contentViewModel.contentSelected.observe(viewLifecycleOwner, EventObserver { content ->
-            val youtubeBundle = Bundle().apply { putParcelable(CONTENT_KEY, content) }
-            YouTubeDialogFragment().newInstance(youtubeBundle).show(childFragmentManager,
-                    YOUTUBE_DIALOG_FRAGMENT_TAG)
+            when (feedType) {
+                MAIN.name, DISMISSED.name -> {
+                    val youtubeBundle = Bundle().apply { putParcelable(CONTENT_KEY, content) }
+                    YouTubeDialogFragment().newInstance(youtubeBundle).show(childFragmentManager,
+                            YOUTUBE_DIALOG_FRAGMENT_TAG)
+                }
+                SAVED.name -> homeViewModel._savedContentSelected.value = Event(content)  // Trigger the event by setting a new Event as a new value
+            }
+
         })
     }
 
@@ -155,9 +192,9 @@ class ContentFragment : Fragment() {
     }
 
     fun setEmptyView() {
-        contentFeedRecyclerView.visibility = INVISIBLE
+        contentRecyclerView.visibility = INVISIBLE
         emptyContent.visibility = VISIBLE
-        contentFeedRecyclerView.postDelayed({ contentFeedRecyclerView.visibility = VISIBLE },
+        contentRecyclerView.postDelayed({ contentRecyclerView.visibility = VISIBLE },
                 CONTENT_FEED_VISIBILITY_DELAY)
         emptyContent.confirmation.setOnClickListener { view: View ->
             if (homeViewModel.bottomSheetState.value == STATE_EXPANDED)

@@ -1,11 +1,14 @@
 package app.coinverse.home
 
 import android.app.Application
+import android.os.Parcelable
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
+import app.coinverse.content.models.Content
 import app.coinverse.firebase.FirestoreCollections.usersCollection
+import app.coinverse.utils.livedata.Event
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 
@@ -20,6 +23,12 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     var user = MutableLiveData<FirebaseUser>()
     var messageCenterLiveData: LiveData<ArrayList<MessageCenterUpdate>>
     var messageCenterUnreadCountLiveData: LiveData<Double>
+
+    // Saved Content
+    val _savedContentSelected = MutableLiveData<Event<Content>>()
+    val savedContentSelected: LiveData<Event<Content>>
+        get() = _savedContentSelected
+    var savedContentState: Parcelable? = null
 
     init {
         //TODO: Set ability to toggle based on user configuration.

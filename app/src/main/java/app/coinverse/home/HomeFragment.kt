@@ -24,6 +24,7 @@ import app.coinverse.Enums.FeedType.MAIN
 import app.coinverse.Enums.FeedType.SAVED
 import app.coinverse.R
 import app.coinverse.content.ContentFragment
+import app.coinverse.content.YouTubeDialogFragment
 import app.coinverse.databinding.FragmentHomeBinding
 import app.coinverse.firebase.FirestoreCollections.usersCollection
 import app.coinverse.priceGraph.PriceFragment
@@ -31,6 +32,7 @@ import app.coinverse.user.SignInDialogFragment
 import app.coinverse.user.models.User
 import app.coinverse.utils.*
 import app.coinverse.utils.DateAndTime.getTimeAgo
+import app.coinverse.utils.livedata.EventObserver
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.firebase.ui.auth.IdpResponse
@@ -42,16 +44,37 @@ import kotlinx.android.synthetic.main.fragment_home.*
 import java.util.*
 import kotlin.collections.ArrayList
 
-
 private val LOG_TAG = HomeFragment::class.java.simpleName
 
 class HomeFragment : Fragment() {
 
     private var user: FirebaseUser? = null
+    private var isAppBarExpanded = false
+    private var isSavedContentExpanded = false
 
     private lateinit var binding: FragmentHomeBinding
     private lateinit var homeViewModel: HomeViewModel
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<*>
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(APP_BAR_EXPANDED_KEY, isAppBarExpanded)
+        outState.putBoolean(SAVED_CONTENT_EXPANDED_KEY, isSavedContentExpanded)
+    }
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        if (savedInstanceState != null) {
+            if (savedInstanceState.getBoolean(APP_BAR_EXPANDED_KEY))
+                appBar.setExpanded(true)
+            else appBar.setExpanded(false)
+            if (savedInstanceState.getBoolean(SAVED_CONTENT_EXPANDED_KEY)) {
+                swipeToRefresh.isEnabled = false
+                bottomSheetBehavior.state = STATE_EXPANDED
+                setBottomSheetExpanded()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,12 +93,13 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         user = homeViewModel.getCurrentUser()
         initProfileButton(user != null)
+        initCollapsingToolbarStates()
         initMessageCenter()
         initSavedBottomSheet()
-        initCollapsingToolbarStates()
         setClickListeners()
         observeSignIn()
         initSwipeToRefresh()
+        observeSavedContentSelected()
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -145,17 +169,19 @@ class HomeFragment : Fragment() {
     private fun initCollapsingToolbarStates() {
         appBar.addOnOffsetChangedListener(object : AppBarLayout.OnOffsetChangedListener {
             override fun onOffsetChanged(appBarLayout: AppBarLayout, verticalOffset: Int) {
-                // appBar collapsed.
-                if (Math.abs(verticalOffset) - appBarLayout.totalScrollRange == 0) {
+                // appBar expanded.
+                if (Math.abs(verticalOffset) - appBarLayout.totalScrollRange != 0) {
+                    isAppBarExpanded = true
+                    swipeToRefresh.isEnabled = true
+                    bottomSheetBehavior.isHideable = true
+                    bottomSheetBehavior.state = STATE_HIDDEN
+                } else { // appBar collapsed.
+                    isAppBarExpanded = false
                     swipeToRefresh.isEnabled = false
                     if (bottomSheetBehavior.state == STATE_HIDDEN) {
                         bottomSheetBehavior.isHideable = false
                         bottomSheetBehavior.state = STATE_COLLAPSED
                     }
-                } else { // appBar expanded.
-                    swipeToRefresh.isEnabled = true
-                    bottomSheetBehavior.isHideable = true
-                    bottomSheetBehavior.state = STATE_HIDDEN
                 }
             }
         })
@@ -183,16 +209,11 @@ class HomeFragment : Fragment() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
                 if (newState == STATE_EXPANDED) {
                     homeViewModel.bottomSheetState.value = STATE_EXPANDED
-                    appBar.visibility = View.GONE
+                    setBottomSheetExpanded()
                 }
-
-                if (newState == STATE_EXPANDED) {
-                    bottom_handle.visibility = GONE
-                    bottom_handle_elevation.visibility = GONE
-                }
-
                 if (newState == STATE_COLLAPSED) {
-                    appBar.visibility = View.VISIBLE
+                    isSavedContentExpanded = false
+                    appBar.visibility = VISIBLE
                     bottom_handle.visibility = VISIBLE
                     bottom_handle_elevation.visibility = VISIBLE
                 }
@@ -203,12 +224,18 @@ class HomeFragment : Fragment() {
         observeBottomSheetBackPressed()
     }
 
+    private fun setBottomSheetExpanded() {
+        isSavedContentExpanded = true
+        appBar.visibility = GONE
+        bottom_handle.visibility = GONE
+        bottom_handle_elevation.visibility = GONE
+    }
+
     fun observeBottomSheetBackPressed() {
         homeViewModel.bottomSheetState.observe(viewLifecycleOwner, Observer { bottomSheetState ->
             if (bottomSheetState == STATE_COLLAPSED) bottomSheetBehavior.state = STATE_COLLAPSED
         })
     }
-
 
     private fun initSavedContentFragment() {
         val bundle = Bundle()
@@ -273,4 +300,11 @@ class HomeFragment : Fragment() {
         }
     }
 
+    fun observeSavedContentSelected() {
+        homeViewModel.savedContentSelected.observe(viewLifecycleOwner, EventObserver { content ->
+            val youtubeBundle = Bundle().apply { putParcelable(CONTENT_KEY, content) }
+            YouTubeDialogFragment().newInstance(youtubeBundle).show(childFragmentManager,
+                    YOUTUBE_DIALOG_FRAGMENT_TAG)
+        })
+    }
 }

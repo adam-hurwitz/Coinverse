@@ -114,6 +114,7 @@ class ContentRepository(application: Application) {
                             for (document in value!!.documentChanges) {
                                 val content = document.document.toObject(Content::class.java)
                                 if (!organizedSet.contains(content.id)) {
+                                    //TODO: Update home RecyclerView position to 0. contentRecyclerView.scrollToPosition(0)
                                     contentList.add(content)
                                 }
                             }
@@ -129,6 +130,7 @@ class ContentRepository(application: Application) {
                             for (document in it.result!!.documentChanges) {
                                 val content = document.document.toObject(Content::class.java)
                                 if (!organizedSet.contains(content.id)) {
+                                    //TODO: Update home RecyclerView position to 0. contentRecyclerView.scrollToPosition(0)
                                     contentList.add(content)
                                 }
                             }

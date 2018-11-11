@@ -14,6 +14,9 @@ const val SAVED_BOTTOM_SHEET_PEEK_HEIGHT = 128
 const val PRICEGRAPH_FRAGMENT_TAG = "priceGraphFragmentTag"
 const val SIGNIN_DIALOG_FRAGMENT_TAG = "signinDialogFragmentTag"
 
+const val APP_BAR_EXPANDED_KEY = "appBarCollapsedKey"
+const val SAVED_CONTENT_EXPANDED_KEY = "savedContentExpandedKey"
+
 // Content feed.
 const val CONTENT_FEED_FRAGMENT_TAG = "contentFeedFragmentTag"
 const val SAVED_CONTENT_TAG = "savedContentTag"
@@ -22,6 +25,7 @@ const val CONTENT_IMAGE_CORNER_RADIUS = 56
 
 const val FEED_TYPE_KEY = "feedType"
 const val CONTENT_KEY = "contentKey"
+const val CONTENT_RECYCLER_VIEW_STATE = "contentRecyclerViewState"
 const val YOUTUBE_IS_PLAYING_KEY = "youtubeIsPlayingKey"
 const val YOUTUBE_CURRENT_TIME_KEY = "youtubeCurrentTimeKey"
 
