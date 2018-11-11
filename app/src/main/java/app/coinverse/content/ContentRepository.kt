@@ -3,6 +3,7 @@ package app.coinverse.content
 import android.app.Application
 import android.os.Bundle
 import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import androidx.paging.DataSource
 import app.coinverse.Enums
 import app.coinverse.Enums.FeedType
@@ -48,8 +49,9 @@ import kotlin.collections.HashSet
 
 class ContentRepository(application: Application) {
 
-    private val LOG_TAG = ContentRepository::javaClass.name
+    val isNewContentAddedLiveData = MutableLiveData<Boolean>()
 
+    private val LOG_TAG = ContentRepository::javaClass.name
     private lateinit var savedListenerRegistration: ListenerRegistration
     private lateinit var dismissedListenerRegistration: ListenerRegistration
     private lateinit var contentListenerRegistration: ListenerRegistration
@@ -114,7 +116,7 @@ class ContentRepository(application: Application) {
                             for (document in value!!.documentChanges) {
                                 val content = document.document.toObject(Content::class.java)
                                 if (!organizedSet.contains(content.id)) {
-                                    //TODO: Update home RecyclerView position to 0. contentRecyclerView.scrollToPosition(0)
+                                    isNewContentAddedLiveData.value = true
                                     contentList.add(content)
                                 }
                             }
@@ -130,7 +132,7 @@ class ContentRepository(application: Application) {
                             for (document in it.result!!.documentChanges) {
                                 val content = document.document.toObject(Content::class.java)
                                 if (!organizedSet.contains(content.id)) {
-                                    //TODO: Update home RecyclerView position to 0. contentRecyclerView.scrollToPosition(0)
+                                    isNewContentAddedLiveData.value = true
                                     contentList.add(content)
                                 }
                             }

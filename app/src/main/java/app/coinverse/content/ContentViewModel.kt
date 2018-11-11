@@ -6,6 +6,7 @@ import android.view.View
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
 import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import app.coinverse.Enums
@@ -29,6 +30,7 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
     var feedType = NONE.name
     //TODO: Add isRealtime Boolean for paid feature.
     var timeframe = MutableLiveData<Timeframe>()
+    var isNewContentAddedLiveData: LiveData<Boolean>
 
     private val _contentSelected = MutableLiveData<Event<Content>>()
     val contentSelected: LiveData<Event<Content>>
@@ -43,6 +45,8 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
     init {
         contentRepository = ContentRepository(application)
         timeframe.value = Enums.Timeframe.WEEK
+        val isNewContentAddedLiveData = contentRepository.isNewContentAddedLiveData
+        this.isNewContentAddedLiveData = Transformations.map(isNewContentAddedLiveData) { result -> result }
     }
 
     fun initializeMainContent(isRealtime: Boolean) {

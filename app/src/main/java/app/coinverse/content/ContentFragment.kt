@@ -61,7 +61,7 @@ class ContentFragment : Fragment() {
                     outState.putParcelable(CONTENT_RECYCLER_VIEW_STATE,
                             contentRecyclerView.layoutManager!!.onSaveInstanceState())
             }
-            //TODO: Refactor to use outState.
+            //TODO: Refactor to use outState if possible.
             SAVED.name -> homeViewModel.savedContentState = contentRecyclerView.layoutManager?.onSaveInstanceState()
         }
     }
@@ -110,6 +110,7 @@ class ContentFragment : Fragment() {
         setToolbar()
         initializeAdapter()
         observeSignIn()
+        observeNewContentAdded()
         observeContentSelected()
     }
 
@@ -170,6 +171,13 @@ class ContentFragment : Fragment() {
                 .attachToRecyclerView(contentRecyclerView)
     }
 
+    private fun observeNewContentAdded() {
+        contentViewModel.isNewContentAddedLiveData.observe(viewLifecycleOwner, Observer { isNewContent ->
+            if (feedType == MAIN.name && isNewContent) contentRecyclerView.scrollToPosition(0)
+        })
+    }
+
+
     private fun observeContentSelected() {
         contentViewModel.contentSelected.observe(viewLifecycleOwner, EventObserver { content ->
             when (feedType) {
@@ -180,7 +188,6 @@ class ContentFragment : Fragment() {
                 }
                 SAVED.name -> homeViewModel._savedContentSelected.value = Event(content)  // Trigger the event by setting a new Event as a new value
             }
-
         })
     }
 

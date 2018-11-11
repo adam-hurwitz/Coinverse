@@ -26,7 +26,7 @@ class PriceViewModel : ViewModel() {
     var priceSelected = MutableLiveData<Pair<Exchange, String>>()
     var enabledOrderTypes = MutableLiveData<ArrayList<OrderType?>>()
     var enabledExchanges = MutableLiveData<ArrayList<Exchange?>>()
-    var minAndMaxPriceLiveData: LiveData<PercentDifference>
+    var priceDifferenceLiveData: LiveData<PercentDifference>
 
     //TODO: Query Firebase by pricePair.
     var pricePair = PricePair(ETH, BTC)
@@ -41,12 +41,11 @@ class PriceViewModel : ViewModel() {
     private var toInitializePriceGraphData = MutableLiveData<Boolean>()
 
     init {
-        val percentPriceDifferenceLiveData = PriceRepository.priceDifferenceDetailsLiveData
+        val priceDifferenceLiveData = PriceRepository.priceDifferenceDetailsLiveData
         timeframe.value = DAY
         enabledOrderTypes.value = arrayListOf(BID)
         enabledExchanges.value = arrayListOf(COINBASE)
-        this.minAndMaxPriceLiveData =
-                Transformations.map(percentPriceDifferenceLiveData) { result -> result }
+        this.priceDifferenceLiveData = Transformations.map(priceDifferenceLiveData) { result -> result }
     }
 
     fun getPrices(isRealtime: Boolean, isOnCreateCall: Boolean) {

@@ -188,7 +188,7 @@ class PriceFragment : Fragment() {
     }
 
     private fun observePriceDifferenceDetails() {
-        priceViewModel.minAndMaxPriceLiveData.observe(viewLifecycleOwner, Observer { minAndMaxPriceData ->
+        priceViewModel.priceDifferenceLiveData.observe(viewLifecycleOwner, Observer { minAndMaxPriceData ->
             maxBid.tooltipText = String.format(getString(R.string.max_min_format),
                     minAndMaxPriceData?.bidExchange, minAndMaxPriceData?.baseToQuoteBid?.toFloat())
             minAsk.tooltipText = String.format(getString(R.string.max_min_format),
