@@ -171,10 +171,11 @@ class ContentFragment : Fragment() {
                 .attachToRecyclerView(contentRecyclerView)
     }
 
+    //TODO: Needs further testing.
     private fun observeNewContentAdded() {
-        contentViewModel.isNewContentAddedLiveData.observe(viewLifecycleOwner, Observer { isNewContent ->
+        /*contentViewModel.isNewContentAddedLiveData.observe(viewLifecycleOwner, Observer { isNewContent ->
             if (feedType == MAIN.name && isNewContent) contentRecyclerView.scrollToPosition(0)
-        })
+        })*/
     }
 
 

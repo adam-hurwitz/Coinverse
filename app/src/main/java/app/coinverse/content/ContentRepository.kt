@@ -3,7 +3,6 @@ package app.coinverse.content
 import android.app.Application
 import android.os.Bundle
 import android.util.Log
-import androidx.lifecycle.MutableLiveData
 import androidx.paging.DataSource
 import app.coinverse.Enums
 import app.coinverse.Enums.FeedType
@@ -49,7 +48,8 @@ import kotlin.collections.HashSet
 
 class ContentRepository(application: Application) {
 
-    val isNewContentAddedLiveData = MutableLiveData<Boolean>()
+    //TODO: Needs further testing.
+    //val isNewContentAddedLiveData = MutableLiveData<Boolean>()
 
     private val LOG_TAG = ContentRepository::javaClass.name
     private lateinit var savedListenerRegistration: ListenerRegistration
@@ -116,7 +116,8 @@ class ContentRepository(application: Application) {
                             for (document in value!!.documentChanges) {
                                 val content = document.document.toObject(Content::class.java)
                                 if (!organizedSet.contains(content.id)) {
-                                    isNewContentAddedLiveData.value = true
+                                    //TODO: Needs further testing.
+                                    //isNewContentAddedLiveData.value = true
                                     contentList.add(content)
                                 }
                             }
@@ -132,7 +133,8 @@ class ContentRepository(application: Application) {
                             for (document in it.result!!.documentChanges) {
                                 val content = document.document.toObject(Content::class.java)
                                 if (!organizedSet.contains(content.id)) {
-                                    isNewContentAddedLiveData.value = true
+                                    //TODO: Needs further testing.
+                                    //isNewContentAddedLiveData.value = true
                                     contentList.add(content)
                                 }
                             }
