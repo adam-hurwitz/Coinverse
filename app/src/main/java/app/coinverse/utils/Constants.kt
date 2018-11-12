@@ -17,6 +17,9 @@ const val SIGNIN_DIALOG_FRAGMENT_TAG = "signinDialogFragmentTag"
 const val APP_BAR_EXPANDED_KEY = "appBarCollapsedKey"
 const val SAVED_CONTENT_EXPANDED_KEY = "savedContentExpandedKey"
 
+// Sign in.
+const val SIGNIN_TYPE_KEY = "signInTypeKey"
+
 // Content feed.
 const val CONTENT_FEED_FRAGMENT_TAG = "contentFeedFragmentTag"
 const val SAVED_CONTENT_TAG = "savedContentTag"

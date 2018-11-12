@@ -4,22 +4,21 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.drawable.ColorDrawable
+import android.os.Bundle
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ItemTouchHelper.*
 import androidx.recyclerview.widget.RecyclerView
+import app.coinverse.Enums
 import app.coinverse.Enums.FeedType.DISMISSED
 import app.coinverse.Enums.FeedType.SAVED
 import app.coinverse.Enums.UserActionType.DISMISS
 import app.coinverse.Enums.UserActionType.SAVE
-import app.coinverse.home.HomeViewModel
 import app.coinverse.R
+import app.coinverse.home.HomeViewModel
 import app.coinverse.user.SignInDialogFragment
-import app.coinverse.utils.CELL_CONTENT_MARGIN
-import app.coinverse.utils.SIGNIN_DIALOG_FRAGMENT_TAG
-import app.coinverse.utils.SWIPE_CONTENT_Y_MARGIN_DP
-import app.coinverse.utils.convertDpToPx
+import app.coinverse.utils.*
 import com.google.firebase.auth.FirebaseAuth
 
 private val LOG_TAG = ItemTouchHelper::class.java.simpleName
@@ -117,7 +116,9 @@ class ItemTouchHelper(var homeViewModel: HomeViewModel) {
             }
 
             private fun signInDialog(viewHolder: ViewHolder) {
-                SignInDialogFragment.newInstance().show(fragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
+                val bundle = Bundle()
+                bundle.putInt(SIGNIN_TYPE_KEY, Enums.SignInType.DIALOG.code)
+                SignInDialogFragment.newInstance(bundle).show(fragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
                 adapter.notifyItemChanged(viewHolder.adapterPosition)
             }
 

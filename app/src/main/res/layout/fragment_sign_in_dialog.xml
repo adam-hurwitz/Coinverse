@@ -30,15 +30,6 @@
             app:layout_constraintTop_toBottomOf="@id/profileImage" />
 
         <TextView
-            android:id="@+id/signInExplanation"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/sign_in_explanation"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/title" />
-
-        <TextView
             android:id="@+id/save_and_organize"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -50,7 +41,21 @@
             android:textSize="@dimen/text_size_normal"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/signInExplanation" />
+            app:layout_constraintTop_toBottomOf="@id/title" />
+
+        <TextView
+            android:id="@+id/community"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:drawableStart="@drawable/ic_community_48dp"
+            android:drawablePadding="@dimen/padding_small"
+            android:gravity="start"
+            android:paddingBottom="@dimen/padding_large"
+            android:text="@string/community"
+            android:textSize="@dimen/text_size_normal"
+            app:layout_constraintLeft_toRightOf="@id/left_guideline"
+            app:layout_constraintRight_toLeftOf="@id/right_guideline"
+            app:layout_constraintTop_toBottomOf="@id/save_and_organize" />
 
         <TextView
             android:id="@+id/signIn"
@@ -61,7 +66,7 @@
             android:text="@string/here_we_go"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/save_and_organize" />
+            app:layout_constraintTop_toBottomOf="@id/community" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

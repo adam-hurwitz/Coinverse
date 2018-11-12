@@ -20,6 +20,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import app.coinverse.BuildConfig.VERSION_NAME
+import app.coinverse.Enums
 import app.coinverse.Enums.FeedType.MAIN
 import app.coinverse.Enums.FeedType.SAVED
 import app.coinverse.R
@@ -203,8 +204,12 @@ class HomeFragment : Fragment() {
         bottomSheetBehavior.peekHeight = SAVED_BOTTOM_SHEET_PEEK_HEIGHT
         bottomSheet.layoutParams.height = getDisplayHeight(context!!)
         if (homeViewModel.user.value != null) initSavedContentFragment()
-        else fragmentManager!!.beginTransaction()
-                .replace(R.id.savedContentContainer, SignInDialogFragment.newInstance()).commit()
+        else {
+            val bundle = Bundle()
+            bundle.putInt(SIGNIN_TYPE_KEY, Enums.SignInType.FULLSCREEN.code)
+            fragmentManager!!.beginTransaction()
+                    .replace(R.id.savedContentContainer, SignInDialogFragment.newInstance(bundle)).commit()
+        }
         bottomSheetBehavior.setBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
                 if (newState == STATE_EXPANDED) {
@@ -252,8 +257,11 @@ class HomeFragment : Fragment() {
                         HomeFragmentDirections.actionHomeFragmentToProfileFragment(user!!)
                 action.setUser(user!!)
                 view.findNavController().navigate(R.id.action_homeFragment_to_profileFragment, action.arguments)
-            } else
-                SignInDialogFragment.newInstance().show(fragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
+            } else {
+                val bundle = Bundle()
+                bundle.putInt(SIGNIN_TYPE_KEY, Enums.SignInType.DIALOG.ordinal)
+                SignInDialogFragment.newInstance(bundle).show(fragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
+            }
         }
     }
 
