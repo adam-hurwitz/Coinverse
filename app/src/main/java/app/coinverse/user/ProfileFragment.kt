@@ -10,11 +10,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import app.coinverse.Enums
-import app.coinverse.home.HomeViewModel
 import app.coinverse.R
 import app.coinverse.databinding.FragmentProfileBinding
-import app.coinverse.firebase.FirestoreCollections.DISMISS_COLLECTION
 import app.coinverse.firebase.FirestoreCollections.usersCollection
+import app.coinverse.home.HomeViewModel
+import app.coinverse.utils.DISMISS_COLLECTION
 import app.coinverse.utils.ON_BACK_PRESS_DELAY_IN_MILLIS
 import app.coinverse.utils.PROFILE_VIEW
 import com.firebase.ui.auth.AuthUI

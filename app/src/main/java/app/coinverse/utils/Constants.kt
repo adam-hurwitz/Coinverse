@@ -20,7 +20,16 @@ const val SAVED_CONTENT_EXPANDED_KEY = "savedContentExpandedKey"
 // Sign in.
 const val SIGNIN_TYPE_KEY = "signInTypeKey"
 
+// User
+const val USERS = "users"
+const val MESSAGE_CENTER = "messageCenter"
+
 // Content feed.
+const val CONTENT = "content"
+const val FEEDS = "feeds"
+const val EN = "en"
+const val DISMISS_COLLECTION = "dismissCollection"
+const val SAVE_COLLECTION = "saveCollection"
 const val CONTENT_FEED_FRAGMENT_TAG = "contentFeedFragmentTag"
 const val SAVED_CONTENT_TAG = "savedContentTag"
 const val YOUTUBE_DIALOG_FRAGMENT_TAG = "youtubeDialogFragmentKey"
@@ -40,6 +49,41 @@ const val YOUTUBE_PORTRAIT_HEIGHT_DIVISOR = 2
 const val YOUTUBE_LANDSCAPE_WIDTH_DIVISOR = 1.2
 const val YOUTUBE_LANDSCAPE_HEIGHT_DIVISOR = 1.2
 const val CONTENT_FEED_VISIBILITY_DELAY = 300L
+
+// Price
+const val PRICE = "price"
+const val ETH_BTC = "eth-btc"
+const val PRICES = "prices"
+
+// Actions
+
+// Actions log.
+const val START_ACTION_COLLECTION = "startActions"
+const val CONSUME_ACTION_COLLECTION = "consumeActions"
+const val FINISH_ACTION_COLLECTION = "finishActions"
+const val SAVE_ACTION_COLLECTION = "saveActions"
+const val SHARE_ACTION_COLLECTION = "shareActions"
+const val DISMISS_ACTION_COLLECTION = "dismissActions"
+
+// Actions counters.
+const val VIEW_COUNT = "viewCount"
+const val CONSUME_COUNT = "consumeCount"
+const val START_COUNT = "startCount"
+const val FINISH_COUNT = "finishCount"
+const val ORGANIZE_COUNT = "organizeCount"
+const val SHARE_COUNT = "shareCount"
+const val CLEAR_FEED_COUNT = "clearFeedCount"
+const val DISMISS_COUNT = "dismissCount"
+const val MESSAGE_CENTER_UNREAD_COUNT = "messageCenterUnreadCount"
+
+// Quality scores.
+const val INVALID_SCORE = 0.0
+const val SAVE_SCORE = 1.0
+const val START_SCORE = 1.0
+const val CONSUME_SCORE = 2.0
+const val FINISH_SCORE = 3.0
+const val SHARE_SCORE = 3.0
+const val DISMISS_SCORE = -1.0 // Not opened.
 
 // Analytics
 

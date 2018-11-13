@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "f7a6c12811819d2f8b47ad4d089da8a3",
+    "identityHash": "b6d3c179defd40fdffc6158e3da300aa",
     "entities": [
       {
         "tableName": "content",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `qualityScore` REAL NOT NULL, `contentType` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `creator` TEXT NOT NULL, `title` TEXT NOT NULL, `previewImage` TEXT NOT NULL, `description` TEXT NOT NULL, `url` TEXT NOT NULL, `feedType` INTEGER NOT NULL, `savedPosition` INTEGER NOT NULL, `viewCount` REAL NOT NULL, `startCount` REAL NOT NULL, `consumeCount` REAL NOT NULL, `finishCount` REAL NOT NULL, `organizeCount` REAL NOT NULL, `shareCount` REAL NOT NULL, `clearFeedCount` REAL NOT NULL, `dismissCount` REAL NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `qualityScore` REAL NOT NULL, `contentType` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `creator` TEXT NOT NULL, `title` TEXT NOT NULL, `previewImage` TEXT NOT NULL, `description` TEXT NOT NULL, `sourceUrl` TEXT NOT NULL, `contentUrl` TEXT NOT NULL, `text` TEXT NOT NULL, `feedType` INTEGER NOT NULL, `savedPosition` INTEGER NOT NULL, `viewCount` REAL NOT NULL, `startCount` REAL NOT NULL, `consumeCount` REAL NOT NULL, `finishCount` REAL NOT NULL, `organizeCount` REAL NOT NULL, `shareCount` REAL NOT NULL, `clearFeedCount` REAL NOT NULL, `dismissCount` REAL NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -57,8 +57,20 @@
             "notNull": true
           },
           {
-            "fieldPath": "url",
-            "columnName": "url",
+            "fieldPath": "sourceUrl",
+            "columnName": "sourceUrl",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentUrl",
+            "columnName": "contentUrl",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "text",
+            "columnName": "text",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -135,7 +147,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"f7a6c12811819d2f8b47ad4d089da8a3\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"b6d3c179defd40fdffc6158e3da300aa\")"
     ]
   }
 }

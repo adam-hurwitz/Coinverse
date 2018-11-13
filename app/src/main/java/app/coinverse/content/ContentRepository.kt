@@ -13,26 +13,7 @@ import app.coinverse.content.models.Content
 import app.coinverse.content.models.UserAction
 import app.coinverse.content.room.CoinverseDatabase
 import app.coinverse.firebase.FirestoreCollections
-import app.coinverse.firebase.FirestoreCollections.CLEAR_FEED_COUNT
-import app.coinverse.firebase.FirestoreCollections.CONSUME_ACTION_COLLECTION
-import app.coinverse.firebase.FirestoreCollections.CONSUME_COUNT
-import app.coinverse.firebase.FirestoreCollections.CONSUME_SCORE
-import app.coinverse.firebase.FirestoreCollections.DISMISS_ACTION_COLLECTION
-import app.coinverse.firebase.FirestoreCollections.DISMISS_COLLECTION
-import app.coinverse.firebase.FirestoreCollections.DISMISS_COUNT
-import app.coinverse.firebase.FirestoreCollections.DISMISS_SCORE
-import app.coinverse.firebase.FirestoreCollections.FINISH_ACTION_COLLECTION
-import app.coinverse.firebase.FirestoreCollections.FINISH_COUNT
-import app.coinverse.firebase.FirestoreCollections.FINISH_SCORE
-import app.coinverse.firebase.FirestoreCollections.INVALID_SCORE
-import app.coinverse.firebase.FirestoreCollections.ORGANIZE_COUNT
-import app.coinverse.firebase.FirestoreCollections.SAVE_ACTION_COLLECTION
-import app.coinverse.firebase.FirestoreCollections.SAVE_COLLECTION
-import app.coinverse.firebase.FirestoreCollections.SAVE_SCORE
-import app.coinverse.firebase.FirestoreCollections.START_ACTION_COLLECTION
-import app.coinverse.firebase.FirestoreCollections.START_COUNT
-import app.coinverse.firebase.FirestoreCollections.START_SCORE
-import app.coinverse.firebase.FirestoreCollections.contentCollection
+import app.coinverse.firebase.FirestoreCollections.contentEnCollection
 import app.coinverse.firebase.FirestoreCollections.usersCollection
 import app.coinverse.user.models.ContentAction
 import app.coinverse.utils.*
@@ -75,7 +56,7 @@ class ContentRepository(application: Application) {
             val userReference = usersCollection.document(user.uid)
             organizedSet.clear()
             savedListenerRegistration = userReference
-                    .collection(FirestoreCollections.SAVE_COLLECTION)
+                    .collection(SAVE_COLLECTION)
                     .orderBy(TIMESTAMP, Query.Direction.DESCENDING)
                     .addSnapshotListener(EventListener { value, error ->
                         error?.run {
@@ -89,7 +70,7 @@ class ContentRepository(application: Application) {
                         }
                     })
             dismissedListenerRegistration = userReference
-                    .collection(FirestoreCollections.DISMISS_COLLECTION)
+                    .collection(DISMISS_COLLECTION)
                     .orderBy(TIMESTAMP, Query.Direction.DESCENDING)
                     .addSnapshotListener(EventListener { value, error ->
                         error?.run {
@@ -104,7 +85,7 @@ class ContentRepository(application: Application) {
                     })
             //Logged in and realtime enabled.
             if (isRealtime) {
-                contentListenerRegistration = FirestoreCollections.contentCollection
+                contentListenerRegistration = FirestoreCollections.contentEnCollection
                         .orderBy(TIMESTAMP, Query.Direction.DESCENDING)
                         .whereGreaterThanOrEqualTo(TIMESTAMP, getTimeframe(timeframe))
                         .addSnapshotListener(EventListener { value, error ->
@@ -124,7 +105,7 @@ class ContentRepository(application: Application) {
                             Thread(Runnable { run { contentDao.insertContent(contentList) } }).start()
                         })
             } else { // Logged in but not realtime.
-                FirestoreCollections.contentCollection
+                FirestoreCollections.contentEnCollection
                         .orderBy(TIMESTAMP, Query.Direction.DESCENDING)
                         .whereGreaterThanOrEqualTo(TIMESTAMP, getTimeframe(timeframe))
                         .get()
@@ -143,7 +124,7 @@ class ContentRepository(application: Application) {
             }
 
         } else { // Looged out and thus not realtime.
-            FirestoreCollections.contentCollection
+            FirestoreCollections.contentEnCollection
                     .orderBy(TIMESTAMP, Query.Direction.DESCENDING)
                     .whereGreaterThanOrEqualTo(TIMESTAMP, getTimeframe(timeframe))
                     .get()
@@ -168,7 +149,7 @@ class ContentRepository(application: Application) {
             collectionType = DISMISS_COLLECTION
             newFeedType = DISMISSED
         }
-        FirestoreCollections.contentCollection
+        FirestoreCollections.contentEnCollection
                 .document(userId)
                 .collection(collectionType)
                 .orderBy(TIMESTAMP, Query.Direction.DESCENDING)
@@ -280,7 +261,7 @@ class ContentRepository(application: Application) {
                 countType = DISMISS_COUNT
             }
         }
-        contentCollection.document(content.id).collection(actionCollection)
+        contentEnCollection.document(content.id).collection(actionCollection)
                 .document(user.email!!).set(UserAction(Date(), user.email!!))
                 .addOnSuccessListener { status ->
                     updateContentActionCounter(content.id, countType)
@@ -290,7 +271,7 @@ class ContentRepository(application: Application) {
     }
 
     fun updateContentActionCounter(contentId: String, counterType: String) {
-        val contentRef = contentCollection.document(contentId)
+        val contentRef = contentEnCollection.document(contentId)
         firestore.runTransaction(Transaction.Function<String> { counterTransaction ->
             val contentSnapshot = counterTransaction.get(contentRef)
             val newCounter = contentSnapshot.getDouble(counterType)!! + 1.0
@@ -326,7 +307,7 @@ class ContentRepository(application: Application) {
 
     fun updateQualityScore(score: Double, contentId: String) {
         Log.d(LOG_TAG, "Transaction success: " + score)
-        val contentDocRef = FirestoreCollections.contentCollection.document(contentId)
+        val contentDocRef = FirestoreCollections.contentEnCollection.document(contentId)
         firestore.runTransaction(object : Transaction.Function<Void> {
             @Throws(FirebaseFirestoreException::class)
             override fun apply(transaction: Transaction): Void? {
