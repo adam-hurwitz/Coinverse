@@ -19,10 +19,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        homeViewModel = ViewModelProviders.of(this).get(HomeViewModel::class.java)
-        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         FirestoreHelper.initialize(this)
         resourcesUtil = resources
+        homeViewModel = ViewModelProviders.of(this).get(HomeViewModel::class.java)
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
     }
 
     override fun onSupportNavigateUp() = findNavController(navHostFragment.view!!).navigateUp()

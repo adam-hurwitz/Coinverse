@@ -9,7 +9,7 @@ import app.coinverse.firebase.FirestoreCollections.usersCollection
 import app.coinverse.user.models.User
 import app.coinverse.utils.MESSAGE_CENTER_UNREAD_COUNT
 import app.coinverse.utils.TIMESTAMP
-import app.coinverse.utils.MESSAGE_CENTER
+import app.coinverse.utils.MESSAGE_CENTER_COLLECTION
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.EventListener
@@ -38,7 +38,7 @@ class HomeRepository(application: Application) {
             val userMessageCenterList = ArrayList<MessageCenterUpdate>()
             val userCollection = usersCollection.document(userId)
             val userMessageCenterCollection = userCollection
-                    .collection(MESSAGE_CENTER)
+                    .collection(MESSAGE_CENTER_COLLECTION)
             userMessageCenterCollection.orderBy(TIMESTAMP, Direction.DESCENDING)
                     .addSnapshotListener(EventListener { value, error ->
                         error?.run {

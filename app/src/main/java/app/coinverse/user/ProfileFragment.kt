@@ -15,8 +15,8 @@ import app.coinverse.databinding.FragmentProfileBinding
 import app.coinverse.firebase.FirestoreCollections.usersCollection
 import app.coinverse.home.HomeViewModel
 import app.coinverse.utils.DISMISS_COLLECTION
-import app.coinverse.utils.ON_BACK_PRESS_DELAY_IN_MILLIS
 import app.coinverse.utils.PROFILE_VIEW
+import app.coinverse.utils.SIGN_OUT_ON_BACK_PRESS_DELAY_IN_MILLIS
 import com.firebase.ui.auth.AuthUI
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.FirebaseApp
@@ -82,7 +82,7 @@ class ProfileFragment : Fragment() {
                         Snackbar.make(view, getString(message), Snackbar.LENGTH_SHORT).show()
                         signOut.postDelayed({
                             activity?.onBackPressed()
-                        }, ON_BACK_PRESS_DELAY_IN_MILLIS)
+                        }, SIGN_OUT_ON_BACK_PRESS_DELAY_IN_MILLIS)
                     }
                     //TODO: Add retry.
                 }
@@ -109,7 +109,7 @@ class ProfileFragment : Fragment() {
                                     Snackbar.make(view, getString(message), Snackbar.LENGTH_SHORT).show()
                                     delete.postDelayed({
                                         activity?.onBackPressed()
-                                    }, ON_BACK_PRESS_DELAY_IN_MILLIS)
+                                    }, SIGN_OUT_ON_BACK_PRESS_DELAY_IN_MILLIS)
                                     Log.v(LOG_TAG, String.format("Delete user success:%s", it))
                                 }.addOnFailureListener {
                                     //TODO: Add retry.
