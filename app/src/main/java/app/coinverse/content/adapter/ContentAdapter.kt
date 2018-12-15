@@ -31,7 +31,7 @@ class ContentAdapter(var contentViewmodel: ContentViewModel) : PagedListAdapter<
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position)!!)
+        getItem(position).let { content -> if (content != null) holder.bind(content) }
     }
 
     fun organizeContent(feedType: String, actionType: UserActionType, itemPosition: Int, user: FirebaseUser) {

@@ -6,11 +6,12 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import app.coinverse.Enums.ContentType
 import app.coinverse.Enums.FeedType
+import com.google.firebase.Timestamp
 import java.util.*
 
 @Entity(tableName = "content")
 data class Content(@PrimaryKey var id: String, var qualityScore: Double,
-                   var contentType: ContentType, var timestamp: Date, var creator: String,
+                   var contentType: ContentType, var timestamp: Timestamp, var creator: String,
                    var title: String, var previewImage: String, var description: String,
                    var sourceUrl: String, var contentUrl: String, var text: String,
                    var feedType: FeedType, var savedPosition: Int, var viewCount: Double,
@@ -22,7 +23,7 @@ data class Content(@PrimaryKey var id: String, var qualityScore: Double,
             parcel.readString()!!,
             parcel.readDouble(),
             ContentType.values()[parcel.readInt()],
-            Date(parcel.readLong()),
+            Timestamp((Date(parcel.readLong()))),
             parcel.readString()!!,
             parcel.readString()!!,
             parcel.readString()!!,
@@ -41,7 +42,7 @@ data class Content(@PrimaryKey var id: String, var qualityScore: Double,
             parcel.readDouble(),
             parcel.readDouble())
 
-    constructor() : this("", 0.0, ContentType.NONE, Date(), "", "",
+    constructor() : this("", 0.0, ContentType.NONE, Timestamp.now(), "", "",
             "", "", "", "", "", FeedType.NONE, 0, 0.0, 0.0, 0.0, 0.0,
             0.0, 0.0, 0.0, 0.0)
 
@@ -49,7 +50,7 @@ data class Content(@PrimaryKey var id: String, var qualityScore: Double,
         parcel.writeString(id)
         parcel.writeDouble(qualityScore)
         parcel.writeInt(contentType.ordinal)
-        parcel.writeLong(timestamp.time)
+        parcel.writeLong(timestamp.toDate().time)
         parcel.writeString(creator)
         parcel.writeString(title)
         parcel.writeString(previewImage)

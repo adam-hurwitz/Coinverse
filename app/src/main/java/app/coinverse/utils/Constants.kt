@@ -42,7 +42,12 @@ val YOUTUBE_LANDSCAPE_HEIGHT_DIVISOR = FirebaseRemoteConfig.getInstance().getDou
 val CONTENT_FEED_VISIBILITY_DELAY = FirebaseRemoteConfig.getInstance().getLong("content_feed_visibility_delay")
 val CONSUME_THRESHOLD = FirebaseRemoteConfig.getInstance().getDouble("consume_threshold")
 val FINISH_THRESHOLD = FirebaseRemoteConfig.getInstance().getDouble("finish_threshold")
-
+val DEBUG_ENABLED_PARAM = FirebaseRemoteConfig.getInstance().getString("debug_enabled_param")
+val CONTENT_ID_PARAM = FirebaseRemoteConfig.getInstance().getString("content_id_param")
+val CONTENT_TEXT_PARAM = FirebaseRemoteConfig.getInstance().getString("content_text_param")
+val FILE_PATH_PARAM = FirebaseRemoteConfig.getInstance().getString("file_path_param")
+val ERROR_PATH_PARAM = FirebaseRemoteConfig.getInstance().getString("error_path_param")
+val GET_AUDIOCAST_FUNCTION = FirebaseRemoteConfig.getInstance().getString("get_audiocast_function")
 const val CONTENT_FEED_FRAGMENT_TAG = "contentFeedFragmentTag"
 const val SAVED_CONTENT_TAG = "savedContentTag"
 const val YOUTUBE_DIALOG_FRAGMENT_TAG = "youtubeDialogFragmentKey"
@@ -66,7 +71,6 @@ val FINISH_ACTION_COLLECTION = FirebaseRemoteConfig.getInstance().getString("fin
 val SAVE_ACTION_COLLECTION = FirebaseRemoteConfig.getInstance().getString("save_actions")
 val SHARE_ACTION_COLLECTION = FirebaseRemoteConfig.getInstance().getString("share_actions")
 val DISMISS_ACTION_COLLECTION = FirebaseRemoteConfig.getInstance().getString("dismiss_actions")
-
 // Counters
 val VIEW_COUNT = FirebaseRemoteConfig.getInstance().getString("view_count")
 val CONSUME_COUNT = FirebaseRemoteConfig.getInstance().getString("consume_count")
@@ -77,7 +81,6 @@ val SHARE_COUNT = FirebaseRemoteConfig.getInstance().getString("share_count")
 val CLEAR_FEED_COUNT = FirebaseRemoteConfig.getInstance().getString("clear_feed_count")
 val DISMISS_COUNT = FirebaseRemoteConfig.getInstance().getString("dismiss_count")
 val MESSAGE_CENTER_UNREAD_COUNT = FirebaseRemoteConfig.getInstance().getString("message_center_unread_count")
-
 // Quality scores.
 val INVALID_SCORE = FirebaseRemoteConfig.getInstance().getDouble("invalid_score")
 val SAVE_SCORE = FirebaseRemoteConfig.getInstance().getDouble("save_score")
@@ -101,7 +104,6 @@ val ORGANIZE_EVENT = FirebaseRemoteConfig.getInstance().getString("organize_cont
 val SHARE_EVENT = FirebaseRemoteConfig.getInstance().getString("share_content_event")
 val CLEAR_FEED_EVENT = FirebaseRemoteConfig.getInstance().getString("clear_feed_event")
 val DISMISS_EVENT = FirebaseRemoteConfig.getInstance().getString("dismiss_content_event")
-
 // Params
 val USER_ID_PARAM = FirebaseRemoteConfig.getInstance().getString("user_id_param")
 val QUALITY_SCORE_PARAM = FirebaseRemoteConfig.getInstance().getString("quality_score_param")

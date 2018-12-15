@@ -24,7 +24,7 @@ object Enums {
     }
 
     enum class ContentType(val code: Int) {
-        YOUTUBE(1), NONE(-1)
+        ARTICLE(1), YOUTUBE(2), NONE(-1)
     }
 
     enum class UserActionType {

@@ -18,14 +18,12 @@ import app.coinverse.firebase.FirestoreCollections.usersCollection
 import app.coinverse.user.models.ContentAction
 import app.coinverse.utils.*
 import app.coinverse.utils.DateAndTime.getTimeframe
+import com.google.firebase.Timestamp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.*
-import com.google.firebase.firestore.EventListener
 import com.google.firebase.firestore.FirebaseFirestoreException
-import java.util.*
-import kotlin.collections.HashSet
 
 class ContentRepository(application: Application) {
 
@@ -168,13 +166,11 @@ class ContentRepository(application: Application) {
                 })
     }
 
-    fun getMainContent(timeframe: Date): DataSource.Factory<Int, Content> {
-        return database.contentDao().getMainContent(timeframe, MAIN)
-    }
+    fun getMainContent(timeframe: Timestamp): DataSource.Factory<Int, Content> =
+            database.contentDao().getMainContent(timeframe, MAIN)
 
-    fun getCategorizedContent(feedType: FeedType): DataSource.Factory<Int, Content> {
-        return database.contentDao().getCategorizedContent(feedType)
-    }
+    fun getCategorizedContent(feedType: FeedType): DataSource.Factory<Int, Content> =
+            database.contentDao().getCategorizedContent(feedType)
 
     fun organizeContent(feedType: String, actionType: UserActionType, content: Content?,
                         user: FirebaseUser, mainFeedEmptied: Boolean) {
@@ -201,7 +197,7 @@ class ContentRepository(application: Application) {
 
         if (mainFeedEmptied) {
             val bundle = Bundle()
-            bundle.putString(TIMESTAMP_PARAM, Date().toString())
+            bundle.putString(TIMESTAMP_PARAM, Timestamp.now().toString())
             analytics.logEvent(CLEAR_FEED_EVENT, bundle)
             updateUserActionCounter(user.uid, CLEAR_FEED_COUNT)
         }
@@ -262,7 +258,7 @@ class ContentRepository(application: Application) {
             }
         }
         contentEnCollection.document(content.id).collection(actionCollection)
-                .document(user.email!!).set(UserAction(Date(), user.email!!))
+                .document(user.email!!).set(UserAction(Timestamp.now(), user.email!!))
                 .addOnSuccessListener { status ->
                     updateContentActionCounter(content.id, countType)
                     updateUserActions(user.uid, actionCollection, content, countType)
@@ -286,7 +282,7 @@ class ContentRepository(application: Application) {
 
     fun updateUserActions(userId: String, actionCollection: String, content: Content, countType: String) {
         usersCollection.document(userId).collection(actionCollection).document(content.id)
-                .set(ContentAction(Date(), content.id, content.title, content.creator,
+                .set(ContentAction(Timestamp.now(), content.id, content.title, content.creator,
                         content.qualityScore)).addOnSuccessListener {
                     updateUserActionCounter(userId, countType)
                 }.addOnFailureListener {

@@ -1,10 +1,10 @@
 package app.coinverse.priceGraph.models
 
 import app.coinverse.Enums.Exchange.EMPTY
-import java.util.*
+import com.google.firebase.Timestamp
 
 data class MaximumPercentPriceDifference(
-        val timestamp: Date,
+        val timestamp: Timestamp,
         val pair: String,
         val coinbaseExchangeOrderData: ExchangeOrderData,
         val krakenExchangeOrderData: ExchangeOrderData,
@@ -13,7 +13,7 @@ data class MaximumPercentPriceDifference(
         val geminiExchangeOrderData: ExchangeOrderData,
         val percentDifference: PercentDifference) {
     constructor() : this(
-            Date(),
+            Timestamp.now(),
             "",
             ExchangeOrderData(EMPTY, 0.0, 0.0, Order(EMPTY, 0.0),
                     Order(EMPTY, 0.0), Order(EMPTY, 0.0), Order(EMPTY, 0.0)),

@@ -35,18 +35,16 @@ class YouTubeDialogFragment : DialogFragment() {
 
     private var LOG_TAG = YouTubeDialogFragment::class.java.simpleName
 
-    lateinit private var analytics: FirebaseAnalytics
-    lateinit private var content: Content
-    lateinit private var binding: FragmentYoutubeDialogBinding
-    lateinit private var contentViewModel: ContentViewModel
-    lateinit private var coinverseDatabase: CoinverseDatabase
-    lateinit private var youtubePlayer: YouTubePlayer
+    private lateinit var analytics: FirebaseAnalytics
+    private lateinit var content: Content
+    private lateinit var binding: FragmentYoutubeDialogBinding
+    private lateinit var contentViewModel: ContentViewModel
+    private lateinit var coinverseDatabase: CoinverseDatabase
+    private lateinit var youtubePlayer: YouTubePlayer
 
     private var seekToPositionMillis = 0
 
-    fun newInstance(bundle: Bundle) = YouTubeDialogFragment().apply {
-        arguments = bundle
-    }
+    fun newInstance(bundle: Bundle) = YouTubeDialogFragment().apply { arguments = bundle }
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean(YOUTUBE_IS_PLAYING_KEY, youtubePlayer.isPlaying)
@@ -74,7 +72,7 @@ class YouTubeDialogFragment : DialogFragment() {
                     youtubePlayer = player
                     player.setPlayerStateChangeListener(PlayerStateChangeListener(savedInstanceState))
                     player.setPlaybackEventListener(PlaybackEventListener())
-                    player.loadVideo(content.id)
+                    player.loadVideo(content.id.substring(8))
                 }
             }
 
@@ -90,7 +88,7 @@ class YouTubeDialogFragment : DialogFragment() {
         super.onResume()
         var width = getDisplayWidth(context!!)
         var height = getDisplayHeight(context!!)
-        when (getResources().getConfiguration().orientation) {
+        when (resources.configuration.orientation) {
             ORIENTATION_PORTRAIT -> {
                 width = getDisplayWidth(context!!)
                 height = (getDisplayHeight(context!!) / YOUTUBE_PORTRAIT_HEIGHT_DIVISOR)

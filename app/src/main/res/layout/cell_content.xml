@@ -13,6 +13,10 @@
             name="viewmodel"
             type="app.coinverse.content.ContentViewModel" />
 
+        <variable
+            name="contentType"
+            type="app.coinverse.Enums.ContentType" />
+
     </data>
 
     <androidx.cardview.widget.CardView
@@ -28,7 +32,6 @@
                 android:id="@+id/creator"
                 style="@style/contentCreatorStyle"
                 android:text='@{data.creator, default="creator name"}'
-                app:layout_constraintBottom_toTopOf="@+id/preview"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -37,7 +40,7 @@
                 style="@style/timeAgoStyle"
                 app:layout_constraintBottom_toBottomOf="@id/creator"
                 app:layout_constraintLeft_toRightOf="@+id/creator"
-                app:timePostedAgo="@{data.timestamp.time}"
+                app:timePostedAgo="@{data.timestamp.toDate().time}"
                 tools:text="time ago posted" />
 
             <ImageView
@@ -45,7 +48,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:contentDescription="@string/youtube_content_type_content_description"
-                android:src="@{viewmodel.getContentTypeIcon(context, data.contentType)}"
+                app:contentTypeIcon="@{data.contentType != null ? data.contentType : contentType.NONE}"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="@id/creator" />
 
@@ -56,7 +59,7 @@
                 app:layout_constraintBottom_toTopOf="@id/title"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/contentTypeLogo" />
+                app:layout_constraintTop_toBottomOf="@id/timeAgo" />
 
             <TextView
                 android:id="@+id/title"

@@ -1,7 +1,6 @@
 package app.coinverse.content
 
 import android.app.Application
-import android.content.Context
 import android.view.View
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -9,13 +8,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import app.coinverse.Enums
-import app.coinverse.Enums.ContentType
-import app.coinverse.Enums.ContentType.YOUTUBE
 import app.coinverse.Enums.FeedType
 import app.coinverse.Enums.FeedType.*
 import app.coinverse.Enums.Timeframe
 import app.coinverse.Enums.UserActionType
-import app.coinverse.R
 import app.coinverse.content.models.Content
 import app.coinverse.utils.DateAndTime.getTimeframe
 import app.coinverse.utils.PAGE_SIZE
@@ -73,13 +69,8 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
                 else -> View.GONE
             }
 
-    fun getContentTypeIcon(context: Context, contentType: ContentType) =
-            when (contentType) {
-                YOUTUBE -> context.getDrawable(R.drawable.ic_video)
-                ContentType.NONE -> 0
-            }
-
     fun contentClicked(content: Content) {
+        //TODO: ExoPlayer logic here for ARTICLE.
         _contentSelected.value = Event(content)  // Trigger the event by setting a new Event as a new value
     }
 

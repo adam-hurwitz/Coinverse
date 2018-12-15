@@ -1,8 +1,8 @@
 package app.coinverse.home
 
-import java.util.*
+import com.google.firebase.Timestamp
 
-data class MessageCenterUpdate(var id: String, var timestamp: Date, var versionName: String,
+data class MessageCenterUpdate(var id: String, var timestamp: Timestamp, var versionName: String,
                                var message: String) {
-    constructor() : this("", Date(), "", "")
+    constructor() : this("", Timestamp.now(), "", "")
 }

@@ -5,11 +5,12 @@ import app.coinverse.Enums
 import app.coinverse.Enums.Timeframe.DAY
 import app.coinverse.Enums.Timeframe.WEEK
 import app.coinverse.R
+import com.google.firebase.Timestamp
 import java.util.*
 
 object DateAndTime {
-    fun getTimeframe(timeframe: Enums.Timeframe?): Date {
-        var timeframeToQuery: Int
+    fun getTimeframe(timeframe: Enums.Timeframe?): Timestamp {
+        val timeframeToQuery: Int
         when (timeframe) {
             DAY -> timeframeToQuery = -1
             WEEK -> timeframeToQuery = -7
@@ -17,7 +18,7 @@ object DateAndTime {
         }
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.DAY_OF_YEAR, timeframeToQuery)
-        return Date(calendar.timeInMillis)
+        return Timestamp(Date(calendar.timeInMillis))
     }
 
     /*

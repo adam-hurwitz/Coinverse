@@ -1,7 +1,7 @@
 package app.coinverse.content.models
 
-import java.util.*
+import com.google.firebase.Timestamp
 
-data class UserAction(var timestamp: Date, var email: String) {
-    constructor() : this(Date(), "")
+data class UserAction(var timestamp: Timestamp, var email: String) {
+    constructor() : this(Timestamp.now(), "")
 }

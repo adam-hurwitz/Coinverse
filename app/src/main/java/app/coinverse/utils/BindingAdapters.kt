@@ -3,6 +3,9 @@ package app.coinverse.utils
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.databinding.BindingAdapter
+import app.coinverse.Enums.ContentType
+import app.coinverse.Enums.ContentType.ARTICLE
+import app.coinverse.Enums.ContentType.YOUTUBE
 import app.coinverse.R
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
@@ -18,6 +21,15 @@ fun ImageView.setImageUrl(url: String?) {
             .error(R.drawable.coinverse_logo_placeholder)
             .fallback(R.drawable.coinverse_logo_placeholder)
             .into(this)
+}
+
+@BindingAdapter("contentTypeIcon")
+fun ImageView.setContentTypeIcon(contentType: ContentType) {
+    when (contentType) {
+        YOUTUBE -> this.setImageResource(R.drawable.ic_video)
+        //TODO: Add ARTICLE, NONE icons.
+        ARTICLE -> this.setImageResource(android.R.drawable.ic_dialog_info)
+    }
 }
 
 @BindingAdapter("profileImageUrl")

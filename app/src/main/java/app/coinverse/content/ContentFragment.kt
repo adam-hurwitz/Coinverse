@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.View.*
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -13,6 +14,8 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import app.coinverse.Enums.ContentType.ARTICLE
+import app.coinverse.Enums.ContentType.YOUTUBE
 import app.coinverse.Enums.FeedType.*
 import app.coinverse.R
 import app.coinverse.content.adapter.ContentAdapter
@@ -183,10 +186,19 @@ class ContentFragment : Fragment() {
         contentViewModel.contentSelected.observe(viewLifecycleOwner, EventObserver { content ->
             when (feedType) {
                 MAIN.name, DISMISSED.name -> {
-                    val youtubeBundle = Bundle().apply { putParcelable(CONTENT_KEY, content) }
-                    YouTubeDialogFragment().newInstance(youtubeBundle).show(childFragmentManager,
-                            YOUTUBE_DIALOG_FRAGMENT_TAG)
+                    when (content.contentType) {
+                        //TODO: Add ARTICLE.
+                        ARTICLE -> {
+                            Toast.makeText(context, content.title, Toast.LENGTH_LONG).show()
+                        }
+                        YOUTUBE -> {
+                            val youtubeBundle = Bundle().apply { putParcelable(CONTENT_KEY, content) }
+                            YouTubeDialogFragment().newInstance(youtubeBundle).show(childFragmentManager,
+                                    YOUTUBE_DIALOG_FRAGMENT_TAG)
+                        }
+                    }
                 }
+                // Launch videos from saved bottom sheet screen through HomeFragment.
                 SAVED.name -> homeViewModel._savedContentSelected.value = Event(content)  // Trigger the event by setting a new Event as a new value
             }
         })

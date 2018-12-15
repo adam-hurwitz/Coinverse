@@ -85,6 +85,30 @@
         <key>finish_threshold</key>
         <value>0.95</value>
     </entry>
+    <entry>
+        <key>debug_enabled_param</key>
+        <value>debugEnabled</value>
+    </entry>
+    <entry>
+        <key>content_id_param</key>
+        <value>id</value>
+    </entry>
+    <entry>
+        <key>content_text_param</key>
+        <value>text</value>
+    </entry>
+    <entry>
+        <key>file_path_param</key>
+        <value>filePath</value>
+    </entry>
+    <entry>
+        <key>error_path_param</key>
+        <value>error</value>
+    </entry>
+    <entry>
+        <key>get_audiocast_function</key>
+        <value>getAudiocast</value>
+    </entry>
 
     <!--Price-->
     <entry>
