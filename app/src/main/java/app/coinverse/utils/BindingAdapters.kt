@@ -26,9 +26,9 @@ fun ImageView.setImageUrl(url: String?) {
 @BindingAdapter("contentTypeIcon")
 fun ImageView.setContentTypeIcon(contentType: ContentType) {
     when (contentType) {
-        YOUTUBE -> this.setImageResource(R.drawable.ic_video)
         //TODO: Add ARTICLE, NONE icons.
-        ARTICLE -> this.setImageResource(android.R.drawable.ic_dialog_info)
+        ARTICLE -> this.setImageResource(R.drawable.ic_audio_black)
+        YOUTUBE -> this.setImageResource(R.drawable.ic_video_black)
     }
 }
 

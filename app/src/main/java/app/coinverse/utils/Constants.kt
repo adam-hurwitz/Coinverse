@@ -36,26 +36,41 @@ val CELL_CONTENT_MARGIN = FirebaseRemoteConfig.getInstance().getDouble("cell_con
 val PREFETCH_DISTANCE = FirebaseRemoteConfig.getInstance().getDouble("prefetch_distance").toInt()
 val SWIPE_CONTENT_Y_MARGIN_DP = FirebaseRemoteConfig.getInstance().getDouble("swipe_content_y_margin_dp").toInt()
 val PAGE_SIZE = FirebaseRemoteConfig.getInstance().getDouble("page_size").toInt()
-val YOUTUBE_PORTRAIT_HEIGHT_DIVISOR = FirebaseRemoteConfig.getInstance().getDouble("youtube_portrait_height_divisor").toInt()
-val YOUTUBE_LANDSCAPE_WIDTH_DIVISOR = FirebaseRemoteConfig.getInstance().getDouble("youtube_landscape_width_divisor")
-val YOUTUBE_LANDSCAPE_HEIGHT_DIVISOR = FirebaseRemoteConfig.getInstance().getDouble("youtube_landscape_height_divisor")
+val CONTENT_DIALOG_PORTRAIT_HEIGHT_DIVISOR = FirebaseRemoteConfig.getInstance().getDouble("content_dialog_portrait_height_divisor").toInt()
+val CONTENT_DIALOG_LANDSCAPE_WIDTH_DIVISOR = FirebaseRemoteConfig.getInstance().getDouble("youtube_landscape_width_divisor")
+val CONTENT_DIALOG_LANDSCAPE_HEIGHT_DIVISOR = FirebaseRemoteConfig.getInstance().getDouble("content_dialog_landscape_height_divisor")
 val CONTENT_FEED_VISIBILITY_DELAY = FirebaseRemoteConfig.getInstance().getLong("content_feed_visibility_delay")
 val CONSUME_THRESHOLD = FirebaseRemoteConfig.getInstance().getDouble("consume_threshold")
 val FINISH_THRESHOLD = FirebaseRemoteConfig.getInstance().getDouble("finish_threshold")
 val DEBUG_ENABLED_PARAM = FirebaseRemoteConfig.getInstance().getString("debug_enabled_param")
 val CONTENT_ID_PARAM = FirebaseRemoteConfig.getInstance().getString("content_id_param")
-val CONTENT_TEXT_PARAM = FirebaseRemoteConfig.getInstance().getString("content_text_param")
+val CONTENT_TITLE_PARAM = FirebaseRemoteConfig.getInstance().getString("content_title_param")
+val CONTENT_PREVIEW_IMAGE_PARAM = FirebaseRemoteConfig.getInstance().getString("content_image_param")
 val FILE_PATH_PARAM = FirebaseRemoteConfig.getInstance().getString("file_path_param")
 val ERROR_PATH_PARAM = FirebaseRemoteConfig.getInstance().getString("error_path_param")
 val GET_AUDIOCAST_FUNCTION = FirebaseRemoteConfig.getInstance().getString("get_audiocast_function")
+val TTS_CHAR_LIMIT_ERROR = FirebaseRemoteConfig.getInstance().getString("tts_char_limit_error")
+val TTS_CHAR_LIMIT_MESSAGE = FirebaseRemoteConfig.getInstance().getString("tts_char_limit_message")
+val BOTTOM_SHEET_COLLAPSE_DELAY = FirebaseRemoteConfig.getInstance().getLong("bottom_sheet_collapse_delay")
+val CONTENT_SHARE_TYPE = FirebaseRemoteConfig.getInstance().getString("content_share_type")
+val CONTENT_SHARE_SUBJECT_PREFFIX = FirebaseRemoteConfig.getInstance().getString("content_share_subject_prefix")
+val CONTENT_SHARE_TEXT_PREFFIX = FirebaseRemoteConfig.getInstance().getString("content_share_text_prefix")
+val CONTENT_SHARE_TITLE = FirebaseRemoteConfig.getInstance().getString("content_share_title_prefix")
 const val CONTENT_FEED_FRAGMENT_TAG = "contentFeedFragmentTag"
+const val CONTENT_DIALOG_FRAGMENT_TAG = "contentDialogFragmentTag"
 const val SAVED_CONTENT_TAG = "savedContentTag"
-const val YOUTUBE_DIALOG_FRAGMENT_TAG = "youtubeDialogFragmentKey"
 const val FEED_TYPE_KEY = "feedType"
 const val CONTENT_KEY = "contentKey"
+const val ADAPTER_POSITION_KEY = 122218133
 const val CONTENT_RECYCLER_VIEW_STATE = "contentRecyclerViewState"
-const val YOUTUBE_IS_PLAYING_KEY = "youtubeIsPlayingKey"
-const val YOUTUBE_CURRENT_TIME_KEY = "youtubeCurrentTimeKey"
+const val MEDIA_IS_PLAYING_KEY = "mediaIsPlayingKey"
+const val MEDIA_CURRENT_TIME_KEY = "mediaCurrentTimeKey"
+const val KEY_TRACK_SELECTOR_PARAMETERS = "track_selector_parameters"
+const val KEY_WINDOW = "window"
+const val KEY_POSITION = "position"
+const val KEY_AUTO_PLAY = "auto_play"
+const val KEY_SEEK_TO_POSITION_MILLIS = "seek_to_position_millis"
+const val CLICK_SPAM_PREVENTION_THRESHOLD = 1000
 
 // Price
 val PRICE_COLLECTION = FirebaseRemoteConfig.getInstance().getString("price_collection")
@@ -93,6 +108,7 @@ val DISMISS_SCORE = FirebaseRemoteConfig.getInstance().getDouble("dismiss_score"
 // Analytics
 
 // Views
+val AUDIOCAST_VIEW = FirebaseRemoteConfig.getInstance().getString("audiocast_view")
 val YOUTUBE_VIEW = FirebaseRemoteConfig.getInstance().getString("youtube_view")
 val PROFILE_VIEW = FirebaseRemoteConfig.getInstance().getString("profile_view")
 // Events

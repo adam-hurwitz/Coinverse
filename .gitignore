@@ -79,3 +79,4 @@ gradle/
 gradlew
 gradlew.bat
 /app/release/release/app.aab
+/app/schemas/app.coinverse.content.room.CoinverseDatabase/

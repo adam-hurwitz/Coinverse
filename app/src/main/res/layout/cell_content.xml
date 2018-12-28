@@ -17,27 +17,30 @@
             name="contentType"
             type="app.coinverse.Enums.ContentType" />
 
+        <variable
+            name="clickListener"
+            type="android.view.View.OnClickListener" />
+
     </data>
 
     <androidx.cardview.widget.CardView
-        style="@style/contentCardStyle"
-        android:onClick="@{() -> viewmodel.contentClicked(data)}"
-        app:cardCornerRadius="0dp">
+        android:id="@+id/contentCard"
+        style="@style/ContentCardStyle">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/cell_content_feed"
-            style="@style/contentConstraintStyle">
+            style="@style/ContentConstraintStyle">
 
             <TextView
                 android:id="@+id/creator"
-                style="@style/contentCreatorStyle"
+                style="@style/ContentCreatorStyle"
                 android:text='@{data.creator, default="creator name"}'
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/timeAgo"
-                style="@style/timeAgoStyle"
+                style="@style/TimeAgoStyle"
                 app:layout_constraintBottom_toBottomOf="@id/creator"
                 app:layout_constraintLeft_toRightOf="@+id/creator"
                 app:timePostedAgo="@{data.timestamp.toDate().time}"
@@ -54,21 +57,54 @@
 
             <ImageView
                 android:id="@+id/preview"
-                style="@style/contentPreviewImageStyle"
+                style="@style/ContentPreviewImageStyle"
+                android:onClick="@{clickListener}"
                 app:imageUrl="@{data.previewImage}"
                 app:layout_constraintBottom_toTopOf="@id/title"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/timeAgo" />
 
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="@{viewmodel.getLoadingState(data.id)}"
+                app:layout_constraintBottom_toBottomOf="@id/preview"
+                app:layout_constraintLeft_toLeftOf="@id/preview"
+                app:layout_constraintRight_toRightOf="@id/preview"
+                app:layout_constraintTop_toTopOf="@id/preview" />
+
             <TextView
                 android:id="@+id/title"
-                style="@style/contentTitleStyle"
+                style="@style/ContentTitleStyle"
                 android:text='@{data.title, default="content title"}'
                 android:textColor="@color/colorPrimaryDark"
-                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/share"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/preview" />
+
+            <ImageView
+                android:id="@+id/openSource"
+                style="@style/IconButtonStyle"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:onClick="@{clickListener}"
+                android:src="@drawable/ic_open_in_browser_black_24dp"
+                android:tooltipText="@string/open_source_tip"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintRight_toLeftOf="@id/share"
+                app:layout_constraintTop_toBottomOf="@id/title" />
+
+            <ImageView
+                android:id="@+id/share"
+                style="@style/IconButtonStyle"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:onClick="@{clickListener}"
+                android:src="@drawable/ic_rocket_black"
+                android:tooltipText="@string/share_content_tip"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/title" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>

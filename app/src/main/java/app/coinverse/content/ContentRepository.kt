@@ -18,12 +18,14 @@ import app.coinverse.firebase.FirestoreCollections.usersCollection
 import app.coinverse.user.models.ContentAction
 import app.coinverse.utils.*
 import app.coinverse.utils.DateAndTime.getTimeframe
+import com.google.android.gms.tasks.Task
 import com.google.firebase.Timestamp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.*
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.functions.FirebaseFunctions
 
 class ContentRepository(application: Application) {
 
@@ -39,11 +41,13 @@ class ContentRepository(application: Application) {
     private var analytics: FirebaseAnalytics
     private var firestore: FirebaseFirestore
     private var database: CoinverseDatabase
+    private var functions: FirebaseFunctions
 
     init {
         analytics = FirebaseAnalytics.getInstance(application)
         firestore = FirebaseFirestore.getInstance()
         database = CoinverseDatabase.getAppDatabase(application)
+        functions = FirebaseFunctions.getInstance()
     }
 
     fun initializeMainRoomContent(isRealtime: Boolean, timeframe: Enums.Timeframe) {
@@ -331,5 +335,17 @@ class ContentRepository(application: Application) {
             bundle.putString(CREATOR_PARAM, content.creator)
             analytics.logEvent(logEvent, bundle)
         }
+    }
+
+    fun getAudiocast(debugEnabled: Boolean, content: Content): Task<HashMap<String, String>> {
+        val data = hashMapOf(
+                DEBUG_ENABLED_PARAM to debugEnabled,
+                CONTENT_ID_PARAM to content.id,
+                CONTENT_TITLE_PARAM to content.title,
+                CONTENT_PREVIEW_IMAGE_PARAM to content.previewImage)
+        return functions
+                .getHttpsCallable(GET_AUDIOCAST_FUNCTION)
+                .call(data)
+                .continueWith { task -> (task.result?.data as HashMap<String, String>) }
     }
 }

@@ -40,7 +40,7 @@
         <value>12</value>
     </entry>
     <entry>
-        <key>youtube_portrait_height_divisor</key>
+        <key>content_dialog_portrait_height_divisor</key>
         <value>2</value>
     </entry>
     <entry>
@@ -48,7 +48,7 @@
         <value>1.2</value>
     </entry>
     <entry>
-        <key>youtube_landscape_height_divisor</key>
+        <key>content_dialog_landscape_height_divisor</key>
         <value>1.2</value>
     </entry>
     <entry>
@@ -94,8 +94,12 @@
         <value>id</value>
     </entry>
     <entry>
-        <key>content_text_param</key>
-        <value>text</value>
+        <key>content_title_param</key>
+        <value>title</value>
+    </entry>
+    <entry>
+        <key>content_image_param</key>
+        <value>previewImage</value>
     </entry>
     <entry>
         <key>file_path_param</key>
@@ -108,6 +112,34 @@
     <entry>
         <key>get_audiocast_function</key>
         <value>getAudiocast</value>
+    </entry>
+    <entry>
+        <key>tts_char_limit_error</key>
+        <value>TTS_CHAR_LIMIT_ERROR</value>
+    </entry>
+    <entry>
+        <key>tts_char_limit_message</key>
+        <value>Audiocasts for longer content coming soon!</value>
+    </entry>
+    <entry>
+        <key>bottom_sheet_collapse_delay</key>
+        <value>3000</value>
+    </entry>
+    <entry>
+        <key>content_share_type</key>
+        <value>text/plain</value>
+    </entry>
+    <entry>
+        <key>content_share_subject_prefix</key>
+        <value>Via Coinverse:</value>
+    </entry>
+    <entry>
+        <key>content_share_text_prefix</key>
+        <value>I found this via Coinverse:</value>
+    </entry>
+    <entry>
+        <key>content_share_title_prefix</key>
+        <value>Share From Coinverse</value>
     </entry>
 
     <!--Price-->
@@ -226,6 +258,10 @@
     <entry>
         <key>youtube_view</key>
         <value>YOUTUBE_VIEW</value>
+    </entry>
+    <entry>
+        <key>audiocast_view</key>
+        <value>AUDIOCAST_VIEW</value>
     </entry>
     <entry>
         <key>profile_view</key>

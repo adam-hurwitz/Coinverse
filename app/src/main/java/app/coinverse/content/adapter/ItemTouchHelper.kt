@@ -50,7 +50,7 @@ class ItemTouchHelper(var homeViewModel: HomeViewModel) {
                         adapter.organizeContent(feedType, DISMISS, viewHolder.adapterPosition, user)
                     }
                 } else {
-                    signInDialog(viewHolder as ViewHolder)
+                    signInDialog(viewHolder as ContentAdapter.ViewHolder)
                 }
             }
 
@@ -115,7 +115,7 @@ class ItemTouchHelper(var homeViewModel: HomeViewModel) {
                 }
             }
 
-            private fun signInDialog(viewHolder: ViewHolder) {
+            private fun signInDialog(viewHolder: ContentAdapter.ViewHolder) {
                 val bundle = Bundle()
                 bundle.putInt(SIGNIN_TYPE_KEY, Enums.SignInType.DIALOG.code)
                 SignInDialogFragment.newInstance(bundle).show(fragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)

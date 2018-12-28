@@ -13,11 +13,10 @@ import java.util.*
 data class Content(@PrimaryKey var id: String, var qualityScore: Double,
                    var contentType: ContentType, var timestamp: Timestamp, var creator: String,
                    var title: String, var previewImage: String, var description: String,
-                   var sourceUrl: String, var contentUrl: String, var text: String,
-                   var feedType: FeedType, var savedPosition: Int, var viewCount: Double,
-                   var startCount: Double, var consumeCount: Double, var finishCount: Double,
-                   var organizeCount: Double, var shareCount: Double, var clearFeedCount: Double,
-                   var dismissCount: Double) : Parcelable {
+                   var url: String, var textUrl: String, var audioUrl: String, var feedType: FeedType,
+                   var savedPosition: Int, var viewCount: Double, var startCount: Double,
+                   var consumeCount: Double, var finishCount: Double, var organizeCount: Double,
+                   var shareCount: Double, var clearFeedCount: Double, var dismissCount: Double) : Parcelable {
 
     constructor(parcel: Parcel) : this(
             parcel.readString()!!,
@@ -42,9 +41,10 @@ data class Content(@PrimaryKey var id: String, var qualityScore: Double,
             parcel.readDouble(),
             parcel.readDouble())
 
-    constructor() : this("", 0.0, ContentType.NONE, Timestamp.now(), "", "",
-            "", "", "", "", "", FeedType.NONE, 0, 0.0, 0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0, 0.0)
+    constructor() : this("", 0.0, ContentType.NONE, Timestamp.now(), "",
+            "", "", "", "", "", "", FeedType.NONE, 0,
+            0.0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0)
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(id)
@@ -55,9 +55,9 @@ data class Content(@PrimaryKey var id: String, var qualityScore: Double,
         parcel.writeString(title)
         parcel.writeString(previewImage)
         parcel.writeString(description)
-        parcel.writeString(sourceUrl)
-        parcel.writeString(contentUrl)
-        parcel.writeString(text)
+        parcel.writeString(url)
+        parcel.writeString(textUrl)
+        parcel.writeString(audioUrl)
         parcel.writeInt(feedType.ordinal)
         parcel.writeInt(savedPosition)
         parcel.writeDouble(viewCount)

@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">coinverse</string>
 
     <!--Home-->
@@ -52,6 +52,15 @@
     <string name="dismissed">Dismissed</string>
     <string name="save">save</string>
     <string name="dismiss">dismiss</string>
+    <string name="open_source_tip">Open Content Source</string>
+    <string name="share_content_tip">Share Content</string>
+
+    <!--Audio-->
+    <string name="error_generic">Playback failed</string>
+    <string name="error_querying_decoders">Unable to query device decoders</string>
+    <string name="error_no_secure_decoder">This device does not provide a secure decoder for <xliff:g id="mime_type">%1$s</xliff:g></string>
+    <string name="error_no_decoder">This device does not provide a decoder for <xliff:g id="mime_type">%1$s</xliff:g></string>
+    <string name="error_instantiating_decoder">Unable to instantiate decoder <xliff:g id="decoder_name">%1$s</xliff:g></string>
 
     <!--Profile-->
     <string name="profile_image">User profile image.</string>

@@ -14,23 +14,18 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
-import app.coinverse.BuildConfig.DEBUG
 import app.coinverse.BuildConfig.VERSION_NAME
 import app.coinverse.Enums
-import app.coinverse.Enums.ContentType.ARTICLE
-import app.coinverse.Enums.ContentType.YOUTUBE
 import app.coinverse.Enums.FeedType.MAIN
 import app.coinverse.Enums.FeedType.SAVED
 import app.coinverse.R
+import app.coinverse.content.ContentDialogFragment
 import app.coinverse.content.ContentFragment
-import app.coinverse.content.YouTubeDialogFragment
-import app.coinverse.content.models.Content
 import app.coinverse.databinding.FragmentHomeBinding
 import app.coinverse.firebase.FirestoreCollections.usersCollection
 import app.coinverse.priceGraph.PriceFragment
@@ -42,14 +37,11 @@ import app.coinverse.utils.livedata.EventObserver
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.firebase.ui.auth.IdpResponse
-import com.google.android.gms.tasks.Task
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.*
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.functions.FirebaseFunctions
-import com.google.firebase.functions.FirebaseFunctionsException
 import kotlinx.android.synthetic.main.fragment_home.*
 import java.util.*
 import kotlin.collections.ArrayList
@@ -62,7 +54,6 @@ class HomeFragment : Fragment() {
     private var isAppBarExpanded = false
     private var isSavedContentExpanded = false
 
-    private lateinit var functions: FirebaseFunctions
     private lateinit var binding: FragmentHomeBinding
     private lateinit var homeViewModel: HomeViewModel
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<*>
@@ -89,7 +80,6 @@ class HomeFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        functions = FirebaseFunctions.getInstance()
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
     }
 
@@ -249,6 +239,10 @@ class HomeFragment : Fragment() {
     fun observeBottomSheetBackPressed() {
         homeViewModel.bottomSheetState.observe(viewLifecycleOwner, Observer { bottomSheetState ->
             if (bottomSheetState == STATE_COLLAPSED) bottomSheetBehavior.state = STATE_COLLAPSED
+            if (bottomSheetState == STATE_HIDDEN) {
+                bottomSheetBehavior.isHideable = true
+                bottomSheetBehavior.state = STATE_HIDDEN
+            }
         })
     }
 
@@ -265,7 +259,7 @@ class HomeFragment : Fragment() {
             if (user != null) {
                 val action =
                         HomeFragmentDirections.actionHomeFragmentToProfileFragment(user!!)
-                action.setUser(user!!)
+                action.user = user!!
                 view.findNavController().navigate(R.id.action_homeFragment_to_profileFragment, action.arguments)
             } else {
                 val bundle = Bundle()
@@ -321,49 +315,10 @@ class HomeFragment : Fragment() {
 
     fun observeSavedContentSelected() {
         homeViewModel.savedContentSelected.observe(viewLifecycleOwner, EventObserver { content ->
-            when (content.contentType) {
-                //TODO: Add ARTICLE.
-                ARTICLE -> {
-                    //FIXME: Move to ViewModel.
-                    Toast.makeText(context, content.title, Toast.LENGTH_LONG).show()
-                    getAudiocast(DEBUG, content).addOnCompleteListener({ task ->
-                        if (task.isSuccessful) {
-                            //TODO: Pass into ExoPlayer.
-                            val response = task.result
-                            if (response?.get(ERROR_PATH_PARAM).isNullOrEmpty()) {
-                                Log.v(LOG_TAG, "getAudioCast Success: " + response?.get(FILE_PATH_PARAM))
-                            } else {
-                                //TODO: Handle when error is 'TTS_CHAR_LIMIT_ERROR'
-                                Log.v(LOG_TAG, "getAudioCast Error: " + response?.get(ERROR_PATH_PARAM))
-                            }
-                        } else {
-                            val e = task.exception
-                            if (e is FirebaseFunctionsException) {
-                                val code = e.code
-                                val details = e.details
-                                Log.e(LOG_TAG, "$GET_AUDIOCAST_FUNCTION Exception: " +
-                                        "${code.name} Details: ${details.toString()}")
-                            }
-                        }
-                    })
-                }
-                YOUTUBE -> {
-                    val youtubeBundle = Bundle().apply { putParcelable(CONTENT_KEY, content) }
-                    YouTubeDialogFragment().newInstance(youtubeBundle).show(childFragmentManager,
-                            YOUTUBE_DIALOG_FRAGMENT_TAG)
-                }
-            }
+            if (childFragmentManager.findFragmentByTag(CONTENT_DIALOG_FRAGMENT_TAG) == null)
+                ContentDialogFragment()
+                        .newInstance(Bundle().apply { putParcelable(CONTENT_KEY, content) })
+                        .show(childFragmentManager, CONTENT_DIALOG_FRAGMENT_TAG)
         })
-    }
-
-    private fun getAudiocast(debugEnabled: Boolean, content: Content): Task<HashMap<String, String>> {
-        val data = hashMapOf(
-                DEBUG_ENABLED_PARAM to debugEnabled,
-                CONTENT_ID_PARAM to content.id,
-                CONTENT_TEXT_PARAM to content.text)
-        return functions
-                .getHttpsCallable(GET_AUDIOCAST_FUNCTION)
-                .call(data)
-                .continueWith { task -> (task.result?.data as HashMap<String, String>) }
     }
 }

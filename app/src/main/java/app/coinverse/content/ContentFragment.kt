@@ -1,12 +1,15 @@
 package app.coinverse.content
 
+import android.content.Intent
+import android.content.Intent.*
+import android.net.Uri
 import android.os.Bundle
 import android.os.Parcelable
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.*
 import android.view.ViewGroup
-import android.widget.Toast
+import android.widget.ProgressBar.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -15,25 +18,26 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import app.coinverse.Enums.ContentType.ARTICLE
-import app.coinverse.Enums.ContentType.YOUTUBE
 import app.coinverse.Enums.FeedType.*
 import app.coinverse.R
 import app.coinverse.content.adapter.ContentAdapter
 import app.coinverse.content.adapter.ItemTouchHelper
+import app.coinverse.content.models.ContentSelected
 import app.coinverse.databinding.FragmentContentBinding
 import app.coinverse.home.HomeViewModel
-import app.coinverse.utils.CONTENT_FEED_VISIBILITY_DELAY
-import app.coinverse.utils.CONTENT_KEY
-import app.coinverse.utils.CONTENT_RECYCLER_VIEW_STATE
-import app.coinverse.utils.YOUTUBE_DIALOG_FRAGMENT_TAG
+import app.coinverse.utils.*
 import app.coinverse.utils.livedata.Event
 import app.coinverse.utils.livedata.EventObserver
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
 import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.FirebaseAnalytics.getInstance
 import com.google.firebase.auth.FirebaseUser
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.empty_content.view.*
 import kotlinx.android.synthetic.main.fragment_content.*
 import kotlinx.android.synthetic.main.toolbar.view.*
@@ -41,13 +45,17 @@ import kotlinx.android.synthetic.main.toolbar.view.*
 private val LOG_TAG = ContentFragment::class.java.simpleName
 
 class ContentFragment : Fragment() {
-    private var savedRecyclerLayoutState: Parcelable? = null
 
     private lateinit var feedType: String
     private lateinit var analytics: FirebaseAnalytics
     private lateinit var binding: FragmentContentBinding
     private lateinit var contentViewModel: ContentViewModel
     private lateinit var homeViewModel: HomeViewModel
+    private lateinit var adapter: ContentAdapter
+
+    private val compositeDisposable = CompositeDisposable()
+
+    private var savedRecyclerLayoutState: Parcelable? = null
 
     companion object {
         @JvmStatic
@@ -81,7 +89,7 @@ class ContentFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        feedType = ContentFragmentArgs.fromBundle(arguments).feedType
+        feedType = ContentFragmentArgs.fromBundle(arguments!!).feedType
         analytics = getInstance(FirebaseApp.getInstance()!!.applicationContext)
         contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
@@ -114,7 +122,12 @@ class ContentFragment : Fragment() {
         initializeAdapter()
         observeSignIn()
         observeNewContentAdded()
-        observeContentSelected()
+        observeContentSelectedLaunchMedia()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        compositeDisposable.dispose()
     }
 
     fun setToolbar() {
@@ -140,7 +153,7 @@ class ContentFragment : Fragment() {
     }
 
     private fun initializeAdapter() {
-        val adapter = ContentAdapter(contentViewModel)
+        adapter = ContentAdapter(contentViewModel)
         contentRecyclerView.layoutManager = LinearLayoutManager(context)
         when (feedType) {
             MAIN.name -> {
@@ -172,6 +185,9 @@ class ContentFragment : Fragment() {
         contentRecyclerView.adapter = adapter
         ItemTouchHelper(homeViewModel).build(context!!, feedType, adapter, fragmentManager!!)
                 .attachToRecyclerView(contentRecyclerView)
+        observeContentSelected()
+        observeContentShared()
+        observeContentSourceOpened()
     }
 
     //TODO: Needs further testing.
@@ -181,26 +197,65 @@ class ContentFragment : Fragment() {
         })*/
     }
 
-
     private fun observeContentSelected() {
-        contentViewModel.contentSelected.observe(viewLifecycleOwner, EventObserver { content ->
+        compositeDisposable.add(adapter.onContentSelected()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ contentSelected ->
+                    setContentProgressBar(contentSelected, VISIBLE)
+                    contentViewModel.onContentClicked(contentSelected)
+                }, { throwable -> Log.e(LOG_TAG, throwable.toString()) }))
+    }
+
+    private fun observeContentShared() {
+        compositeDisposable.add(adapter.onContentShared()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ content ->
+                    startActivity(createChooser(Intent(ACTION_SEND)
+                            .setType(CONTENT_SHARE_TYPE)
+                            .putExtra(EXTRA_SUBJECT, CONTENT_SHARE_SUBJECT_PREFFIX + content.title)
+                            .putExtra(EXTRA_TEXT, CONTENT_SHARE_TEXT_PREFFIX + content.url),
+                            CONTENT_SHARE_TITLE))
+                }, { throwable -> Log.e(LOG_TAG, throwable.toString()) }))
+    }
+
+    private fun observeContentSourceOpened() {
+        compositeDisposable.add(adapter.onContentSourceOpened()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ contentUrl ->
+                    startActivity(Intent(Intent.ACTION_VIEW).setData(Uri.parse(contentUrl)))
+                }, { throwable -> Log.e(LOG_TAG, throwable.toString()) }))
+    }
+
+
+    private fun observeContentSelectedLaunchMedia() {
+        contentViewModel.contentSelected.observe(viewLifecycleOwner, EventObserver { contentSelected ->
+            val content = contentSelected.content
             when (feedType) {
                 MAIN.name, DISMISSED.name -> {
-                    when (content.contentType) {
-                        //TODO: Add ARTICLE.
-                        ARTICLE -> {
-                            Toast.makeText(context, content.title, Toast.LENGTH_LONG).show()
-                        }
-                        YOUTUBE -> {
-                            val youtubeBundle = Bundle().apply { putParcelable(CONTENT_KEY, content) }
-                            YouTubeDialogFragment().newInstance(youtubeBundle).show(childFragmentManager,
-                                    YOUTUBE_DIALOG_FRAGMENT_TAG)
-                        }
+                    if (content.contentType == ARTICLE && content.audioUrl.equals(TTS_CHAR_LIMIT_ERROR)) {
+                        homeViewModel.bottomSheetState.value = BottomSheetBehavior.STATE_HIDDEN
+                        snackbarWithText(TTS_CHAR_LIMIT_MESSAGE, contentFragment)
+                        emptyContent.postDelayed({
+                            homeViewModel.bottomSheetState.value = STATE_COLLAPSED
+                        }, BOTTOM_SHEET_COLLAPSE_DELAY)
+                    } else {
+                        if (childFragmentManager.findFragmentByTag(CONTENT_DIALOG_FRAGMENT_TAG) == null)
+                            ContentDialogFragment()
+                                    .newInstance(Bundle().apply { putParcelable(CONTENT_KEY, content) })
+                                    .show(childFragmentManager, CONTENT_DIALOG_FRAGMENT_TAG)
                     }
                 }
-                // Launch videos from saved bottom sheet screen through HomeFragment.
-                SAVED.name -> homeViewModel._savedContentSelected.value = Event(content)  // Trigger the event by setting a new Event as a new value
+                // Launch content from saved bottom sheet screen via HomeFragment.
+                SAVED.name -> {
+                    if (content.contentType == ARTICLE && content.audioUrl.equals(TTS_CHAR_LIMIT_ERROR))
+                        snackbarWithText(TTS_CHAR_LIMIT_MESSAGE, contentFragment)
+                    else homeViewModel._savedContentSelected.value = Event(content) // Trigger the event by setting a new Event as a new value
+                }
             }
+            setContentProgressBar(contentSelected, GONE)
         })
     }
 
@@ -209,6 +264,11 @@ class ContentFragment : Fragment() {
             //TODO: Set based on user subscription and preference.
             initializeMainContent(true)
         })
+    }
+
+    private fun setContentProgressBar(contentSelected: ContentSelected, visibility: Int) {
+        contentViewModel.contentLoadingStatusMap.put(contentSelected.content.id, visibility)
+        adapter.notifyItemChanged(contentSelected.position)
     }
 
     fun setEmptyView() {

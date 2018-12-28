@@ -49,7 +49,7 @@
 
     <!--Content feed-->
 
-    <style name="contentCardStyle">
+    <style name="ContentCardStyle">
         <item name="android:layout_height">@dimen/cell_content_feed_height</item>
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_marginTop">@dimen/margin_tiniest</item>
@@ -57,33 +57,34 @@
         <item name="android:elevation">@dimen/card_elevation</item>
     </style>
 
-    <style name="contentConstraintStyle">
+    <style name="ContentConstraintStyle">
         <item name="android:layout_height">match_parent</item>
         <item name="android:layout_width">match_parent</item>
         <item name="android:padding">@dimen/padding_small</item>
     </style>
 
-    <style name="contentTitleStyle">
+    <style name="ContentTitleStyle">
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_width">wrap_content</item>
         <item name="android:maxLines">@integer/maxLines</item>
         <item name="android:textSize">@dimen/text_size_secondary_copy</item>
     </style>
 
-    <style name="contentCreatorStyle">
+    <style name="ContentCreatorStyle">
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_width">wrap_content</item>
+        <item name="android:textSize">@dimen/text_size_normal</item>
         <item name="android:textStyle">bold</item>
     </style>
 
-    <style name="timeAgoStyle">
+    <style name="TimeAgoStyle">
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_width">wrap_content</item>
         <item name="android:textSize">@dimen/text_size_caption</item>
         <item name="android:layout_marginLeft">@dimen/margin_small</item>
     </style>
 
-    <style name="contentPreviewImageStyle">
+    <style name="ContentPreviewImageStyle">
         <item name="android:layout_height">0dp</item>
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_marginTop">@dimen/margin_small</item>
@@ -91,11 +92,22 @@
         <item name="android:alpha">@dimen/content_transparency</item>
     </style>
 
-    <style name="contentDescriptionStyle">
+    <style name="ContentDescriptionStyle">
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_width">wrap_content</item>
         <item name="android:ellipsize">end</item>
         <item name="android:maxLines">@integer/maxLines</item>
+    </style>
+
+    <style name="IconButtonStyle">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:theme">@style/SelectableItemTheme</item>
+        <item name="background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:paddingTop">@dimen/padding_small</item>
+        <item name="android:paddingBottom">@dimen/padding_small</item>
+        <item name="android:paddingLeft">@dimen/padding_tiny</item>
+        <item name="android:paddingRight">@dimen/padding_tiny</item>
     </style>
 
 </resources>

@@ -46,7 +46,7 @@ class ProfileFragment : Fragment() {
                               savedInstanceState: Bundle?): View? {
         binding = FragmentProfileBinding.inflate(inflater, container, false)
         binding.viewmodel = homeViewModel
-        user = ProfileFragmentArgs.fromBundle(arguments).user
+        user = ProfileFragmentArgs.fromBundle(arguments!!).user
         binding.user = user
         return binding.root
     }
@@ -68,7 +68,7 @@ class ProfileFragment : Fragment() {
         dismissedContent.setOnClickListener { view: View ->
             val action =
                     ProfileFragmentDirections.actionProfileFragmentToDismissedContentFragment()
-            action.setFeedType(Enums.FeedType.DISMISSED.name)
+            action.feedType = Enums.FeedType.DISMISSED.name
             view.findNavController().navigate(R.id.action_profileFragment_to_dismissedContentFragment, action.arguments)
         }
 
