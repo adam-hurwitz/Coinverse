@@ -5,7 +5,6 @@ import android.os.Parcelable
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
 import app.coinverse.content.models.Content
 import app.coinverse.firebase.FirestoreCollections.usersCollection
 import app.coinverse.utils.livedata.Event
@@ -21,8 +20,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     var isRefreshing = MutableLiveData<Boolean>()
     var bottomSheetState = MutableLiveData<Int>()
     var user = MutableLiveData<FirebaseUser>()
-    var messageCenterLiveData: LiveData<ArrayList<MessageCenterUpdate>>
-    var messageCenterUnreadCountLiveData: LiveData<Double>
 
     // Saved Content
     val _savedContentSelected = MutableLiveData<Event<Content>>()
@@ -37,19 +34,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         homeRepository = HomeRepository(application)
         isRealtime.value = false
         user.value = getCurrentUser()
-        val messageCenterUpdates = homeRepository.messageCenterUpdatesLiveData
-        this.messageCenterLiveData = Transformations.map(messageCenterUpdates) { result -> result }
-
-        val messageCenterUnreadCount = homeRepository.messageCenterUnreadCountLiveData
-        this.messageCenterUnreadCountLiveData = Transformations.map(messageCenterUnreadCount) { result -> result }
     }
 
     fun getCurrentUser(): FirebaseUser? {
         return FirebaseAuth.getInstance().currentUser
-    }
-
-    fun syncMessageCenterUpdates() {
-        homeRepository.syncMessageCenterUpdates(getCurrentUser()?.uid)
     }
 
     fun enableSwipeToRefresh(isEnabled: Boolean) {

@@ -50,13 +50,6 @@
                                 android:src="@drawable/ic_astronaut_color_accent_24dp"
                                 app:layout_constraintLeft_toLeftOf="parent" />
 
-                            <ImageView
-                                android:id="@+id/messageCenterButton"
-                                android:layout_width="@dimen/toolbar_button_dimen"
-                                android:layout_height="@dimen/toolbar_button_dimen"
-                                android:contentDescription="@string/profile_content_description"
-                                android:src="@drawable/ic_message_center_read"
-                                app:layout_constraintRight_toRightOf="parent" />
                         </androidx.constraintlayout.widget.ConstraintLayout>
 
                     </androidx.appcompat.widget.Toolbar>

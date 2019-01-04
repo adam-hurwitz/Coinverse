@@ -4,7 +4,6 @@ import app.coinverse.utils.*
 import com.google.firebase.firestore.FirebaseFirestore
 
 object FirestoreCollections {
-    val messageCenterCollection = FirebaseFirestore.getInstance().collection(MESSAGE_CENTER_COLLECTION)
     val contentEthBtcCollection = FirebaseFirestore.getInstance().collection("$PRICE_COLLECTION/$ETH_BTC_DOC/$PRICES_COLLECTION")
     val contentEnCollection = FirebaseFirestore.getInstance().collection("$CONTENT_COLLECTION/$FEEDS_DOC/$EN_COLLECTION")
     val usersCollection = FirebaseFirestore.getInstance().collection(USERS_COLLECTION)
