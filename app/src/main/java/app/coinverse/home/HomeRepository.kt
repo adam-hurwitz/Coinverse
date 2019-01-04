@@ -1,7 +1,6 @@
 package app.coinverse.home
 
 import android.app.Application
-import androidx.lifecycle.MutableLiveData
 import app.coinverse.content.room.CoinverseDatabase
 import app.coinverse.utils.MESSAGE_CENTER_UNREAD_COUNT
 import com.google.firebase.analytics.FirebaseAnalytics
@@ -11,9 +10,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 class HomeRepository(application: Application) {
 
     private val LOG_TAG = HomeRepository::javaClass.name
-
-    var messageCenterUpdatesLiveData = MutableLiveData<ArrayList<MessageCenterUpdate>>()
-    var messageCenterUnreadCountLiveData = MutableLiveData<Double>()
 
     private var analytics: FirebaseAnalytics
     private var firestore: FirebaseFirestore

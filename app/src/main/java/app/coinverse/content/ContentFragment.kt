@@ -8,8 +8,12 @@ import android.os.Parcelable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.INVISIBLE
 import android.view.ViewGroup
-import android.widget.ProgressBar.*
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
+import android.widget.ProgressBar.GONE
+import android.widget.ProgressBar.VISIBLE
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -272,10 +276,23 @@ class ContentFragment : Fragment() {
     }
 
     fun setEmptyView() {
-        contentRecyclerView.visibility = INVISIBLE
-        emptyContent.visibility = VISIBLE
-        contentRecyclerView.postDelayed({ contentRecyclerView.visibility = VISIBLE },
-                CONTENT_FEED_VISIBILITY_DELAY)
+        if (emptyContent.visibility == GONE) {
+            val fadeIn = AnimationUtils.loadAnimation(context, R.anim.fade_in)
+            emptyContent.startAnimation(fadeIn)
+            fadeIn.setAnimationListener(object : Animation.AnimationListener {
+                override fun onAnimationRepeat(animation: Animation?) {/*Do something.*/
+                }
+
+                override fun onAnimationEnd(animation: Animation?) {
+                    emptyContent.visibility = VISIBLE
+                    contentRecyclerView.visibility = VISIBLE
+                }
+
+                override fun onAnimationStart(animation: Animation?) {
+                    contentRecyclerView.visibility = INVISIBLE
+                }
+            })
+        }
         emptyContent.confirmation.setOnClickListener { view: View ->
             if (homeViewModel.bottomSheetState.value == STATE_EXPANDED)
                 homeViewModel.bottomSheetState.value = STATE_COLLAPSED

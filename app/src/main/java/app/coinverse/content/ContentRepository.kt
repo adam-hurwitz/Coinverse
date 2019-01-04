@@ -51,15 +51,16 @@ class ContentRepository(application: Application) {
     }
 
     fun initializeMainRoomContent(isRealtime: Boolean, timeframe: Enums.Timeframe) {
-
         val contentDao = database.contentDao()
         val user = FirebaseAuth.getInstance().currentUser
         if (user != null) {
             val userReference = usersCollection.document(user.uid)
             organizedSet.clear()
+            // Get Saved collection.
             savedListenerRegistration = userReference
                     .collection(SAVE_COLLECTION)
                     .orderBy(TIMESTAMP, Query.Direction.DESCENDING)
+                    .whereGreaterThanOrEqualTo(TIMESTAMP, getTimeframe(timeframe))
                     .addSnapshotListener(EventListener { value, error ->
                         error?.run {
                             Log.e(LOG_TAG, "Content EventListener Failed.", error)
@@ -71,9 +72,11 @@ class ContentRepository(application: Application) {
                             Thread(Runnable { run { contentDao.updateContent(savedContent) } }).start()
                         }
                     })
+            // Get Dismissed collection.
             dismissedListenerRegistration = userReference
                     .collection(DISMISS_COLLECTION)
                     .orderBy(TIMESTAMP, Query.Direction.DESCENDING)
+                    .whereGreaterThanOrEqualTo(TIMESTAMP, getTimeframe(timeframe))
                     .addSnapshotListener(EventListener { value, error ->
                         error?.run {
                             Log.e(LOG_TAG, "Content EventListener Failed.", error)

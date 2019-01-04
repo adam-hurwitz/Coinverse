@@ -87,9 +87,9 @@ class HomeFragment : Fragment() {
         user = homeViewModel.getCurrentUser()
         initProfileButton(user != null)
         initCollapsingToolbarStates()
-        initSavedBottomSheet()
+        initSavedBottomSheet(savedInstanceState)
         setClickListeners()
-        observeSignIn()
+        observeSignIn(savedInstanceState)
         initSwipeToRefresh()
         observeSavedContentSelected()
     }
@@ -102,11 +102,10 @@ class HomeFragment : Fragment() {
             childFragmentManager.beginTransaction()
                     .replace(priceContainer.id, PriceFragment.newInstance(), PRICEGRAPH_FRAGMENT_TAG)
                     .commit()
-            val contentBundle = Bundle()
-            contentBundle.putString(FEED_TYPE_KEY, MAIN.name)
-            childFragmentManager.beginTransaction()
-                    .replace(contentContainer.id, ContentFragment.newInstance(contentBundle),
-                            CONTENT_FEED_FRAGMENT_TAG)
+            childFragmentManager.beginTransaction().replace(contentContainer.id,
+                    ContentFragment.newInstance(Bundle().apply {
+                        putString(FEED_TYPE_KEY, MAIN.name)
+                    }), CONTENT_FEED_FRAGMENT_TAG)
                     .commit()
         }
     }
@@ -153,18 +152,18 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun initSavedBottomSheet() {
+    private fun initSavedBottomSheet(savedInstanceState: Bundle?) {
         bottomSheetBehavior = from(bottomSheet)
         bottomSheetBehavior.isHideable = false
         bottomSheetBehavior.peekHeight = SAVED_BOTTOM_SHEET_PEEK_HEIGHT
         bottomSheet.layoutParams.height = getDisplayHeight(context!!)
-        if (homeViewModel.user.value != null) initSavedContentFragment()
-        else {
-            val bundle = Bundle()
-            bundle.putInt(SIGNIN_TYPE_KEY, Enums.SignInType.FULLSCREEN.code)
-            fragmentManager!!.beginTransaction()
-                    .replace(R.id.savedContentContainer, SignInDialogFragment.newInstance(bundle)).commit()
-        }
+        if (homeViewModel.user.value != null) initSavedContentFragment(savedInstanceState)
+        else fragmentManager!!.beginTransaction().replace(
+                R.id.savedContentContainer,
+                SignInDialogFragment.newInstance(Bundle().apply {
+                    putInt(SIGNIN_TYPE_KEY, Enums.SignInType.FULLSCREEN.code)
+                }))
+                .commit()
         bottomSheetBehavior.setBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
                 if (newState == STATE_EXPANDED) {
@@ -201,12 +200,13 @@ class HomeFragment : Fragment() {
         })
     }
 
-    private fun initSavedContentFragment() {
-        val bundle = Bundle()
-        bundle.putString(FEED_TYPE_KEY, SAVED.name)
-        fragmentManager?.beginTransaction()?.replace(
-                savedContentContainer.id, ContentFragment.newInstance(bundle), SAVED_CONTENT_TAG)
-                ?.commit()
+    private fun initSavedContentFragment(savedInstanceState: Bundle?) {
+        if (savedInstanceState == null)
+            fragmentManager?.beginTransaction()?.replace(
+                    savedContentContainer.id,
+                    ContentFragment.newInstance(Bundle().apply { putString(FEED_TYPE_KEY, SAVED.name) }),
+                    SAVED_CONTENT_TAG)
+                    ?.commit()
     }
 
     private fun setClickListeners() {
@@ -224,13 +224,14 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun observeSignIn() {
+    private fun observeSignIn(savedInstanceState: Bundle?) {
         homeViewModel.user.observe(this, Observer { user: FirebaseUser? ->
             this.user = user
             initProfileButton(user != null)
             if (user != null) {
                 //TODO: Replace with Firestore security rule.
                 usersCollection.document(user.uid).get().addOnCompleteListener { userQuery ->
+                    // Create user.
                     if (!userQuery.result!!.exists()) {
                         usersCollection.document(user.uid).set(
                                 User(user.uid, user.displayName, user.email, user.phoneNumber,
@@ -248,7 +249,7 @@ class HomeFragment : Fragment() {
                                 }
                     }
                 }
-                initSavedContentFragment()
+                initSavedContentFragment(savedInstanceState)
             }
         })
     }
