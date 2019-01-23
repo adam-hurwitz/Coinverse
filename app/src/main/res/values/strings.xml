@@ -1,6 +1,11 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">coinverse</string>
 
+    <!--Preferences-->
+    <string name="first_open">first open</string>
+    <string name="user_lat">user latitude</string>
+    <string name="user_lng">user longitude</string>
+
     <!--Home-->
     <string name="message_center">Message Center</string>
 
@@ -76,5 +81,18 @@
     <string name="community">Help others discover. The homepage surfaces videos based on popularity.</string>
     <string name="sign_in_title">Sign In</string>
     <string name="here_we_go">Here we go!</string>
+
+    <!--Ads-->
+    <string name="native_icon_mage">Ad Icon Image</string>
+    <string name="native_main_image">Ad Main Image</string>
+    <string name="sponsored">Sponsored</string>
+    <string name="learn_more">Learn More</string>
+    <string name="native_privacy_information_icon_image">Privacy Information Icon image</string>
+
+    <!--Permissions-->
+    <string name="permissions_title">Permissions</string>
+    <string name="permission_strategy">Coinverse is continually working to improve the feed quality.</string>
+    <string name="location_explanation">Enable location to help improve the feed.</string>
+    <string name="got_it">Got it</string>
 
 </resources>

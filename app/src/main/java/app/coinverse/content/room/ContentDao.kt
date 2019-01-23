@@ -11,14 +11,14 @@ import java.util.*
 interface ContentDao {
 
     @Query("SELECT * FROM content WHERE timestamp >= :timeframe AND feedType = :feedType ORDER BY qualityScore DESC")
-    fun getMainContent(timeframe: Timestamp, feedType: FeedType): DataSource.Factory<Int, Content>
+    fun getMainContentList(timeframe: Timestamp, feedType: FeedType): DataSource.Factory<Int, Content>
 
     @Query("SELECT * FROM content WHERE feedType = :feedType ORDER BY timestamp DESC")
-    fun getCategorizedContent(feedType: FeedType): DataSource.Factory<Int, Content>
+    fun getCategorizedContentList(feedType: FeedType): DataSource.Factory<Int, Content>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertContent(users: ArrayList<Content?>)
+    fun insertContentList(users: ArrayList<Content?>)
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
-    fun updateContent(content: Content)
+    fun updateContentItem(content: Content)
 }

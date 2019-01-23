@@ -55,6 +55,14 @@
         <key>content_feed_visibility_delay</key>
         <value>300</value>
     </entry>
+    <entry>
+        <key>default_lat</key>
+        <value>374629.6</value>
+    </entry>
+    <entry>
+        <key>default_lng</key>
+        <value>1222509.8</value>
+    </entry>
 
     <!--Content-->
     <entry>
@@ -322,6 +330,21 @@
     <entry>
         <key>feed_type_param</key>
         <value>feed_type</value>
+    </entry>
+
+    <!--Ads-->
+    <entry>
+        <key>ad_unit_id</key>
+        <value>d5dff6efb3244d448bed17ad67ef4b34</value>
+    </entry>
+    <!--Test Ad-->
+    <!--<entry>
+        <key>ad_unit_id</key>
+        <value>11a17b188668469fb0412708c3d16813</value>
+    </entry>-->
+    <entry>
+        <key>mopub_keywords</key>
+        <value>m_age:28,m_gender:m</value>
     </entry>
 
 </defaultsMap>

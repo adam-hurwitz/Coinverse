@@ -76,7 +76,7 @@
                 app:layout_constraintGuide_percent="0.85" />
 
             <TextView
-                android:id="@+id/signIn"
+                android:id="@+id/confirm"
                 style="@style/ButtonStyle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"

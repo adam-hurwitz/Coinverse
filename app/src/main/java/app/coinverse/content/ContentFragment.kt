@@ -4,7 +4,6 @@ import android.content.Intent
 import android.content.Intent.*
 import android.net.Uri
 import android.os.Bundle
-import android.os.Parcelable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -15,15 +14,19 @@ import android.view.animation.AnimationUtils
 import android.widget.ProgressBar.GONE
 import android.widget.ProgressBar.VISIBLE
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
+import androidx.appcompat.content.res.AppCompatResources.getDrawable
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import app.coinverse.Enums.AccountType.FREE
 import app.coinverse.Enums.ContentType.ARTICLE
 import app.coinverse.Enums.FeedType.*
 import app.coinverse.R
+import app.coinverse.R.id.*
+import app.coinverse.R.layout.fb_native_ad_item
+import app.coinverse.R.layout.native_ad_item
 import app.coinverse.content.adapter.ContentAdapter
 import app.coinverse.content.adapter.ItemTouchHelper
 import app.coinverse.content.models.ContentSelected
@@ -38,10 +41,12 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDE
 import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.FirebaseAnalytics.getInstance
-import com.google.firebase.auth.FirebaseUser
-import io.reactivex.android.schedulers.AndroidSchedulers
+import com.mopub.nativeads.*
+import com.mopub.nativeads.FacebookAdRenderer.FacebookViewBinder
+import com.mopub.nativeads.FlurryViewBinder.Builder
+import io.reactivex.android.schedulers.AndroidSchedulers.mainThread
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
+import io.reactivex.schedulers.Schedulers.io
 import kotlinx.android.synthetic.main.empty_content.view.*
 import kotlinx.android.synthetic.main.fragment_content.*
 import kotlinx.android.synthetic.main.toolbar.view.*
@@ -56,10 +61,11 @@ class ContentFragment : Fragment() {
     private lateinit var contentViewModel: ContentViewModel
     private lateinit var homeViewModel: HomeViewModel
     private lateinit var adapter: ContentAdapter
+    private lateinit var moPubAdapter: MoPubRecyclerAdapter
 
     private val compositeDisposable = CompositeDisposable()
 
-    private var savedRecyclerLayoutState: Parcelable? = null
+    private var savedRecyclerPosition: Int = 0
 
     companion object {
         @JvmStatic
@@ -70,24 +76,15 @@ class ContentFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        when (feedType) {
-            MAIN.name, DISMISSED.name -> {
-                if (contentRecyclerView != null)
-                    outState.putParcelable(CONTENT_RECYCLER_VIEW_STATE,
-                            contentRecyclerView.layoutManager!!.onSaveInstanceState())
-            }
-            //TODO: Refactor to use outState if possible.
-            SAVED.name -> homeViewModel.savedContentState = contentRecyclerView.layoutManager?.onSaveInstanceState()
-        }
+        if (contentRecyclerView != null) outState.putInt(CONTENT_RECYCLER_VIEW_POSITION,
+                (contentRecyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition())
     }
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
         if (savedInstanceState != null) {
-            when (feedType) {
-                MAIN.name, DISMISSED.name ->
-                    savedRecyclerLayoutState = savedInstanceState.getParcelable(CONTENT_RECYCLER_VIEW_STATE)
-            }
+            savedRecyclerPosition = savedInstanceState.getInt(CONTENT_RECYCLER_VIEW_POSITION)
+            if (homeViewModel.accountType.value == FREE) updateAds(true)
         }
     }
 
@@ -98,15 +95,6 @@ class ContentFragment : Fragment() {
         contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
         contentViewModel.feedType = feedType
-        if (savedInstanceState == null) {
-            homeViewModel.isRealtime.observe(this, Observer { isRealtime: Boolean ->
-                when (feedType) {
-                    MAIN.name -> initializeMainContent(isRealtime)
-                    SAVED.name, DISMISSED.name -> initializeCategorizedContent(feedType,
-                            homeViewModel.user.value!!.uid)
-                }
-            })
-        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -123,15 +111,18 @@ class ContentFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setToolbar()
-        initializeAdapter()
-        observeSignIn()
-        observeNewContentAdded()
+        initializeAdapters()
+        observeContentUpdated(savedInstanceState)
+        observeContentSelected()
+        observeContentShared()
+        observeContentSourceOpened()
         observeContentSelectedLaunchMedia()
     }
 
     override fun onDestroy() {
-        super.onDestroy()
+        moPubAdapter.destroy()
         compositeDisposable.dispose()
+        super.onDestroy()
     }
 
     fun setToolbar() {
@@ -148,74 +139,128 @@ class ContentFragment : Fragment() {
         }
     }
 
-    fun initializeMainContent(isRealtime: Boolean) {
-        contentViewModel.initializeMainContent(isRealtime)
+    fun initMainContent(isRealtime: Boolean) {
+        contentViewModel.initMainContent(isRealtime).observe(viewLifecycleOwner, Observer { status ->
+            Log.v(LOG_TAG, "initMainContent status ${status}")
+        })
     }
 
-    fun initializeCategorizedContent(feedType: String, userId: String) {
-        contentViewModel.initializeCategorizedContent(feedType, userId)
+    fun updateAds(toLoad: Boolean) {
+        var toLoad = toLoad
+        homeViewModel.location.observe(viewLifecycleOwner, Observer { location ->
+            moPubAdapter.loadAds(AD_UNIT_ID,
+                    if (location != null) RequestParameters.Builder().location(location)
+                            .userDataKeywords(MOPUB_KEYWORDS).build()
+                    else RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build()
+            )
+            moPubAdapter.setAdLoadedListener(object : MoPubNativeAdLoadedListener {
+                override fun onAdRemoved(position: Int) {
+                    moPubAdapter.notifyDataSetChanged()
+                }
+
+                override fun onAdLoaded(position: Int) {
+                    moPubAdapter.notifyDataSetChanged()
+                    if (toLoad) toLoad = false
+                }
+            })
+        })
     }
 
-    private fun initializeAdapter() {
-        adapter = ContentAdapter(contentViewModel)
+    private fun initializeAdapters() {
         contentRecyclerView.layoutManager = LinearLayoutManager(context)
+        populateAdapterType()
+    }
+
+    private fun observeContentUpdated(savedInstanceState: Bundle?) {
+        if (savedInstanceState == null && homeViewModel.accountType.value == FREE) updateAds(true)
         when (feedType) {
             MAIN.name -> {
-                contentViewModel.getMainContentList().observe(viewLifecycleOwner, Observer { homeContentList ->
+                contentViewModel.getMainRoomContent().observe(viewLifecycleOwner, Observer { homeContentList ->
                     adapter.submitList(homeContentList)
                     if (homeContentList.isNotEmpty()) {
                         emptyContent.visibility = GONE
-                        if (savedRecyclerLayoutState != null)
-                            contentRecyclerView.layoutManager?.onRestoreInstanceState(savedRecyclerLayoutState)
+                        if (savedRecyclerPosition != 0) {
+                            contentRecyclerView.layoutManager?.scrollToPosition(getRestoredAdapterPosition())
+                            savedRecyclerPosition = 0
+                        }
                     } else setEmptyView()
                 })
             }
             SAVED.name, DISMISSED.name -> {
-                var newFeedType = NONE
-                if (feedType == SAVED.name) newFeedType = SAVED
-                else if (feedType == DISMISSED.name) newFeedType = DISMISSED
-                contentViewModel.getCategorizedContentList(newFeedType).observe(viewLifecycleOwner, Observer { contentList ->
+                contentViewModel.getCategorizedRoomContent(
+                        if (feedType == SAVED.name) SAVED
+                        else if (feedType == DISMISSED.name) DISMISSED
+                        else NONE
+                ).observe(viewLifecycleOwner, Observer { contentList ->
                     adapter.submitList(contentList)
-                    if (contentList.isNotEmpty()) {
+                    //FIXME: Examine LiveData and why it's returning 0 values. Refactor to Observable.
+                    if (!(contentList.size == 0 && (adapter.itemCount == 1 || adapter.itemCount == 0))) {
                         emptyContent.visibility = GONE
-                        if (feedType == SAVED.name && homeViewModel.savedContentState != null)
-                            contentRecyclerView.layoutManager?.onRestoreInstanceState(homeViewModel.savedContentState)
-                        if (feedType == DISMISSED.name)
-                            contentRecyclerView.layoutManager?.onRestoreInstanceState(savedRecyclerLayoutState)
+                        if (savedRecyclerPosition != 0) {
+                            contentRecyclerView.layoutManager?.scrollToPosition(getRestoredAdapterPosition())
+                            savedRecyclerPosition = 0
+                        }
                     } else setEmptyView()
                 })
             }
         }
-        contentRecyclerView.adapter = adapter
-        ItemTouchHelper(homeViewModel).build(context!!, feedType, adapter, fragmentManager!!)
-                .attachToRecyclerView(contentRecyclerView)
-        observeContentSelected()
-        observeContentShared()
-        observeContentSourceOpened()
     }
 
-    //TODO: Needs further testing.
-    private fun observeNewContentAdded() {
-        /*contentViewModel.isNewContentAddedLiveData.observe(viewLifecycleOwner, Observer { isNewContent ->
-            if (feedType == MAIN.name && isNewContent) contentRecyclerView.scrollToPosition(0)
-        })*/
+    private fun getRestoredAdapterPosition() =
+            if (savedRecyclerPosition >= adapter.itemCount) adapter.itemCount - 1
+            else savedRecyclerPosition
+
+    private fun populateAdapterType() {
+        adapter = ContentAdapter(contentViewModel)
+        // FREE
+        if (homeViewModel.accountType.value!! == FREE) {
+            moPubAdapter = MoPubRecyclerAdapter(activity!!, adapter,
+                    MoPubNativeAdPositioning.MoPubServerPositioning())
+            moPubAdapter.registerAdRenderer(FacebookAdRenderer(
+                    FacebookViewBinder.Builder(fb_native_ad_item)
+                            .titleId(native_title)
+                            .textId(native_text)
+                            .mediaViewId(native_media_view)
+                            .adIconViewId(native_icon_image)
+                            .adChoicesRelativeLayoutId(native_ad_choices_relative_layout)
+                            .advertiserNameId(native_title)
+                            .callToActionId(native_cta)
+                            .build()))
+            val viewBinder = ViewBinder.Builder(native_ad_item)
+                    .titleId(native_title)
+                    .textId(native_text)
+                    .mainImageId(native_main_image)
+                    .iconImageId(native_icon_image)
+                    .callToActionId(native_cta)
+                    .privacyInformationIconImageId(native_privacy_information_icon_image)
+                    .build()
+            moPubAdapter.registerAdRenderer(FlurryNativeAdRenderer(FlurryViewBinder(Builder(viewBinder))))
+            moPubAdapter.registerAdRenderer(MoPubVideoNativeAdRenderer(
+                    MediaViewBinder.Builder(fb_native_ad_item)
+                            .mediaLayoutId(native_media_view)
+                            .iconImageId(native_icon_image)
+                            .titleId(native_title)
+                            .textId(native_text)
+                            .privacyInformationIconImageId(native_ad_choices_relative_layout)
+                            .build()))
+            moPubAdapter.registerAdRenderer(MoPubStaticNativeAdRenderer(viewBinder))
+            contentRecyclerView.adapter = moPubAdapter
+        } /* PAID */ else contentRecyclerView.adapter = adapter
+        ItemTouchHelper(homeViewModel).build(context!!, FREE, feedType, adapter, moPubAdapter, fragmentManager!!)
+                .attachToRecyclerView(contentRecyclerView)
     }
 
     private fun observeContentSelected() {
-        compositeDisposable.add(adapter.onContentSelected()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ contentSelected ->
+        compositeDisposable.add(adapter.onContentSelected
+                .subscribeOn(io()).observeOn(mainThread()).subscribe({ contentSelected ->
                     setContentProgressBar(contentSelected, VISIBLE)
                     contentViewModel.onContentClicked(contentSelected)
                 }, { throwable -> Log.e(LOG_TAG, throwable.toString()) }))
     }
 
     private fun observeContentShared() {
-        compositeDisposable.add(adapter.onContentShared()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ content ->
+        compositeDisposable.add(adapter.onContentShared
+                .subscribeOn(io()).observeOn(mainThread()).subscribe({ content ->
                     startActivity(createChooser(Intent(ACTION_SEND)
                             .setType(CONTENT_SHARE_TYPE)
                             .putExtra(EXTRA_SUBJECT, CONTENT_SHARE_SUBJECT_PREFFIX + content.title)
@@ -225,10 +270,8 @@ class ContentFragment : Fragment() {
     }
 
     private fun observeContentSourceOpened() {
-        compositeDisposable.add(adapter.onContentSourceOpened()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ contentUrl ->
+        compositeDisposable.add(adapter.onContentSourceOpened
+                .subscribeOn(io()).observeOn(mainThread()).subscribe({ contentUrl ->
                     startActivity(Intent(Intent.ACTION_VIEW).setData(Uri.parse(contentUrl)))
                 }, { throwable -> Log.e(LOG_TAG, throwable.toString()) }))
     }
@@ -245,12 +288,11 @@ class ContentFragment : Fragment() {
                         emptyContent.postDelayed({
                             homeViewModel.bottomSheetState.value = STATE_COLLAPSED
                         }, BOTTOM_SHEET_COLLAPSE_DELAY)
-                    } else {
+                    } else
                         if (childFragmentManager.findFragmentByTag(CONTENT_DIALOG_FRAGMENT_TAG) == null)
                             ContentDialogFragment()
                                     .newInstance(Bundle().apply { putParcelable(CONTENT_KEY, content) })
                                     .show(childFragmentManager, CONTENT_DIALOG_FRAGMENT_TAG)
-                    }
                 }
                 // Launch content from saved bottom sheet screen via HomeFragment.
                 SAVED.name -> {
@@ -263,16 +305,10 @@ class ContentFragment : Fragment() {
         })
     }
 
-    private fun observeSignIn() {
-        homeViewModel.user.observe(this, Observer { user: FirebaseUser? ->
-            //TODO: Set based on user subscription and preference.
-            initializeMainContent(true)
-        })
-    }
-
     private fun setContentProgressBar(contentSelected: ContentSelected, visibility: Int) {
         contentViewModel.contentLoadingStatusMap.put(contentSelected.content.id, visibility)
-        adapter.notifyItemChanged(contentSelected.position)
+        if (homeViewModel.accountType.value == FREE) moPubAdapter.notifyItemChanged(contentSelected.position)
+        else adapter.notifyItemChanged(contentSelected.position)
     }
 
     fun setEmptyView() {
@@ -305,38 +341,37 @@ class ContentFragment : Fragment() {
                 emptyContent.confirmation.visibility = GONE
             }
             SAVED.name -> {
-                emptyContent.emptyImage.setImageDrawable(ContextCompat.getDrawable(context!!,
+                emptyContent.emptyImage.setImageDrawable(getDrawable(context!!,
                         R.drawable.ic_save_planet_dark_48dp))
                 emptyContent.title.text = getString(R.string.no_saved_content_title)
-                emptyContent.swipe_right_one.setImageDrawable(ContextCompat.getDrawable(context!!,
+                emptyContent.swipe_right_one.setImageDrawable(getDrawable(context!!,
                         R.drawable.ic_chevron_right_color_accent_24dp))
-                emptyContent.swipe_right_two.setImageDrawable(ContextCompat.getDrawable(context!!,
+                emptyContent.swipe_right_two.setImageDrawable(getDrawable(context!!,
                         R.drawable.ic_chevron_right_color_accent_fade_one_24dp))
-                emptyContent.swipe_right_three.setImageDrawable(ContextCompat.getDrawable(context!!,
+                emptyContent.swipe_right_three.setImageDrawable(getDrawable(context!!,
                         R.drawable.ic_chevron_right_color_accent_fade_two_24dp))
-                emptyContent.swipe_right_four.setImageDrawable(ContextCompat.getDrawable(context!!,
+                emptyContent.swipe_right_four.setImageDrawable(getDrawable(context!!,
                         R.drawable.ic_chevron_right_color_accent_fade_three_24dp))
-                emptyContent.swipe_right_five.setImageDrawable(ContextCompat.getDrawable(context!!,
+                emptyContent.swipe_right_five.setImageDrawable(getDrawable(context!!,
                         R.drawable.ic_chevron_right_color_accent_fade_four_24dp))
                 emptyContent.emptyInstructions.text = getString(R.string.no_saved_content_instructions)
             }
             DISMISSED.name -> {
-                emptyContent.emptyImage.setImageDrawable(ContextCompat.getDrawable(context!!,
+                emptyContent.emptyImage.setImageDrawable(getDrawable(context!!,
                         R.drawable.ic_dismiss_planet_light_48dp))
                 emptyContent.title.text = getString(R.string.no_dismissed_content_title)
-                emptyContent.swipe_right_one.setImageDrawable(ContextCompat.getDrawable(context!!,
+                emptyContent.swipe_right_one.setImageDrawable(getDrawable(context!!,
                         R.drawable.ic_chevron_left_color_accent_24dp))
-                emptyContent.swipe_right_two.setImageDrawable(ContextCompat.getDrawable(context!!,
+                emptyContent.swipe_right_two.setImageDrawable(getDrawable(context!!,
                         R.drawable.ic_chevron_left_color_accent_fade_one_24dp))
-                emptyContent.swipe_right_three.setImageDrawable(ContextCompat.getDrawable(context!!,
+                emptyContent.swipe_right_three.setImageDrawable(getDrawable(context!!,
                         R.drawable.ic_chevron_left_color_accent_fade_two_24dp))
-                emptyContent.swipe_right_four.setImageDrawable(ContextCompat.getDrawable(context!!,
+                emptyContent.swipe_right_four.setImageDrawable(getDrawable(context!!,
                         R.drawable.ic_chevron_left_color_accent_fade_three_24dp))
-                emptyContent.swipe_right_five.setImageDrawable(ContextCompat.getDrawable(context!!,
+                emptyContent.swipe_right_five.setImageDrawable(getDrawable(context!!,
                         R.drawable.ic_chevron_left_color_accent_fade_four_24dp))
                 emptyContent.emptyInstructions.text = getString(R.string.no_dismissed_content_instructions)
             }
         }
     }
-
 }

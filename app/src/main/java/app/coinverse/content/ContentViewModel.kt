@@ -15,6 +15,7 @@ import app.coinverse.Enums.ContentType.*
 import app.coinverse.Enums.FeedType
 import app.coinverse.Enums.FeedType.DISMISSED
 import app.coinverse.Enums.FeedType.SAVED
+import app.coinverse.Enums.Status
 import app.coinverse.Enums.Timeframe
 import app.coinverse.Enums.UserActionType
 import app.coinverse.content.models.Content
@@ -24,53 +25,43 @@ import app.coinverse.utils.DateAndTime.getTimeframe
 import app.coinverse.utils.livedata.Event
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.functions.FirebaseFunctionsException
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers.mainThread
+import io.reactivex.schedulers.Schedulers.io
+import io.reactivex.subjects.ReplaySubject
 
 class ContentViewModel(application: Application) : AndroidViewModel(application) {
     val LOG_TAG = ContentViewModel::class.java.name
 
-    var contentRepository: ContentRepository
-    var feedType = NONE.name
-    //TODO: Add isRealtime Boolean for paid feature.
-    var timeframe = MutableLiveData<Timeframe>()
-    //TODO: Needs further testing.
-    //var isNewContentAddedLiveData: LiveData<Boolean>
-
-    var contentLoadingStatusMap = hashMapOf<String, Int>()
-
-    private val _contentSelected = MutableLiveData<Event<ContentSelected>>()
+    val timeframe = MutableLiveData<Timeframe>()
     val contentSelected: LiveData<Event<ContentSelected>>
         get() = _contentSelected
-
     val pagedListConfiguration = PagedList.Config.Builder()
             .setEnablePlaceholders(true)
             .setPrefetchDistance(PREFETCH_DISTANCE)
             .setPageSize(PAGE_SIZE)
             .build()
+    private val _contentSelected = MutableLiveData<Event<ContentSelected>>()
+
+    var contentRepository: ContentRepository
+    var feedType = NONE.name
+    //TODO: Add isRealtime Boolean for paid feature.
+    var contentLoadingStatusMap = hashMapOf<String, Int>()
 
     init {
         contentRepository = ContentRepository(application)
         timeframe.value = Enums.Timeframe.WEEK
-        //TODO: Needs further testing.
-        /*val isNewContentAddedLiveData = contentRepository.isNewContentAddedLiveData
-        this.isNewContentAddedLiveData = Transformations.map(isNewContentAddedLiveData) { result -> result }*/
     }
 
-    fun initializeMainContent(isRealtime: Boolean) {
-        contentRepository.initializeMainRoomContent(isRealtime, timeframe.value!!)
-    }
+    fun initMainContent(isRealtime: Boolean) = contentRepository.initMainContent(isRealtime, timeframe.value!!)
 
-    fun initializeCategorizedContent(feedType: String, userId: String) {
-        contentRepository.initializeCategorizedRoomContent(feedType, userId)
-    }
+    fun getMainRoomContent() = LivePagedListBuilder(
+            contentRepository.getMainRoomContent(getTimeframe(timeframe.value)),
+            pagedListConfiguration).build()
 
-    fun getMainContentList() =
-            LivePagedListBuilder(
-                    contentRepository.getMainContent(getTimeframe(timeframe.value)),
-                    pagedListConfiguration).build()
-
-    fun getCategorizedContentList(feedType: FeedType) =
-            LivePagedListBuilder(contentRepository.getCategorizedContent(feedType),
-                    pagedListConfiguration).build()
+    fun getCategorizedRoomContent(feedType: FeedType) = LivePagedListBuilder(
+            contentRepository.getCategorizedRoomContent(feedType),
+            pagedListConfiguration).build()
 
     fun getToolbarVisibility() =
             when (feedType) {
@@ -110,16 +101,21 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun organizeContent(feedType: String, actionType: UserActionType, user: FirebaseUser,
-                        content: Content?, mainFeedEmptied: Boolean) {
+                        content: Content?, mainFeedEmptied: Boolean): Observable<Status> {
+        val statusSubscriber = ReplaySubject.create<Status>()
         contentRepository.organizeContent(feedType, actionType, content, user, mainFeedEmptied)
+                .subscribeOn(io()).observeOn(mainThread())
+                .subscribe { status -> statusSubscriber.onNext(status) }.dispose()
+        return statusSubscriber
     }
 
     fun updateActions(actionType: UserActionType, content: Content, user: FirebaseUser) {
         contentRepository.updateActions(actionType, content, user)
     }
 
-    fun getLoadingState(contentId: String) = when (contentLoadingStatusMap.get(contentId)) {
-        GONE, INVISIBLE, null -> GONE
-        else -> VISIBLE
-    }
+    fun getLoadingState(contentId: String?) =
+            if (contentId != null) when (contentLoadingStatusMap.get(contentId)) {
+                GONE, INVISIBLE, null -> GONE
+                else -> VISIBLE
+            } else GONE
 }

@@ -1,6 +1,6 @@
 package app.coinverse.content.adapter
 
-import android.os.SystemClock
+import android.os.SystemClock.elapsedRealtime
 import android.view.LayoutInflater
 import android.view.View.OnClickListener
 import android.view.ViewGroup
@@ -10,8 +10,9 @@ import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import app.coinverse.Enums.FeedType.MAIN
+import app.coinverse.Enums.Status
 import app.coinverse.Enums.UserActionType
-import app.coinverse.R
+import app.coinverse.R.id.*
 import app.coinverse.content.ContentViewModel
 import app.coinverse.content.models.Content
 import app.coinverse.content.models.ContentSelected
@@ -20,6 +21,8 @@ import app.coinverse.utils.ADAPTER_POSITION_KEY
 import app.coinverse.utils.CLICK_SPAM_PREVENTION_THRESHOLD
 import com.google.firebase.auth.FirebaseUser
 import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers.mainThread
+import io.reactivex.schedulers.Schedulers.io
 import io.reactivex.subjects.ReplaySubject
 import kotlinx.android.synthetic.main.cell_content.view.*
 
@@ -35,9 +38,9 @@ private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Content>() {
 
 class ContentAdapter(var contentViewModel: ContentViewModel) : PagedListAdapter<Content, ContentAdapter.ViewHolder>(DIFF_CALLBACK) {
 
-    private val onContentSelectedSubscriber: ReplaySubject<ContentSelected> = ReplaySubject.create()
-    private val onContentSharedSubscriber: ReplaySubject<Content> = ReplaySubject.create()
-    private val onContentSourceOpenedSubscriber: ReplaySubject<String> = ReplaySubject.create()
+    val onContentSelected: ReplaySubject<ContentSelected> = ReplaySubject.create()
+    val onContentShared: ReplaySubject<Content> = ReplaySubject.create()
+    val onContentSourceOpened: ReplaySubject<String> = ReplaySubject.create()
 
     private var lastClickTime = 0L
 
@@ -55,22 +58,25 @@ class ContentAdapter(var contentViewModel: ContentViewModel) : PagedListAdapter<
     private fun createOnClickListener(content: Content): OnClickListener {
         return OnClickListener { view ->
             when (view.id) {
-                R.id.preview -> {
-                    if (SystemClock.elapsedRealtime() - lastClickTime > CLICK_SPAM_PREVENTION_THRESHOLD)
-                        onContentSelectedSubscriber.onNext(
-                                ContentSelected(view.getTag(ADAPTER_POSITION_KEY) as Int, content))
-                    lastClickTime = SystemClock.elapsedRealtime()
+                preview, contentTypeLogo -> {
+                    if (elapsedRealtime() - lastClickTime > CLICK_SPAM_PREVENTION_THRESHOLD)
+                        onContentSelected.onNext(ContentSelected(view.getTag(ADAPTER_POSITION_KEY) as Int, content))
+                    lastClickTime = elapsedRealtime()
                 }
-                R.id.share -> onContentSharedSubscriber.onNext(content)
-                R.id.openSource -> onContentSourceOpenedSubscriber.onNext(content.url)
+                share -> onContentShared.onNext(content)
+                openSource -> onContentSourceOpened.onNext(content.url)
             }
         }
     }
 
-    fun organizeContent(feedType: String, actionType: UserActionType, itemPosition: Int, user: FirebaseUser) {
-        var mainFeedEmptied = false
-        if (feedType == MAIN.name) mainFeedEmptied = itemCount == 1
-        contentViewModel.organizeContent(feedType, actionType, user, getItem(itemPosition), mainFeedEmptied)
+    fun organizeContent(feedType: String, actionType: UserActionType, itemPosition: Int,
+                        user: FirebaseUser): Observable<Status> {
+        val statusSubscriber = ReplaySubject.create<Status>()
+        contentViewModel.organizeContent(feedType, actionType, user, getItem(itemPosition),
+                if (feedType == MAIN.name) itemCount == 1 else false)
+                .subscribeOn(io()).observeOn(mainThread())
+                .subscribe { status -> statusSubscriber.onNext(status) }.dispose()
+        return statusSubscriber
     }
 
     class ViewHolder(private var binding: ViewDataBinding) : RecyclerView.ViewHolder(binding.root) {
@@ -78,20 +84,9 @@ class ContentAdapter(var contentViewModel: ContentViewModel) : PagedListAdapter<
             binding.setVariable(BR.data, data)
             binding.setVariable(BR.clickListener, onClickListener)
             binding.root.preview.setTag(ADAPTER_POSITION_KEY, layoutPosition)
+            binding.root.contentTypeLogo.setTag(ADAPTER_POSITION_KEY, layoutPosition)
             binding.executePendingBindings()
         }
-    }
-
-    fun onContentSelected(): Observable<ContentSelected> {
-        return onContentSelectedSubscriber
-    }
-
-    fun onContentShared(): Observable<Content> {
-        return onContentSharedSubscriber
-    }
-
-    fun onContentSourceOpened(): Observable<String> {
-        return onContentSourceOpenedSubscriber
     }
 
 }

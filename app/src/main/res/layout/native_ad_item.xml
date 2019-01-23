@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/native_outer_view"
+    style="@style/AdContentCardStyle"
+    android:textDirection="locale">
+
+    <TextView
+        android:id="@+id/native_title"
+        style="@style/CellCreatorStyle"
+        app:layout_constraintBottom_toBottomOf="@+id/guideline"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@id/native_main_image"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/sponsored"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/sponsored"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/guideline" />
+
+    <ImageView
+        android:id="@+id/native_icon_image"
+        android:layout_width="@dimen/native_icon_image_dimen"
+        android:layout_height="@dimen/native_icon_image_dimen"
+        android:background="@null"
+        android:contentDescription="@string/native_icon_mage"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/native_main_image"
+        style="@style/CellPreviewImageStyle"
+        android:background="@null"
+        android:contentDescription="@string/native_main_image"
+        android:scaleType="centerCrop"
+        app:layout_constraintBottom_toTopOf="@id/native_text"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sponsored" />
+
+    <TextView
+        android:id="@+id/native_text"
+        style="@style/CellTitleStyle"
+        app:layout_constraintBottom_toTopOf="@id/native_cta"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/native_main_image" />
+
+    <TextView
+        android:id="@+id/native_cta"
+        style="@style/NativeCtaStyle"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/native_text"
+        tools:text="@string/learn_more" />
+
+    <ImageView
+        android:id="@+id/native_privacy_information_icon_image"
+        android:layout_width="@dimen/native_privacy_info_icon_image_dimen"
+        android:layout_height="@dimen/native_privacy_info_icon_image_dimen"
+        android:contentDescription="@string/native_privacy_information_icon_image"
+        app:layout_constraintBottom_toBottomOf="@id/native_cta"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="@id/native_cta" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

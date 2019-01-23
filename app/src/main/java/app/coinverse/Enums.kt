@@ -38,4 +38,8 @@ object Enums {
     enum class SignInType(val code: Int) {
         DIALOG(1), FULLSCREEN(2)
     }
+
+    enum class AccountType {
+        PAID, FREE
+    }
 }

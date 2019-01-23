@@ -9,7 +9,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 class HomeRepository(application: Application) {
 
-    private val LOG_TAG = HomeRepository::javaClass.name
+    private val LOG_TAG = HomeRepository::class.java.simpleName
 
     private var analytics: FirebaseAnalytics
     private var firestore: FirebaseFirestore

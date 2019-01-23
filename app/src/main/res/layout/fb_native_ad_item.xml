@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/native_outer_view"
+    style="@style/AdContentCardStyle"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/cell_content_feed_height"
+    android:textDirection="locale">
+
+    <TextView
+        android:id="@+id/native_title"
+        style="@style/CellCreatorStyle"
+        app:layout_constraintBottom_toBottomOf="@+id/guideline"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@id/native_media_view"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/sponsored"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/sponsored"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/guideline" />
+
+    <com.facebook.ads.AdIconView
+        android:id="@+id/native_icon_image"
+        android:layout_width="@dimen/native_icon_image_dimen"
+        android:layout_height="@dimen/native_icon_image_dimen"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.facebook.ads.MediaView
+        android:id="@+id/native_media_view"
+        style="@style/CellPreviewImageStyle"
+        android:contentDescription="@string/native_main_image"
+        app:layout_constraintBottom_toTopOf="@id/native_text"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sponsored" />
+
+    <TextView
+        android:id="@+id/native_text"
+        style="@style/CellTitleStyle"
+        app:layout_constraintBottom_toTopOf="@id/native_cta"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/native_media_view"
+        tools:text="@string/learn_more" />
+
+    <RelativeLayout
+        android:id="@+id/native_ad_choices_relative_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="left"
+        app:layout_constraintBottom_toBottomOf="@id/native_cta"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="@id/native_cta" />
+
+    <TextView
+        android:id="@+id/native_cta"
+        style="@style/NativeCtaStyle"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/native_text"
+        tools:text="@string/learn_more" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

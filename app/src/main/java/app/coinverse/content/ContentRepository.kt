@@ -3,10 +3,15 @@ package app.coinverse.content
 import android.app.Application
 import android.os.Bundle
 import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.paging.DataSource
-import app.coinverse.Enums
 import app.coinverse.Enums.FeedType
 import app.coinverse.Enums.FeedType.*
+import app.coinverse.Enums.Status
+import app.coinverse.Enums.Status.ERROR
+import app.coinverse.Enums.Status.SUCCESS
+import app.coinverse.Enums.Timeframe
 import app.coinverse.Enums.UserActionType
 import app.coinverse.Enums.UserActionType.*
 import app.coinverse.content.models.Content
@@ -25,14 +30,15 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.*
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.Query.Direction.DESCENDING
 import com.google.firebase.functions.FirebaseFunctions
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
+import io.reactivex.subjects.ReplaySubject
 
 class ContentRepository(application: Application) {
-
-    //TODO: Needs further testing.
-    //val isNewContentAddedLiveData = MutableLiveData<Boolean>()
-
-    private val LOG_TAG = ContentRepository::javaClass.name
+    private val LOG_TAG = ContentRepository::class.java.simpleName
     private lateinit var savedListenerRegistration: ListenerRegistration
     private lateinit var dismissedListenerRegistration: ListenerRegistration
     private lateinit var contentListenerRegistration: ListenerRegistration
@@ -50,7 +56,8 @@ class ContentRepository(application: Application) {
         functions = FirebaseFunctions.getInstance()
     }
 
-    fun initializeMainRoomContent(isRealtime: Boolean, timeframe: Enums.Timeframe) {
+    fun initMainContent(isRealtime: Boolean, timeframe: Timeframe): LiveData<Status> {
+        val status = MutableLiveData<Status>()
         val contentDao = database.contentDao()
         val user = FirebaseAuth.getInstance().currentUser
         if (user != null) {
@@ -59,166 +66,148 @@ class ContentRepository(application: Application) {
             // Get Saved collection.
             savedListenerRegistration = userReference
                     .collection(SAVE_COLLECTION)
-                    .orderBy(TIMESTAMP, Query.Direction.DESCENDING)
+                    .orderBy(TIMESTAMP, DESCENDING)
                     .whereGreaterThanOrEqualTo(TIMESTAMP, getTimeframe(timeframe))
                     .addSnapshotListener(EventListener { value, error ->
                         error?.run {
-                            Log.e(LOG_TAG, "Content EventListener Failed.", error)
+                            status.value = ERROR
+                            Log.e(LOG_TAG, "Get saved collection error. ${error.localizedMessage}")
                             return@EventListener
                         }
-                        for (document in value!!.documentChanges) {
+                        value!!.documentChanges.all { document ->
                             val savedContent = document.document.toObject(Content::class.java)
                             organizedSet.add(savedContent.id)
-                            Thread(Runnable { run { contentDao.updateContent(savedContent) } }).start()
+                            Thread(Runnable { run { contentDao.updateContentItem(savedContent) } }).start()
+                            true
                         }
                     })
             // Get Dismissed collection.
             dismissedListenerRegistration = userReference
                     .collection(DISMISS_COLLECTION)
-                    .orderBy(TIMESTAMP, Query.Direction.DESCENDING)
+                    .orderBy(TIMESTAMP, DESCENDING)
                     .whereGreaterThanOrEqualTo(TIMESTAMP, getTimeframe(timeframe))
                     .addSnapshotListener(EventListener { value, error ->
                         error?.run {
-                            Log.e(LOG_TAG, "Content EventListener Failed.", error)
+                            status.value = ERROR
+                            Log.e(LOG_TAG, "Get dismissed collection error. ${error.localizedMessage}")
                             return@EventListener
                         }
-                        for (document in value!!.documentChanges) {
+                        value!!.documentChanges.all { document ->
                             val dismissedContent = document.document.toObject(Content::class.java)
                             organizedSet.add(dismissedContent.id)
-                            Thread(Runnable { run { contentDao.updateContent(dismissedContent) } }).start()
+                            Thread(Runnable { run { contentDao.updateContentItem(dismissedContent) } }).start()
+                            true
                         }
                     })
             //Logged in and realtime enabled.
             if (isRealtime) {
                 contentListenerRegistration = FirestoreCollections.contentEnCollection
-                        .orderBy(TIMESTAMP, Query.Direction.DESCENDING)
+                        .orderBy(TIMESTAMP, DESCENDING)
                         .whereGreaterThanOrEqualTo(TIMESTAMP, getTimeframe(timeframe))
                         .addSnapshotListener(EventListener { value, error ->
                             error?.run {
-                                Log.e(LOG_TAG, "Content EventListener Failed.", error)
+                                status.value = ERROR
+                                Log.e(LOG_TAG, "Main feed filter error. Logged In and Realtime. ${error.localizedMessage}")
                                 return@EventListener
                             }
                             val contentList = arrayListOf<Content?>()
-                            for (document in value!!.documentChanges) {
+                            value!!.documentChanges.all { document ->
                                 val content = document.document.toObject(Content::class.java)
-                                if (!organizedSet.contains(content.id)) {
-                                    //TODO: Needs further testing.
-                                    //isNewContentAddedLiveData.value = true
-                                    contentList.add(content)
-                                }
+                                if (!organizedSet.contains(content.id)) contentList.add(content)
+                                true
                             }
-                            Thread(Runnable { run { contentDao.insertContent(contentList) } }).start()
+                            Thread(Runnable { run { contentDao.insertContentList(contentList) } }).start()
                         })
-            } else { // Logged in but not realtime.
+            } else { // Logged in, not realtime.
                 FirestoreCollections.contentEnCollection
-                        .orderBy(TIMESTAMP, Query.Direction.DESCENDING)
+                        .orderBy(TIMESTAMP, DESCENDING)
                         .whereGreaterThanOrEqualTo(TIMESTAMP, getTimeframe(timeframe))
                         .get()
                         .addOnCompleteListener {
                             val contentList = arrayListOf<Content?>()
-                            for (document in it.result!!.documentChanges) {
+                            it.result!!.documentChanges.all { document ->
                                 val content = document.document.toObject(Content::class.java)
-                                if (!organizedSet.contains(content.id)) {
-                                    //TODO: Needs further testing.
-                                    //isNewContentAddedLiveData.value = true
-                                    contentList.add(content)
-                                }
+                                if (!organizedSet.contains(content.id)) contentList.add(content)
+                                true
                             }
-                            Thread(Runnable { run { contentDao.insertContent(contentList) } }).start()
+                            Thread(Runnable { run { contentDao.insertContentList(contentList) } }).start()
+                            status.value = SUCCESS
+                        }.addOnFailureListener {
+                            status.value = ERROR
+                            Log.e(LOG_TAG, "Main feed filter error. Logged In. ${it.localizedMessage}")
                         }
             }
 
-        } else { // Looged out and thus not realtime.
+        } else { // Logged out, not realtime.
             FirestoreCollections.contentEnCollection
-                    .orderBy(TIMESTAMP, Query.Direction.DESCENDING)
+                    .orderBy(TIMESTAMP, DESCENDING)
                     .whereGreaterThanOrEqualTo(TIMESTAMP, getTimeframe(timeframe))
                     .get()
                     .addOnCompleteListener {
                         val contentList = arrayListOf<Content?>()
-                        for (document in it.result!!.documents) {
-                            val content = document.toObject(Content::class.java)
-                            contentList.add(content)
+                        it.result!!.documents.all { document ->
+                            contentList.add(document.toObject(Content::class.java))
+                            true
                         }
-                        Thread(Runnable { run { contentDao.insertContent(contentList) } }).start()
+                        Thread(Runnable { run { contentDao.insertContentList(contentList) } }).start()
+                        status.value = SUCCESS
+                    }.addOnFailureListener {
+                        status.value = ERROR
+                        Log.e(LOG_TAG, "Main feed filter error. Logged out. ${it.localizedMessage}")
                     }
         }
+        return status
     }
 
-    fun initializeCategorizedRoomContent(feedType: String, userId: String) {
-        var collectionType = ""
-        var newFeedType = FeedType.NONE
-        if (feedType == SAVED.name) {
-            collectionType = SAVE_COLLECTION
-            newFeedType = SAVED
-        } else if (feedType == DISMISSED.name) {
-            collectionType = DISMISS_COLLECTION
-            newFeedType = DISMISSED
-        }
-        FirestoreCollections.contentEnCollection
-                .document(userId)
-                .collection(collectionType)
-                .orderBy(TIMESTAMP, Query.Direction.DESCENDING)
-                .addSnapshotListener(EventListener { value, error ->
-                    error?.run {
-                        Log.e(LOG_TAG, "Content EventListener Failed.", error)
-                        return@EventListener
-                    }
-                    val contentList = arrayListOf<Content?>()
-                    for (document in value!!.documentChanges) {
-                        val content = document.document.toObject(Content::class.java)
-                        content.feedType = newFeedType
-                        contentList.add(content)
-                    }
-                    Thread(Runnable { run { database.contentDao().insertContent(contentList) } }).start()
-                })
-    }
+    fun getMainRoomContent(timeframe: Timestamp): DataSource.Factory<Int, Content> =
+            database.contentDao().getMainContentList(timeframe, MAIN)
 
-    fun getMainContent(timeframe: Timestamp): DataSource.Factory<Int, Content> =
-            database.contentDao().getMainContent(timeframe, MAIN)
-
-    fun getCategorizedContent(feedType: FeedType): DataSource.Factory<Int, Content> =
-            database.contentDao().getCategorizedContent(feedType)
+    fun getCategorizedRoomContent(feedType: FeedType): DataSource.Factory<Int, Content> =
+            database.contentDao().getCategorizedContentList(feedType)
 
     fun organizeContent(feedType: String, actionType: UserActionType, content: Content?,
-                        user: FirebaseUser, mainFeedEmptied: Boolean) {
+                        user: FirebaseUser, mainFeedEmptied: Boolean): Observable<Status> {
+        val statusSubscriber = ReplaySubject.create<Status>()
         val userReference = usersCollection.document(user.uid)
-
         // Add content to new collection.
         if (actionType == SAVE) {
-            if (feedType == MAIN.name) {
-                updateActions(actionType, content!!, user)
-            } else if (feedType == DISMISSED.name) {
-                deleteContent(userReference, DISMISS_COLLECTION, content)
-            }
+            if (feedType == MAIN.name) updateActions(actionType, content!!, user)
+            else if (feedType == DISMISSED.name) deleteContent(userReference, DISMISS_COLLECTION, content)
             content?.feedType = SAVED
             setContent(feedType, userReference, SAVE_COLLECTION, content, mainFeedEmptied)
+                    .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                    .subscribe { status -> statusSubscriber.onNext(status) }
         } else if (actionType == DISMISS) {
-            if (feedType == MAIN.name) {
-                updateActions(actionType, content!!, user)
-            } else if (feedType == SAVED.name) {
-                deleteContent(userReference, SAVE_COLLECTION, content)
-            }
+            if (feedType == MAIN.name) updateActions(actionType, content!!, user)
+            else if (feedType == SAVED.name) deleteContent(userReference, SAVE_COLLECTION, content)
             content?.feedType = DISMISSED
             setContent(feedType, userReference, DISMISS_COLLECTION, content, mainFeedEmptied)
+                    .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                    .subscribe { status -> statusSubscriber.onNext(status) }
         }
-
         if (mainFeedEmptied) {
-            val bundle = Bundle()
-            bundle.putString(TIMESTAMP_PARAM, Timestamp.now().toString())
-            analytics.logEvent(CLEAR_FEED_EVENT, bundle)
+            analytics.logEvent(CLEAR_FEED_EVENT, Bundle().apply {
+                putString(TIMESTAMP_PARAM, Timestamp.now().toString())
+            })
             updateUserActionCounter(user.uid, CLEAR_FEED_COUNT)
         }
+        return statusSubscriber
     }
 
     fun setContent(feedType: String, userReference: DocumentReference, collection: String,
-                   content: Content?, mainFeedEmptied: Boolean) {
+                   content: Content?, mainFeedEmptied: Boolean): Observable<Status> {
+        val statusSubscriber = ReplaySubject.create<Status>()
         userReference.collection(collection).document(content!!.id).set(content)
                 .addOnSuccessListener {
-                    Log.v(LOG_TAG, String.format("Content added to collection:%s", it))
                     logCategorizeContentAnalyticsEvent(feedType, content, mainFeedEmptied)
+                    Thread(Runnable { run { database.contentDao().updateContentItem(content) } }).start()
+                    statusSubscriber.onNext(SUCCESS)
+                    Log.v(LOG_TAG, String.format("Content added to collection:%s", it))
                 }.addOnFailureListener {
-                    Log.v(LOG_TAG, String.format("Content failed to be added to collection:%s", it))
+                    statusSubscriber.onNext(ERROR)
+                    Log.e(LOG_TAG, String.format("Content failed to be added to collection:%s", it))
                 }
+        return statusSubscriber
     }
 
     fun deleteContent(userReference: DocumentReference, collection: String, content: Content?) {
@@ -227,9 +216,10 @@ class ContentRepository(application: Application) {
                 .document(content!!.id)
                 .delete()
                 .addOnSuccessListener {
+                    //TODO: Add Observerable to animate RecyclerView
                     Log.v(LOG_TAG, String.format("Content deleted from to collection:%s", it))
                 }.addOnFailureListener {
-                    Log.v(LOG_TAG, String.format("Content failed to be deleted from collection:%s", it))
+                    Log.e(LOG_TAG, String.format("Content failed to be deleted from collection:%s", it))
                 }
     }
 

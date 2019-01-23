@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
-import app.coinverse.BuildConfig
+import app.coinverse.BuildConfig.DEBUG
 import app.coinverse.R
 import app.coinverse.content.models.Content
 import app.coinverse.content.room.CoinverseDatabase
@@ -54,23 +54,29 @@ class YouTubeFragment : Fragment() {
         analytics.setCurrentScreen(activity!!, YOUTUBE_VIEW, null)
         binding = FragmentContentDialogBinding.inflate(inflater, container, false)
         val youTubePlayerFragment = YouTubePlayerSupportFragment.newInstance()
-        val appApiId = if (BuildConfig.DEBUG) APP_API_ID_STAGING else APP_API_ID_PRODUCTION
-        youTubePlayerFragment.initialize(appApiId, object : YouTubePlayer.OnInitializedListener {
-            override fun onInitializationSuccess(provider: YouTubePlayer.Provider, player: YouTubePlayer, wasRestored: Boolean) {
-                if (!wasRestored) {
-                    youtubePlayer = player
-                    player.setPlayerStateChangeListener(PlayerStateChangeListener(savedInstanceState))
-                    player.setPlaybackEventListener(PlaybackEventListener())
-                    if (savedInstanceState == null) player.loadVideo(content.id.substring(8))
-                    else player.loadVideo(content.id.substring(8),
-                            savedInstanceState.getInt(MEDIA_CURRENT_TIME_KEY))
-                }
-            }
+        youTubePlayerFragment.initialize(if (DEBUG) APP_API_ID_STAGING else APP_API_ID_PRODUCTION,
+                object : YouTubePlayer.OnInitializedListener {
+                    override fun onInitializationSuccess(provider: YouTubePlayer.Provider, player: YouTubePlayer, wasRestored: Boolean) {
+                        if (!wasRestored) {
+                            youtubePlayer = player
+                            player.setPlayerStateChangeListener(PlayerStateChangeListener(savedInstanceState))
+                            player.setPlaybackEventListener(PlaybackEventListener())
+                            if (savedInstanceState == null) {
+                                Log.v(LOG_TAG, "YOUTUBE_FIX: onCreateView() savedInstanceState == null")
+                                player.loadVideo(content.id.substring(8))
+                            } else {
+                                Log.v(LOG_TAG, "YOUTUBE_FIX: onCreateView() savedInstanceState " +
+                                        "${savedInstanceState.getInt(MEDIA_CURRENT_TIME_KEY)}")
+                                player.loadVideo(content.id.substring(8),
+                                        savedInstanceState.getInt(MEDIA_CURRENT_TIME_KEY))
+                            }
+                        }
+                    }
 
-            override fun onInitializationFailure(provider: YouTubePlayer.Provider, result: YouTubeInitializationResult) {
-                Log.v(LOG_TAG, String.format("YouTube intialization failed: %s", result.name))
-            }
-        })
+                    override fun onInitializationFailure(provider: YouTubePlayer.Provider, result: YouTubeInitializationResult) {
+                        Log.v(LOG_TAG, String.format("YouTube intialization failed: %s", result.name))
+                    }
+                })
         childFragmentManager.beginTransaction().replace(R.id.dialog_content, youTubePlayerFragment as Fragment).commit()
         return binding.root
     }
@@ -103,8 +109,7 @@ class YouTubeFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        val watchPercent = (youtubePlayer.currentTimeMillis.toDouble() - seekToPositionMillis) / youtubePlayer.durationMillis
-        updateActionsAndAnalytics(content, contentViewModel, coinverseDatabase.contentDao(),
-                analytics, watchPercent)
+        if (youtubePlayer != null) updateActionsAndAnalytics(content, contentViewModel, coinverseDatabase.contentDao(),
+                analytics, (youtubePlayer.currentTimeMillis.toDouble() - seekToPositionMillis) / youtubePlayer.durationMillis)
     }
 }

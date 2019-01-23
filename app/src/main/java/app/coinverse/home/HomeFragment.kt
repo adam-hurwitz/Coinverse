@@ -1,7 +1,10 @@
 package app.coinverse.home
 
+import android.Manifest.permission.ACCESS_COARSE_LOCATION
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
+import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,26 +12,37 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity.MODE_PRIVATE
+import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
+import androidx.core.content.PermissionChecker.PERMISSION_GRANTED
+import androidx.core.content.PermissionChecker.checkSelfPermission
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
-import app.coinverse.Enums
+import app.coinverse.Enums.AccountType.FREE
 import app.coinverse.Enums.FeedType.MAIN
 import app.coinverse.Enums.FeedType.SAVED
+import app.coinverse.Enums.SignInType.DIALOG
+import app.coinverse.Enums.SignInType.FULLSCREEN
 import app.coinverse.R
+import app.coinverse.R.drawable.ic_astronaut_color_accent_24dp
+import app.coinverse.R.string.*
 import app.coinverse.content.ContentDialogFragment
 import app.coinverse.content.ContentFragment
 import app.coinverse.databinding.FragmentHomeBinding
 import app.coinverse.firebase.FirestoreCollections.usersCollection
+import app.coinverse.home.HomeFragmentDirections.actionHomeFragmentToProfileFragment
 import app.coinverse.priceGraph.PriceFragment
+import app.coinverse.user.PermissionsDialogFragment
 import app.coinverse.user.SignInDialogFragment
 import app.coinverse.user.models.User
 import app.coinverse.utils.*
 import app.coinverse.utils.livedata.EventObserver
 import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.RequestOptions.circleCropTransform
 import com.firebase.ui.auth.IdpResponse
+import com.google.android.gms.location.LocationServices
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.*
@@ -49,8 +63,17 @@ class HomeFragment : Fragment() {
     private lateinit var homeViewModel: HomeViewModel
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<*>
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            REQUEST_CODE_LOC_PERMISSION ->
+                if ((grantResults.isNotEmpty() && grantResults[0] == PERMISSION_GRANTED)) getLocation()
+                else homeViewModel.location.value = null
+        }
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+        outState.putParcelable(USER_KEY, user)
         outState.putBoolean(APP_BAR_EXPANDED_KEY, isAppBarExpanded)
         outState.putBoolean(SAVED_CONTENT_EXPANDED_KEY, isSavedContentExpanded)
     }
@@ -58,8 +81,7 @@ class HomeFragment : Fragment() {
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
         if (savedInstanceState != null) {
-            if (savedInstanceState.getBoolean(APP_BAR_EXPANDED_KEY))
-                appBar.setExpanded(true)
+            if (savedInstanceState.getBoolean(APP_BAR_EXPANDED_KEY)) appBar.setExpanded(true)
             else appBar.setExpanded(false)
             if (savedInstanceState.getBoolean(SAVED_CONTENT_EXPANDED_KEY)) {
                 swipeToRefresh.isEnabled = false
@@ -87,9 +109,9 @@ class HomeFragment : Fragment() {
         user = homeViewModel.getCurrentUser()
         initProfileButton(user != null)
         initCollapsingToolbarStates()
-        initSavedBottomSheet(savedInstanceState)
-        setClickListeners()
         observeSignIn(savedInstanceState)
+        initSavedBottomSheetContainer(savedInstanceState)
+        setClickListeners()
         initSwipeToRefresh()
         observeSavedContentSelected()
     }
@@ -143,27 +165,23 @@ class HomeFragment : Fragment() {
     }
 
     private fun initProfileButton(isLoggedIn: Boolean) {
-        if (isLoggedIn) {
-            Glide.with(this).load(user?.photoUrl.toString())
-                    .apply(RequestOptions.circleCropTransform())
-                    .into(profileButton)
-        } else {
-            profileButton.setImageResource(R.drawable.ic_astronaut_color_accent_24dp)
-        }
+        if (isLoggedIn) Glide.with(this).load(user?.photoUrl.toString())
+                .apply(circleCropTransform()).into(profileButton)
+        else profileButton.setImageResource(ic_astronaut_color_accent_24dp)
     }
 
-    private fun initSavedBottomSheet(savedInstanceState: Bundle?) {
+    private fun initSavedBottomSheetContainer(savedInstanceState: Bundle?) {
         bottomSheetBehavior = from(bottomSheet)
         bottomSheetBehavior.isHideable = false
         bottomSheetBehavior.peekHeight = SAVED_BOTTOM_SHEET_PEEK_HEIGHT
         bottomSheet.layoutParams.height = getDisplayHeight(context!!)
-        if (homeViewModel.user.value != null) initSavedContentFragment(savedInstanceState)
-        else fragmentManager!!.beginTransaction().replace(
-                R.id.savedContentContainer,
-                SignInDialogFragment.newInstance(Bundle().apply {
-                    putInt(SIGNIN_TYPE_KEY, Enums.SignInType.FULLSCREEN.code)
-                }))
-                .commit()
+        if (savedInstanceState == null && homeViewModel.user.value == null)
+            childFragmentManager.beginTransaction().replace(
+                    R.id.savedContentContainer,
+                    SignInDialogFragment.newInstance(Bundle().apply {
+                        putInt(SIGNIN_TYPE_KEY, FULLSCREEN.code)
+                    }))
+                    .commit()
         bottomSheetBehavior.setBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
                 if (newState == STATE_EXPANDED) {
@@ -190,7 +208,7 @@ class HomeFragment : Fragment() {
         bottom_handle_elevation.visibility = GONE
     }
 
-    fun observeBottomSheetBackPressed() {
+    private fun observeBottomSheetBackPressed() {
         homeViewModel.bottomSheetState.observe(viewLifecycleOwner, Observer { bottomSheetState ->
             if (bottomSheetState == STATE_COLLAPSED) bottomSheetBehavior.state = STATE_COLLAPSED
             if (bottomSheetState == STATE_HIDDEN) {
@@ -200,27 +218,12 @@ class HomeFragment : Fragment() {
         })
     }
 
-    private fun initSavedContentFragment(savedInstanceState: Bundle?) {
-        if (savedInstanceState == null)
-            fragmentManager?.beginTransaction()?.replace(
-                    savedContentContainer.id,
-                    ContentFragment.newInstance(Bundle().apply { putString(FEED_TYPE_KEY, SAVED.name) }),
-                    SAVED_CONTENT_TAG)
-                    ?.commit()
-    }
-
     private fun setClickListeners() {
         profileButton.setOnClickListener { view: View ->
-            if (user != null) {
-                val action =
-                        HomeFragmentDirections.actionHomeFragmentToProfileFragment(user!!)
-                action.user = user!!
-                view.findNavController().navigate(R.id.action_homeFragment_to_profileFragment, action.arguments)
-            } else {
-                val bundle = Bundle()
-                bundle.putInt(SIGNIN_TYPE_KEY, Enums.SignInType.DIALOG.ordinal)
-                SignInDialogFragment.newInstance(bundle).show(fragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
-            }
+            if (user != null) view.findNavController().navigate(R.id.action_homeFragment_to_profileFragment,
+                    actionHomeFragmentToProfileFragment(user!!).apply { user = user }.arguments)
+            else SignInDialogFragment.newInstance(Bundle().apply { putInt(SIGNIN_TYPE_KEY, DIALOG.ordinal) })
+                    .show(childFragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
         }
     }
 
@@ -228,8 +231,8 @@ class HomeFragment : Fragment() {
         homeViewModel.user.observe(this, Observer { user: FirebaseUser? ->
             this.user = user
             initProfileButton(user != null)
-            if (user != null) {
-                //TODO: Replace with Firestore security rule.
+            if (user != null) { // Signed in.
+                //TODO: 1) Move to repository 2) Replace with Firestore security rule.
                 usersCollection.document(user.uid).get().addOnCompleteListener { userQuery ->
                     // Create user.
                     if (!userQuery.result!!.exists()) {
@@ -249,12 +252,69 @@ class HomeFragment : Fragment() {
                                 }
                     }
                 }
-                initSavedContentFragment(savedInstanceState)
-            }
+                if (savedInstanceState == null || savedInstanceState.getParcelable<FirebaseUser>(USER_KEY) == null) {
+                    initMainContent()
+                    initSavedContentFragment()
+                }
+            } else if (savedInstanceState == null)  /*Signed out.*/ initMainContent()
         })
     }
 
-    fun initSwipeToRefresh() {
+    private fun initMainContent() {
+        if (homeViewModel.accountType.value == FREE) getLocationPermissionCheck()
+        (childFragmentManager.findFragmentById(R.id.contentContainer) as ContentFragment)
+                .initMainContent(false)
+    }
+
+    private fun initSavedContentFragment() {
+        childFragmentManager.beginTransaction().replace(
+                savedContentContainer.id,
+                ContentFragment.newInstance(Bundle().apply { putString(FEED_TYPE_KEY, SAVED.name) }),
+                SAVED_CONTENT_TAG).commit()
+    }
+
+    private fun getLocationPermissionCheck() {
+        if (checkSelfPermission(activity!!, ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED) getLocation()
+        else {
+            val pref = activity?.getPreferences(MODE_PRIVATE) ?: return
+            if (pref.getBoolean(getString(first_open), true)
+                    || shouldShowRequestPermissionRationale(activity!!, ACCESS_COARSE_LOCATION)) {
+                with(pref.edit()) {
+                    putBoolean(getString(first_open), false)
+                    apply()
+                }
+                PermissionsDialogFragment.newInstance().show(childFragmentManager, null)
+                homeViewModel.showLocationPermission.observe(viewLifecycleOwner, EventObserver { showPermission ->
+                    if (showPermission) requestPermissions(arrayOf(ACCESS_COARSE_LOCATION), REQUEST_CODE_LOC_PERMISSION)
+                })
+            } else requestPermissions(arrayOf(ACCESS_COARSE_LOCATION), REQUEST_CODE_LOC_PERMISSION)
+        }
+    }
+
+    // Permission checked above.
+    @SuppressLint("MissingPermission")
+    private fun getLocation() {
+        LocationServices.getFusedLocationProviderClient(activity!!).lastLocation.addOnSuccessListener { location: Location? ->
+            homeViewModel.location.value =
+                    activity?.getPreferences(MODE_PRIVATE)?.let { pref ->
+                        if (location != null) {
+                            pref.edit().apply {
+                                putFloat(getString(user_lat), location.latitude.toFloat())
+                                putFloat(getString(user_lng), location.longitude.toFloat())
+                                apply()
+                            }
+                            location
+                        } else
+                            Location("").apply {
+                                latitude = pref.getFloat(getString(user_lat), DEFAULT_LAT.toFloat()).toDouble()
+                                longitude = pref.getFloat(getString(user_lng), DEFAULT_LNG.toFloat()).toDouble()
+
+                            }
+                    }
+        }
+    }
+
+    private fun initSwipeToRefresh() {
         homeViewModel.isSwipeToRefreshEnabled.observe(viewLifecycleOwner, Observer { isEnabled: Boolean ->
             swipeToRefresh.isEnabled = isEnabled
         })
@@ -264,12 +324,11 @@ class HomeFragment : Fragment() {
         swipeToRefresh.setOnRefreshListener {
             (childFragmentManager.findFragmentById(R.id.priceContainer) as PriceFragment)
                     .getPrices(false, false)
-            (childFragmentManager.findFragmentById(R.id.contentContainer) as ContentFragment)
-                    .initializeMainContent(false)
+            initMainContent()
         }
     }
 
-    fun observeSavedContentSelected() {
+    private fun observeSavedContentSelected() {
         homeViewModel.savedContentSelected.observe(viewLifecycleOwner, EventObserver { content ->
             if (childFragmentManager.findFragmentByTag(CONTENT_DIALOG_FRAGMENT_TAG) == null)
                 ContentDialogFragment()

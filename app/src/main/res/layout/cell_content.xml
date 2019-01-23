@@ -25,15 +25,15 @@
 
     <androidx.cardview.widget.CardView
         android:id="@+id/contentCard"
-        style="@style/ContentCardStyle">
+        style="@style/CellCardStyle">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/cell_content_feed"
-            style="@style/ContentConstraintStyle">
+            style="@style/CellConstraintStyle">
 
             <TextView
                 android:id="@+id/creator"
-                style="@style/ContentCreatorStyle"
+                style="@style/CellCreatorStyle"
                 android:text='@{data.creator, default="creator name"}'
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -41,23 +41,26 @@
             <TextView
                 android:id="@+id/timeAgo"
                 style="@style/TimeAgoStyle"
-                app:layout_constraintBottom_toBottomOf="@id/creator"
-                app:layout_constraintLeft_toRightOf="@+id/creator"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/creator"
                 app:timePostedAgo="@{data.timestamp.toDate().time}"
                 tools:text="time ago posted" />
 
             <ImageView
                 android:id="@+id/contentTypeLogo"
+                style="@style/IconButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/youtube_content_type_content_description"
+                android:onClick="@{clickListener}"
                 app:contentTypeIcon="@{data.contentType != null ? data.contentType : contentType.NONE}"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="@id/creator" />
 
             <ImageView
                 android:id="@+id/preview"
-                style="@style/ContentPreviewImageStyle"
+                style="@style/CellPreviewImageStyle"
                 android:onClick="@{clickListener}"
                 app:imageUrl="@{data.previewImage}"
                 app:layout_constraintBottom_toTopOf="@id/title"
@@ -77,9 +80,8 @@
 
             <TextView
                 android:id="@+id/title"
-                style="@style/ContentTitleStyle"
+                style="@style/CellTitleStyle"
                 android:text='@{data.title, default="content title"}'
-                android:textColor="@color/colorPrimaryDark"
                 app:layout_constraintBottom_toTopOf="@id/share"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/preview" />

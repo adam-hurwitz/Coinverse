@@ -17,6 +17,7 @@ const val PRICEGRAPH_FRAGMENT_TAG = "priceGraphFragmentTag"
 const val SIGNIN_DIALOG_FRAGMENT_TAG = "signinDialogFragmentTag"
 const val APP_BAR_EXPANDED_KEY = "appBarCollapsedKey"
 const val SAVED_CONTENT_EXPANDED_KEY = "savedContentExpandedKey"
+const val USER_KEY = "userKey"
 
 // User
 val USERS_COLLECTION = FirebaseRemoteConfig.getInstance().getString("users_collection")
@@ -24,6 +25,8 @@ val SIGN_OUT_ON_BACK_PRESS_DELAY_IN_MILLIS = FirebaseRemoteConfig.getInstance().
 val SAVED_BOTTOM_SHEET_PEEK_HEIGHT = FirebaseRemoteConfig.getInstance().getDouble("saved_bottom_sheet_peek_height").toInt()
 val SAVE_COLLECTION = FirebaseRemoteConfig.getInstance().getString("save_collection")
 val DISMISS_COLLECTION = FirebaseRemoteConfig.getInstance().getString("dismiss_collection")
+val DEFAULT_LAT = FirebaseRemoteConfig.getInstance().getDouble("default_lat")
+val DEFAULT_LNG = FirebaseRemoteConfig.getInstance().getString("default_lng")
 
 const val SIGNIN_TYPE_KEY = "signInTypeKey"
 
@@ -56,6 +59,8 @@ val CONTENT_SHARE_TYPE = FirebaseRemoteConfig.getInstance().getString("content_s
 val CONTENT_SHARE_SUBJECT_PREFFIX = FirebaseRemoteConfig.getInstance().getString("content_share_subject_prefix")
 val CONTENT_SHARE_TEXT_PREFFIX = FirebaseRemoteConfig.getInstance().getString("content_share_text_prefix")
 val CONTENT_SHARE_TITLE = FirebaseRemoteConfig.getInstance().getString("content_share_title_prefix")
+const val RIGHT_SWIPE = 8
+const val LEFT_SWIPE = 4
 const val CONTENT_FEED_FRAGMENT_TAG = "contentFeedFragmentTag"
 const val CONTENT_DIALOG_FRAGMENT_TAG = "contentDialogFragmentTag"
 const val SAVED_CONTENT_TAG = "savedContentTag"
@@ -63,6 +68,7 @@ const val FEED_TYPE_KEY = "feedType"
 const val CONTENT_KEY = "contentKey"
 const val ADAPTER_POSITION_KEY = 122218133
 const val CONTENT_RECYCLER_VIEW_STATE = "contentRecyclerViewState"
+const val CONTENT_RECYCLER_VIEW_POSITION = "contentRecyclerViewPosition"
 const val MEDIA_IS_PLAYING_KEY = "mediaIsPlayingKey"
 const val MEDIA_CURRENT_TIME_KEY = "mediaCurrentTimeKey"
 const val KEY_TRACK_SELECTOR_PARAMETERS = "track_selector_parameters"
@@ -70,7 +76,7 @@ const val KEY_WINDOW = "window"
 const val KEY_POSITION = "position"
 const val KEY_AUTO_PLAY = "auto_play"
 const val KEY_SEEK_TO_POSITION_MILLIS = "seek_to_position_millis"
-const val CLICK_SPAM_PREVENTION_THRESHOLD = 1000
+const val CLICK_SPAM_PREVENTION_THRESHOLD = 1500
 
 // Price
 val PRICE_COLLECTION = FirebaseRemoteConfig.getInstance().getString("price_collection")
@@ -126,3 +132,11 @@ val QUALITY_SCORE_PARAM = FirebaseRemoteConfig.getInstance().getString("quality_
 val TIMESTAMP_PARAM = FirebaseRemoteConfig.getInstance().getString("timestamp_param")
 val CREATOR_PARAM = FirebaseRemoteConfig.getInstance().getString("creator_name_param")
 val FEED_TYPE_PARAM = FirebaseRemoteConfig.getInstance().getString("feed_type_param")
+
+// Utils
+const val LOG_TAG_UTILS = "Utils.kt"
+const val REQUEST_CODE_LOC_PERMISSION = 1909
+
+// Ads
+val AD_UNIT_ID = FirebaseRemoteConfig.getInstance().getString("ad_unit_id")
+val MOPUB_KEYWORDS = FirebaseRemoteConfig.getInstance().getString("mopub_keywords")

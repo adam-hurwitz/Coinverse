@@ -11,7 +11,7 @@ import com.google.firebase.auth.FirebaseAuth
 
 fun updateActionsAndAnalytics(content: Content, contentViewModel: ContentViewModel,
                               contentDao: ContentDao, analytics: FirebaseAnalytics, watchPercent: Double) {
-    Thread(Runnable { run { contentDao.updateContent(content) } }).start()
+    Thread(Runnable { run { contentDao.updateContentItem(content) } }).start()
     if (watchPercent >= FINISH_THRESHOLD) {
         val bundle = Bundle()
         val user = FirebaseAuth.getInstance().currentUser

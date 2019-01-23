@@ -47,8 +47,9 @@
     <dimen name="cell_content_feed_height">328dp</dimen>
     <dimen name="swipe_icon_dimen">48dp</dimen>
     <dimen name="empty_content_image_dimen">96dp</dimen>
-    <integer name="maxLines">2</integer>
+    <dimen name="card_elevation">8dp</dimen>
     <dimen name="saved_bottomsheet_background_handle">48dp</dimen>
+    <integer name="maxLines">2</integer>
     <item name="content_transparency" format="float" type="dimen">0.90</item>
 
     <!--Sign In-->
@@ -57,7 +58,11 @@
     <!--Profile-->
     <dimen name="profile_image">128dp</dimen>
 
+    <!--Ads-->
+    <dimen name="ad_card_elevation">2dp</dimen>
+    <dimen name="native_privacy_info_icon_image_dimen">20dp</dimen>
+    <dimen name="native_icon_image_dimen">32dp</dimen>
+
     <dimen name="dialog_image">128dp</dimen>
-    <dimen name="card_elevation">8dp</dimen>
 
 </resources>
