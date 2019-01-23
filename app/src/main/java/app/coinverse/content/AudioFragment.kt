@@ -150,10 +150,12 @@ class AudioFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        if (playerView != null) playerView.onPause()
-        updateActionsAndAnalytics(content, contentViewModel, coinverseDatabase.contentDao(),
-                analytics, getWatchPercent(player?.currentPosition!!.toDouble(),
-                seekToPositionMillis.toDouble(), player?.duration!!.toDouble()))
+        if (playerView != null && player != null) {
+            playerView.onPause()
+            updateActionsAndAnalytics(content, contentViewModel, coinverseDatabase.contentDao(),
+                    analytics, getWatchPercent(player?.currentPosition!!.toDouble(),
+                    seekToPositionMillis.toDouble(), player?.duration!!.toDouble()))
+        }
         releasePlayer()
     }
 
@@ -208,7 +210,7 @@ class AudioFragment : Fragment() {
             val haveStartPosition = startWindow != C.INDEX_UNSET
             if (haveStartPosition) player?.seekTo(startWindow, startPosition)
             player?.prepare(mediaSource, !haveStartPosition, false)
-            if (player == null) {
+            if (player == null && context != null) {
                 trackSelector = DefaultTrackSelector(AdaptiveTrackSelection.Factory())
                 trackSelector?.parameters = trackSelectorParameters
                 player = ExoPlayerFactory.newSimpleInstance(
