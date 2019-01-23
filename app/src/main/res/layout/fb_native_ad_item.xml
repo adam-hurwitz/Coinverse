@@ -39,7 +39,7 @@
 
     <com.facebook.ads.MediaView
         android:id="@+id/native_media_view"
-        style="@style/CellPreviewImageStyle"
+        style="@style/AdCellPreviewImageStyle"
         android:contentDescription="@string/native_main_image"
         app:layout_constraintBottom_toTopOf="@id/native_text"
         app:layout_constraintLeft_toLeftOf="parent"
