@@ -76,7 +76,7 @@ const val KEY_WINDOW = "window"
 const val KEY_POSITION = "position"
 const val KEY_AUTO_PLAY = "auto_play"
 const val KEY_SEEK_TO_POSITION_MILLIS = "seek_to_position_millis"
-const val CLICK_SPAM_PREVENTION_THRESHOLD = 1500
+const val CLICK_SPAM_PREVENTION_THRESHOLD = 1250
 
 // Price
 val PRICE_COLLECTION = FirebaseRemoteConfig.getInstance().getString("price_collection")

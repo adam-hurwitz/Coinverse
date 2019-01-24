@@ -35,12 +35,15 @@
                 android:id="@+id/creator"
                 style="@style/CellCreatorStyle"
                 android:text='@{data.creator, default="creator name"}'
+                app:layout_constraintBottom_toTopOf="@id/timeAgo"
                 app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toLeftOf="@+id/contentTypeLogo"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/timeAgo"
                 style="@style/TimeAgoStyle"
+                app:layout_constraintBottom_toTopOf="@id/preview"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/creator"
                 app:timePostedAgo="@{data.timestamp.toDate().time}"

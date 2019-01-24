@@ -10,7 +10,7 @@
 
     <TextView
         android:id="@+id/native_title"
-        style="@style/CellCreatorStyle"
+        style="@style/CellAdvertiserStyle"
         app:layout_constraintBottom_toBottomOf="@+id/guideline"
         app:layout_constraintLeft_toLeftOf="parent" />
 
