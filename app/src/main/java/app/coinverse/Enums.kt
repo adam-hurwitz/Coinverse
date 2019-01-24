@@ -39,7 +39,11 @@ object Enums {
         DIALOG(1), FULLSCREEN(2)
     }
 
-    enum class AccountType {
+    enum class PaymentStatus {
         PAID, FREE
+    }
+
+    enum class AccountType {
+        READ, ADMIN
     }
 }

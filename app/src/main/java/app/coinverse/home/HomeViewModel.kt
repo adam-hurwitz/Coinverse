@@ -5,8 +5,8 @@ import android.location.Location
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import app.coinverse.Enums.AccountType
-import app.coinverse.Enums.AccountType.FREE
+import app.coinverse.Enums.PaymentStatus
+import app.coinverse.Enums.PaymentStatus.FREE
 import app.coinverse.content.models.Content
 import app.coinverse.utils.livedata.Event
 import com.google.firebase.auth.FirebaseAuth
@@ -17,7 +17,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val location = MutableLiveData<Location?>()
     val showLocationPermission = MutableLiveData<Event<Boolean>>()
     val isRealtime = MutableLiveData<Boolean>()
-    val accountType = MutableLiveData<AccountType>()
+    val accountType = MutableLiveData<PaymentStatus>()
     val isSwipeToRefreshEnabled = MutableLiveData<Boolean>()
     val isRefreshing = MutableLiveData<Boolean>()
     val bottomSheetState = MutableLiveData<Int>()

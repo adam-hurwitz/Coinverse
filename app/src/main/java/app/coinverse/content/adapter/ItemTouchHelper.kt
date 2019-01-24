@@ -14,8 +14,8 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ItemTouchHelper.*
 import androidx.recyclerview.widget.RecyclerView
 import app.coinverse.Enums
-import app.coinverse.Enums.AccountType.FREE
-import app.coinverse.Enums.AccountType.PAID
+import app.coinverse.Enums.PaymentStatus.FREE
+import app.coinverse.Enums.PaymentStatus.PAID
 import app.coinverse.Enums.FeedType.DISMISSED
 import app.coinverse.Enums.FeedType.SAVED
 import app.coinverse.Enums.SignInType.DIALOG
@@ -38,14 +38,14 @@ private val LOG_TAG = ItemTouchHelper::class.java.simpleName
 
 class ItemTouchHelper(var homeViewModel: HomeViewModel) {
 
-    fun build(context: Context, accountType: Enums.AccountType, feedType: String, adapter: ContentAdapter,
+    fun build(context: Context, paymentStatus: Enums.PaymentStatus, feedType: String, adapter: ContentAdapter,
               moPubAdapter: MoPubRecyclerAdapter, fragmentManager: FragmentManager): ItemTouchHelper {
         return ItemTouchHelper(object : Callback() {
 
             override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int =
-                    if (accountType == FREE && !moPubAdapter.isAd(viewHolder.adapterPosition))
+                    if (paymentStatus == FREE && !moPubAdapter.isAd(viewHolder.adapterPosition))
                         makeMovementFlags(0, LEFT or RIGHT)
-                    else if (accountType == PAID) makeMovementFlags(0, LEFT or RIGHT)
+                    else if (paymentStatus == PAID) makeMovementFlags(0, LEFT or RIGHT)
                     else makeMovementFlags(0, ACTION_STATE_IDLE)
 
             override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder,
@@ -54,7 +54,7 @@ class ItemTouchHelper(var homeViewModel: HomeViewModel) {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 FirebaseAuth.getInstance().currentUser.let { user ->
                     if (user != null) {
-                        if (accountType == FREE) {
+                        if (paymentStatus == FREE) {
                             val contentAdapterPosition = moPubAdapter.getOriginalPosition(viewHolder.adapterPosition)
                             if (direction == RIGHT_SWIPE && feedType != SAVED.name) // Save
                                 adapter.organizeContent(feedType, SAVE, contentAdapterPosition, user)

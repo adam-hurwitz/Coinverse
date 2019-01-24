@@ -20,7 +20,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import app.coinverse.Enums.AccountType.FREE
+import app.coinverse.Enums.PaymentStatus.FREE
 import app.coinverse.Enums.ContentType.ARTICLE
 import app.coinverse.Enums.FeedType.*
 import app.coinverse.R

@@ -20,7 +20,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
-import app.coinverse.Enums.AccountType.FREE
+import app.coinverse.Enums
+import app.coinverse.Enums.AccountType.*
+import app.coinverse.Enums.PaymentStatus.FREE
 import app.coinverse.Enums.FeedType.MAIN
 import app.coinverse.Enums.FeedType.SAVED
 import app.coinverse.Enums.SignInType.DIALOG
@@ -241,10 +243,10 @@ class HomeFragment : Fragment() {
                                         user.photoUrl.toString(),
                                         Timestamp(Date(user.metadata!!.creationTimestamp)),
                                         Timestamp(Date(user.metadata!!.lastSignInTimestamp)),
-                                        user.providerId,
+                                        user.providerId, FREE, READ,
                                         0.0, 0.0, 0.0,
                                         0.0, 0.0, 0.0,
-                                        0.0, 0.0, 0.0))
+                                        0.0, 0.0))
                                 .addOnSuccessListener {
                                     Log.v(LOG_TAG, String.format("New user added success:%s", it))
                                 }.addOnFailureListener {
