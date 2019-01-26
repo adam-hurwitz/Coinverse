@@ -44,6 +44,7 @@ import com.google.firebase.analytics.FirebaseAnalytics.getInstance
 import com.mopub.nativeads.*
 import com.mopub.nativeads.FacebookAdRenderer.FacebookViewBinder
 import com.mopub.nativeads.FlurryViewBinder.Builder
+import com.mopub.nativeads.MoPubRecyclerAdapter.ContentChangeStrategy.MOVE_ALL_ADS_WITH_CONTENT
 import io.reactivex.android.schedulers.AndroidSchedulers.mainThread
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers.io
@@ -142,7 +143,6 @@ class ContentFragment : Fragment() {
     fun initMainContent(isRealtime: Boolean) {
         contentViewModel.initMainContent(isRealtime).observe(viewLifecycleOwner, Observer { status ->
             Log.v(LOG_TAG, "initMainContent status ${status}")
-            adapter.notifyDataSetChanged()
         })
     }
 
@@ -152,8 +152,7 @@ class ContentFragment : Fragment() {
             moPubAdapter.loadAds(AD_UNIT_ID,
                     if (location != null) RequestParameters.Builder().location(location)
                             .userDataKeywords(MOPUB_KEYWORDS).build()
-                    else RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build()
-            )
+                    else RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build())
         })
         moPubAdapter.setAdLoadedListener(object : MoPubNativeAdLoadedListener {
             override fun onAdRemoved(position: Int) {
@@ -161,7 +160,15 @@ class ContentFragment : Fragment() {
             }
 
             override fun onAdLoaded(position: Int) {
-                moPubAdapter.notifyItemRangeInserted(position, 1)
+                if (moPubAdapter.isAd(position + 1) || moPubAdapter.isAd(position - 1)) {
+                    moPubAdapter.refreshAds(AD_UNIT_ID,
+                            if (homeViewModel.location.value != null)
+                                RequestParameters.Builder().location(homeViewModel.location.value)
+                                        .userDataKeywords(MOPUB_KEYWORDS).build()
+                            else RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build())
+                    moPubAdapter.notifyDataSetChanged()
+                } else moPubAdapter.notifyItemRangeInserted(position, 1)
+                adapter.notifyDataSetChanged()
                 if (toLoad) toLoad = false
             }
         })
@@ -245,6 +252,7 @@ class ContentFragment : Fragment() {
                             .privacyInformationIconImageId(native_ad_choices_relative_layout)
                             .build()))
             moPubAdapter.registerAdRenderer(MoPubStaticNativeAdRenderer(viewBinder))
+            if (feedType == MAIN.name) moPubAdapter.setContentChangeStrategy(MOVE_ALL_ADS_WITH_CONTENT)
             contentRecyclerView.adapter = moPubAdapter
         } /* PAID */ else contentRecyclerView.adapter = adapter
         ItemTouchHelper(homeViewModel).build(context!!, FREE, feedType, adapter, moPubAdapter, fragmentManager!!)

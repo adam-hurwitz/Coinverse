@@ -14,10 +14,10 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ItemTouchHelper.*
 import androidx.recyclerview.widget.RecyclerView
 import app.coinverse.Enums
-import app.coinverse.Enums.PaymentStatus.FREE
-import app.coinverse.Enums.PaymentStatus.PAID
 import app.coinverse.Enums.FeedType.DISMISSED
 import app.coinverse.Enums.FeedType.SAVED
+import app.coinverse.Enums.PaymentStatus.FREE
+import app.coinverse.Enums.PaymentStatus.PAID
 import app.coinverse.Enums.SignInType.DIALOG
 import app.coinverse.Enums.UserActionType.DISMISS
 import app.coinverse.Enums.UserActionType.SAVE
