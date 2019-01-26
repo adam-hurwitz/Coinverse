@@ -20,9 +20,9 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import app.coinverse.Enums.PaymentStatus.FREE
 import app.coinverse.Enums.ContentType.ARTICLE
 import app.coinverse.Enums.FeedType.*
+import app.coinverse.Enums.PaymentStatus.FREE
 import app.coinverse.R
 import app.coinverse.R.id.*
 import app.coinverse.R.layout.fb_native_ad_item
@@ -142,6 +142,7 @@ class ContentFragment : Fragment() {
     fun initMainContent(isRealtime: Boolean) {
         contentViewModel.initMainContent(isRealtime).observe(viewLifecycleOwner, Observer { status ->
             Log.v(LOG_TAG, "initMainContent status ${status}")
+            adapter.notifyDataSetChanged()
         })
     }
 
@@ -153,16 +154,16 @@ class ContentFragment : Fragment() {
                             .userDataKeywords(MOPUB_KEYWORDS).build()
                     else RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build()
             )
-            moPubAdapter.setAdLoadedListener(object : MoPubNativeAdLoadedListener {
-                override fun onAdRemoved(position: Int) {
-                    moPubAdapter.notifyDataSetChanged()
-                }
+        })
+        moPubAdapter.setAdLoadedListener(object : MoPubNativeAdLoadedListener {
+            override fun onAdRemoved(position: Int) {
+                moPubAdapter.notifyItemRemoved(position)
+            }
 
-                override fun onAdLoaded(position: Int) {
-                    moPubAdapter.notifyDataSetChanged()
-                    if (toLoad) toLoad = false
-                }
-            })
+            override fun onAdLoaded(position: Int) {
+                moPubAdapter.notifyItemRangeInserted(position, 1)
+                if (toLoad) toLoad = false
+            }
         })
     }
 
