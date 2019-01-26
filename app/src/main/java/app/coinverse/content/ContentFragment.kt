@@ -24,9 +24,12 @@ import app.coinverse.Enums.ContentType.ARTICLE
 import app.coinverse.Enums.FeedType.*
 import app.coinverse.Enums.PaymentStatus.FREE
 import app.coinverse.R
+import app.coinverse.R.anim
+import app.coinverse.R.drawable.*
 import app.coinverse.R.id.*
 import app.coinverse.R.layout.fb_native_ad_item
 import app.coinverse.R.layout.native_ad_item
+import app.coinverse.R.string.*
 import app.coinverse.content.adapter.ContentAdapter
 import app.coinverse.content.adapter.ItemTouchHelper
 import app.coinverse.content.models.ContentSelected
@@ -133,7 +136,7 @@ class ContentFragment : Fragment() {
                 binding.actionbar.toolbar.savedContentTitle.visibility = View.VISIBLE
             }
             DISMISSED.name -> {
-                binding.actionbar.toolbar.title = getString(R.string.dismissed)
+                binding.actionbar.toolbar.title = getString(dismissed)
                 (activity as AppCompatActivity).setSupportActionBar(binding.actionbar.toolbar)
                 (activity as AppCompatActivity).supportActionBar!!.setDisplayHomeAsUpEnabled(true)
             }
@@ -237,10 +240,10 @@ class ContentFragment : Fragment() {
             val viewBinder = ViewBinder.Builder(native_ad_item)
                     .titleId(native_title)
                     .textId(native_text)
-                    .mainImageId(native_main_image)
+                    .mainImageId(R.id.native_main_image)
                     .iconImageId(native_icon_image)
                     .callToActionId(native_cta)
-                    .privacyInformationIconImageId(native_privacy_information_icon_image)
+                    .privacyInformationIconImageId(R.id.native_privacy_information_icon_image)
                     .build()
             moPubAdapter.registerAdRenderer(FlurryNativeAdRenderer(FlurryViewBinder(Builder(viewBinder))))
             moPubAdapter.registerAdRenderer(MoPubVideoNativeAdRenderer(
@@ -322,7 +325,7 @@ class ContentFragment : Fragment() {
 
     fun setEmptyView() {
         if (emptyContent.visibility == GONE) {
-            val fadeIn = AnimationUtils.loadAnimation(context, R.anim.fade_in)
+            val fadeIn = AnimationUtils.loadAnimation(context, anim.fade_in)
             emptyContent.startAnimation(fadeIn)
             fadeIn.setAnimationListener(object : Animation.AnimationListener {
                 override fun onAnimationRepeat(animation: Animation?) {/*Do something.*/
@@ -345,41 +348,29 @@ class ContentFragment : Fragment() {
         }
         when (feedType) {
             MAIN.name -> {
-                emptyContent.title.text = getString(R.string.no_content_title)
-                emptyContent.emptyInstructions.text = getString(R.string.no_feed_content_instructions)
+                emptyContent.title.text = getString(no_content_title)
+                emptyContent.emptyInstructions.text = getString(no_feed_content_instructions)
                 emptyContent.confirmation.visibility = GONE
             }
             SAVED.name -> {
-                emptyContent.emptyImage.setImageDrawable(getDrawable(context!!,
-                        R.drawable.ic_save_planet_dark_48dp))
-                emptyContent.title.text = getString(R.string.no_saved_content_title)
-                emptyContent.swipe_right_one.setImageDrawable(getDrawable(context!!,
-                        R.drawable.ic_chevron_right_color_accent_24dp))
-                emptyContent.swipe_right_two.setImageDrawable(getDrawable(context!!,
-                        R.drawable.ic_chevron_right_color_accent_fade_one_24dp))
-                emptyContent.swipe_right_three.setImageDrawable(getDrawable(context!!,
-                        R.drawable.ic_chevron_right_color_accent_fade_two_24dp))
-                emptyContent.swipe_right_four.setImageDrawable(getDrawable(context!!,
-                        R.drawable.ic_chevron_right_color_accent_fade_three_24dp))
-                emptyContent.swipe_right_five.setImageDrawable(getDrawable(context!!,
-                        R.drawable.ic_chevron_right_color_accent_fade_four_24dp))
-                emptyContent.emptyInstructions.text = getString(R.string.no_saved_content_instructions)
+                emptyContent.emptyImage.setImageDrawable(getDrawable(context!!, ic_save_planet_dark_48dp))
+                emptyContent.title.text = getString(no_saved_content_title)
+                emptyContent.swipe_right_one.setImageDrawable(getDrawable(context!!, ic_chevron_right_color_accent_24dp))
+                emptyContent.swipe_right_two.setImageDrawable(getDrawable(context!!, ic_chevron_right_color_accent_fade_one_24dp))
+                emptyContent.swipe_right_three.setImageDrawable(getDrawable(context!!, ic_chevron_right_color_accent_fade_two_24dp))
+                emptyContent.swipe_right_four.setImageDrawable(getDrawable(context!!, ic_chevron_right_color_accent_fade_three_24dp))
+                emptyContent.swipe_right_five.setImageDrawable(getDrawable(context!!, ic_chevron_right_color_accent_fade_four_24dp))
+                emptyContent.emptyInstructions.text = getString(no_saved_content_instructions)
             }
             DISMISSED.name -> {
-                emptyContent.emptyImage.setImageDrawable(getDrawable(context!!,
-                        R.drawable.ic_dismiss_planet_light_48dp))
-                emptyContent.title.text = getString(R.string.no_dismissed_content_title)
-                emptyContent.swipe_right_one.setImageDrawable(getDrawable(context!!,
-                        R.drawable.ic_chevron_left_color_accent_24dp))
-                emptyContent.swipe_right_two.setImageDrawable(getDrawable(context!!,
-                        R.drawable.ic_chevron_left_color_accent_fade_one_24dp))
-                emptyContent.swipe_right_three.setImageDrawable(getDrawable(context!!,
-                        R.drawable.ic_chevron_left_color_accent_fade_two_24dp))
-                emptyContent.swipe_right_four.setImageDrawable(getDrawable(context!!,
-                        R.drawable.ic_chevron_left_color_accent_fade_three_24dp))
-                emptyContent.swipe_right_five.setImageDrawable(getDrawable(context!!,
-                        R.drawable.ic_chevron_left_color_accent_fade_four_24dp))
-                emptyContent.emptyInstructions.text = getString(R.string.no_dismissed_content_instructions)
+                emptyContent.emptyImage.setImageDrawable(getDrawable(context!!, ic_dismiss_planet_light_48dp))
+                emptyContent.title.text = getString(no_dismissed_content_title)
+                emptyContent.swipe_right_one.setImageDrawable(getDrawable(context!!, ic_chevron_left_color_accent_24dp))
+                emptyContent.swipe_right_two.setImageDrawable(getDrawable(context!!, ic_chevron_left_color_accent_fade_one_24dp))
+                emptyContent.swipe_right_three.setImageDrawable(getDrawable(context!!, ic_chevron_left_color_accent_fade_two_24dp))
+                emptyContent.swipe_right_four.setImageDrawable(getDrawable(context!!, ic_chevron_left_color_accent_fade_three_24dp))
+                emptyContent.swipe_right_five.setImageDrawable(getDrawable(context!!, ic_chevron_left_color_accent_fade_four_24dp))
+                emptyContent.emptyInstructions.text = getString(no_dismissed_content_instructions)
             }
         }
     }
