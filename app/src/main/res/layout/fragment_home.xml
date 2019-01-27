@@ -19,6 +19,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <!--TODO: Include AppBar layout.-->
+
             <com.google.android.material.appbar.AppBarLayout
                 android:id="@+id/appBar"
                 android:layout_width="match_parent"
@@ -43,12 +45,41 @@
 
                             <ImageView
                                 android:id="@+id/profileButton"
-                                android:layout_width="@dimen/toolbar_button_dimen"
-                                android:layout_height="@dimen/toolbar_button_dimen"
+                                style="@style/ProfileIconButtonStyle"
                                 android:layout_gravity="start"
+                                android:background="?attr/selectableItemBackgroundBorderless"
                                 android:contentDescription="@string/profile_content_description"
                                 android:src="@drawable/ic_astronaut_color_accent_24dp"
-                                app:layout_constraintLeft_toLeftOf="parent" />
+                                android:tooltipText="@string/profile"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintLeft_toLeftOf="parent"
+                                app:layout_constraintTop_toTopOf="parent" />
+
+                            <TextView
+                                android:id="@+id/appStatus"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:gravity="right"
+                                android:text="@string/app_status"
+                                android:textColor="@color/transparent"
+                                android:tooltipText="@string/app_status_tools_tip"
+                                app:layout_constraintBottom_toBottomOf="@id/submitBugButton"
+                                app:layout_constraintLeft_toRightOf="@id/profileButton"
+                                app:layout_constraintRight_toLeftOf="@+id/submitBugButton"
+                                app:layout_constraintTop_toTopOf="@id/submitBugButton" />
+
+                            <ImageView
+                                android:id="@+id/submitBugButton"
+                                style="@style/IconButtonStyle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:contentDescription="@string/submit_bug_content_description"
+                                android:src="@drawable/ic_bug"
+                                android:tooltipText="@string/submit_bug"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintRight_toRightOf="parent"
+                                app:layout_constraintTop_toTopOf="parent" />
 
                         </androidx.constraintlayout.widget.ConstraintLayout>
 

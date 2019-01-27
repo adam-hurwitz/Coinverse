@@ -130,12 +130,21 @@
     <style name="IconButtonStyle">
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_width">wrap_content</item>
+        <item name="android:clickable">true</item>
         <item name="android:theme">@style/SelectableItemTheme</item>
         <item name="background">?attr/selectableItemBackgroundBorderless</item>
         <item name="android:paddingTop">@dimen/padding_small</item>
         <item name="android:paddingBottom">@dimen/padding_small</item>
         <item name="android:paddingLeft">@dimen/padding_tiny</item>
         <item name="android:paddingRight">@dimen/padding_tiny</item>
+    </style>
+
+    <style name="ProfileIconButtonStyle">
+        <item name="android:layout_height">@dimen/toolbar_button_dimen</item>
+        <item name="android:layout_width">@dimen/toolbar_button_dimen</item>
+        <item name="android:clickable">true</item>
+        <item name="android:theme">@style/SelectableItemTheme</item>
+        <item name="background">?attr/selectableItemBackgroundBorderless</item>
     </style>
 
 </resources>

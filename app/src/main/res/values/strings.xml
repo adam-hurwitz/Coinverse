@@ -7,7 +7,13 @@
     <string name="user_lng">user longitude</string>
 
     <!--Home-->
-    <string name="message_center">Message Center</string>
+    <string name="profile">Profile</string>
+    <string name="app_status">alpha</string>
+    <string name="app_status_tools_tip">App Version</string>
+    <string name="submit_bug_content_description">Submit bug button.</string>
+    <string name="submit_bug">Submit Bug</string>
+    <string name="logged_out">logged out</string>
+    <string name="mail_to">mailto:</string>
 
     <!--Price graphs-->
     <string name="asks">asks</string>
@@ -59,6 +65,7 @@
     <string name="dismiss">dismiss</string>
     <string name="open_source_tip">Open Content Source</string>
     <string name="share_content_tip">Share Content</string>
+    <string name="content_type">Content Type</string>
 
     <!--Audio-->
     <string name="error_generic">Playback failed</string>

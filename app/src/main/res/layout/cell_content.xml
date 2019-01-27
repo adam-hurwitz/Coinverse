@@ -57,6 +57,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/youtube_content_type_content_description"
                 android:onClick="@{clickListener}"
+                android:tooltipText="@string/content_type"
                 app:contentTypeIcon="@{data.contentType != null ? data.contentType : contentType.NONE}"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="@id/creator" />

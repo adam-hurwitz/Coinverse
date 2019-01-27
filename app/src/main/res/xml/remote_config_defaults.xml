@@ -2,8 +2,39 @@
 <defaultsMap>
     <!--Home-->
     <entry>
-        <key>message_center_collection</key>
-        <value>messageCenter</value>
+        <key>support_email</key>
+        <value>support@coinverse.app</value>
+    </entry>
+    <entry>
+        <key>support_subject</key>
+        <value>Coinverse Bug: Version</value>
+    </entry>
+    <entry>
+        <key>support_body</key>
+        <value>Thank you for helping to improve Coinverse! Please include a video using AZ Screen
+            Recorder / your app of choice, or a screenshot. I will take a look at the issue as soon
+            as possible. - Adam, Coinverse Founder
+        </value>
+    </entry>
+    <entry>
+        <key>support_issue</key>
+        <value>\n\n Issue: Describe your issue here.</value>
+    </entry>
+    <entry>
+        <key>support_version</key>
+        <value>\n\n Coinverse Version:</value>
+    </entry>
+    <entry>
+        <key>support_android_api</key>
+        <value>\n Android API:</value>
+    </entry>
+    <entry>
+        <key>support_device</key>
+        <value>\n Device:</value>
+    </entry>
+    <entry>
+        <key>support_user</key>
+        <value>\n User ID:</value>
     </entry>
 
     <!--User-->

@@ -4,7 +4,12 @@ import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
+import android.content.Intent.*
 import android.location.Location
+import android.net.Uri
+import android.os.Build.BRAND
+import android.os.Build.MODEL
+import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -20,11 +25,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
-import app.coinverse.Enums
-import app.coinverse.Enums.AccountType.*
-import app.coinverse.Enums.PaymentStatus.FREE
+import app.coinverse.BuildConfig.VERSION_NAME
+import app.coinverse.Enums.AccountType.READ
 import app.coinverse.Enums.FeedType.MAIN
 import app.coinverse.Enums.FeedType.SAVED
+import app.coinverse.Enums.PaymentStatus.FREE
 import app.coinverse.Enums.SignInType.DIALOG
 import app.coinverse.Enums.SignInType.FULLSCREEN
 import app.coinverse.R
@@ -226,6 +231,20 @@ class HomeFragment : Fragment() {
                     actionHomeFragmentToProfileFragment(user!!).apply { user = user }.arguments)
             else SignInDialogFragment.newInstance(Bundle().apply { putInt(SIGNIN_TYPE_KEY, DIALOG.ordinal) })
                     .show(childFragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
+        }
+        submitBugButton.setOnClickListener { view: View ->
+            Intent(ACTION_SENDTO).let { intent ->
+                intent.data = Uri.parse(getString(mail_to))
+                intent.putExtra(EXTRA_EMAIL, arrayOf(SUPPORT_EMAIL))
+                        .putExtra(EXTRA_SUBJECT, "${SUPPORT_SUBJECT} $VERSION_NAME")
+                        .putExtra(EXTRA_TEXT, "${SUPPORT_BODY} " +
+                                "${SUPPORT_ISSUE}" +
+                                "${SUPPORT_VERSION} $VERSION_NAME" +
+                                "${SUPPORT_ANDROID_API} $SDK_INT" +
+                                "${SUPPORT_DEVICE} ${BRAND.substring(0, 1).toUpperCase() + BRAND.substring(1)}, $MODEL" +
+                                "${SUPPORT_USER + if (user != null) user!!.uid else getString(logged_out)}")
+                if (intent.resolveActivity(activity?.packageManager) != null) startActivity(intent)
+            }
         }
     }
 
