@@ -8,9 +8,10 @@
 
     <TextView
         android:id="@+id/native_title"
-        style="@style/CellAdvertiserStyle"
+        style="@style/CellCreatorStyle"
         app:layout_constraintBottom_toBottomOf="@+id/guideline"
-        app:layout_constraintLeft_toLeftOf="parent" />
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/native_icon_image" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline"
@@ -34,6 +35,7 @@
         android:layout_height="@dimen/native_icon_image_dimen"
         android:background="@null"
         android:contentDescription="@string/native_icon_mage"
+        android:paddingRight="@dimen/padding_tiny"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
