@@ -56,6 +56,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior.*
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.fragment_home.*
+import kotlinx.android.synthetic.main.toolbar_home.*
 import java.util.*
 
 private val LOG_TAG = HomeFragment::class.java.simpleName
