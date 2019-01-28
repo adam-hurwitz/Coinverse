@@ -13,9 +13,8 @@ import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ItemTouchHelper.*
 import androidx.recyclerview.widget.RecyclerView
-import app.coinverse.Enums
-import app.coinverse.Enums.FeedType.DISMISSED
-import app.coinverse.Enums.FeedType.SAVED
+import app.coinverse.Enums.FeedType.*
+import app.coinverse.Enums.PaymentStatus
 import app.coinverse.Enums.PaymentStatus.FREE
 import app.coinverse.Enums.PaymentStatus.PAID
 import app.coinverse.Enums.SignInType.DIALOG
@@ -38,15 +37,20 @@ private val LOG_TAG = ItemTouchHelper::class.java.simpleName
 
 class ItemTouchHelper(var homeViewModel: HomeViewModel) {
 
-    fun build(context: Context, paymentStatus: Enums.PaymentStatus, feedType: String, adapter: ContentAdapter,
-              moPubAdapter: MoPubRecyclerAdapter, fragmentManager: FragmentManager): ItemTouchHelper {
+    fun build(context: Context, paymentStatus: PaymentStatus, feedType: String, adapter: ContentAdapter,
+              moPubAdapter: MoPubRecyclerAdapter?, fragmentManager: FragmentManager): ItemTouchHelper {
         return ItemTouchHelper(object : Callback() {
 
-            override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int =
-                    if (paymentStatus == FREE && !moPubAdapter.isAd(viewHolder.adapterPosition))
-                        makeMovementFlags(0, LEFT or RIGHT)
-                    else if (paymentStatus == PAID) makeMovementFlags(0, LEFT or RIGHT)
-                    else makeMovementFlags(0, ACTION_STATE_IDLE)
+            override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) =
+                    if ((paymentStatus == FREE && !moPubAdapter!!.isAd(viewHolder.adapterPosition))
+                            || paymentStatus == PAID)
+                        when (feedType) {
+                            MAIN.name -> makeMovementFlags(LEFT or RIGHT, LEFT or RIGHT)
+                            SAVED.name -> makeMovementFlags(LEFT, LEFT)
+                            DISMISSED.name -> makeMovementFlags(RIGHT, RIGHT)
+                            else -> makeMovementFlags(ACTION_STATE_IDLE, ACTION_STATE_IDLE)
+                        }
+                    else makeMovementFlags(ACTION_STATE_IDLE, ACTION_STATE_IDLE)
 
             override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder,
                                 target: RecyclerView.ViewHolder) = false
@@ -55,14 +59,14 @@ class ItemTouchHelper(var homeViewModel: HomeViewModel) {
                 FirebaseAuth.getInstance().currentUser.let { user ->
                     if (user != null) {
                         if (paymentStatus == FREE) {
-                            val contentAdapterPosition = moPubAdapter.getOriginalPosition(viewHolder.adapterPosition)
+                            val contentAdapterPosition = moPubAdapter?.getOriginalPosition(viewHolder.adapterPosition)
                             if (direction == RIGHT_SWIPE && feedType != SAVED.name) // Save
-                                adapter.organizeContent(feedType, SAVE, contentAdapterPosition, user)
+                                adapter.organizeContent(feedType, SAVE, contentAdapterPosition!!, user)
                                         .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                                         .subscribe { status -> Log.v(LOG_TAG, "Move to SAVED status: $status") }
                                         .dispose()
                             if (direction == LEFT_SWIPE && feedType != DISMISSED.name)
-                                adapter.organizeContent(feedType, DISMISS, contentAdapterPosition, user)
+                                adapter.organizeContent(feedType, DISMISS, contentAdapterPosition!!, user)
                                         .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                                         .subscribe { status -> Log.v(LOG_TAG, "Move to DISMISSED status: $status") }
                                         .dispose()

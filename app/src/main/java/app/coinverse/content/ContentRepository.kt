@@ -33,8 +33,8 @@ import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query.Direction.DESCENDING
 import com.google.firebase.functions.FirebaseFunctions
 import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import io.reactivex.android.schedulers.AndroidSchedulers.mainThread
+import io.reactivex.schedulers.Schedulers.io
 import io.reactivex.subjects.ReplaySubject
 
 class ContentRepository(application: Application) {
@@ -175,15 +175,17 @@ class ContentRepository(application: Application) {
             else if (feedType == DISMISSED.name) deleteContent(userReference, DISMISS_COLLECTION, content)
             content?.feedType = SAVED
             setContent(feedType, userReference, SAVE_COLLECTION, content, mainFeedEmptied)
-                    .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                    .subscribe { status -> statusSubscriber.onNext(status) }
+                    .subscribeOn(io()).observeOn(mainThread()).subscribe { status ->
+                        statusSubscriber.onNext(status)
+                    }
         } else if (actionType == DISMISS) {
             if (feedType == MAIN.name) updateActions(actionType, content!!, user)
             else if (feedType == SAVED.name) deleteContent(userReference, SAVE_COLLECTION, content)
             content?.feedType = DISMISSED
             setContent(feedType, userReference, DISMISS_COLLECTION, content, mainFeedEmptied)
-                    .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                    .subscribe { status -> statusSubscriber.onNext(status) }
+                    .subscribeOn(io()).observeOn(mainThread()).subscribe { status ->
+                        statusSubscriber.onNext(status)
+                    }
         }
         if (mainFeedEmptied) {
             analytics.logEvent(CLEAR_FEED_EVENT, Bundle().apply {

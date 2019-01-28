@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import app.coinverse.Enums.ContentType.ARTICLE
 import app.coinverse.Enums.FeedType.*
 import app.coinverse.Enums.PaymentStatus.FREE
+import app.coinverse.Enums.PaymentStatus.PAID
 import app.coinverse.R
 import app.coinverse.R.anim
 import app.coinverse.R.drawable.*
@@ -124,7 +125,7 @@ class ContentFragment : Fragment() {
     }
 
     override fun onDestroy() {
-        moPubAdapter.destroy()
+        if (homeViewModel.accountType.value == FREE) moPubAdapter.destroy()
         compositeDisposable.dispose()
         super.onDestroy()
     }
@@ -257,9 +258,13 @@ class ContentFragment : Fragment() {
             moPubAdapter.registerAdRenderer(MoPubStaticNativeAdRenderer(viewBinder))
             if (feedType == MAIN.name) moPubAdapter.setContentChangeStrategy(MOVE_ALL_ADS_WITH_CONTENT)
             contentRecyclerView.adapter = moPubAdapter
-        } /* PAID */ else contentRecyclerView.adapter = adapter
-        ItemTouchHelper(homeViewModel).build(context!!, FREE, feedType, adapter, moPubAdapter, fragmentManager!!)
-                .attachToRecyclerView(contentRecyclerView)
+            ItemTouchHelper(homeViewModel).build(context!!, FREE, feedType, adapter, moPubAdapter, fragmentManager!!)
+                    .attachToRecyclerView(contentRecyclerView)
+        } else { /* PAID */
+            contentRecyclerView.adapter = adapter
+            ItemTouchHelper(homeViewModel).build(context!!, PAID, feedType, adapter, null, fragmentManager!!)
+                    .attachToRecyclerView(contentRecyclerView)
+        }
     }
 
     private fun observeContentSelected() {
