@@ -6,7 +6,7 @@ import app.coinverse.Enums.Exchange
 import app.coinverse.Enums.Status
 import app.coinverse.Enums.Status.SUCCESS
 import app.coinverse.Enums.Timeframe
-import app.coinverse.firebase.FirestoreCollections.contentEthBtcCollection
+import app.coinverse.firebase.contentEthBtcCollection
 import app.coinverse.priceGraph.models.*
 import app.coinverse.utils.DateAndTime.getTimeframe
 import app.coinverse.utils.TIMESTAMP

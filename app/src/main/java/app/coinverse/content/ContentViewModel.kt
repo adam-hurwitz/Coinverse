@@ -1,6 +1,7 @@
 package app.coinverse.content
 
 import android.app.Application
+import android.net.Uri
 import android.util.Log
 import android.view.View
 import android.widget.ProgressBar.*
@@ -9,7 +10,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
-import app.coinverse.BuildConfig.DEBUG
 import app.coinverse.Enums
 import app.coinverse.Enums.ContentType.*
 import app.coinverse.Enums.FeedType
@@ -31,7 +31,7 @@ import io.reactivex.schedulers.Schedulers.io
 import io.reactivex.subjects.ReplaySubject
 
 class ContentViewModel(application: Application) : AndroidViewModel(application) {
-    val LOG_TAG = ContentViewModel::class.java.name
+    private val LOG_TAG = ContentViewModel::class.java.simpleName
 
     val timeframe = MutableLiveData<Timeframe>()
     val contentSelected: LiveData<Event<ContentSelected>>
@@ -42,8 +42,8 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
             .setPageSize(PAGE_SIZE)
             .build()
     private val _contentSelected = MutableLiveData<Event<ContentSelected>>()
+    private var contentRepository: ContentRepository
 
-    var contentRepository: ContentRepository
     var feedType = NONE.name
     //TODO: Add isRealtime Boolean for paid feature.
     var contentLoadingStatusMap = hashMapOf<String, Int>()
@@ -54,6 +54,8 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun initMainContent(isRealtime: Boolean) = contentRepository.initMainContent(isRealtime, timeframe.value!!)
+
+    fun getContent(contentId: String) = contentRepository.getContent(contentId)
 
     fun getMainRoomContent() = LivePagedListBuilder(
             contentRepository.getMainRoomContent(getTimeframe(timeframe.value)),
@@ -70,20 +72,19 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
             }
 
     fun onContentClicked(contentSelected: ContentSelected) {
-        val content = contentSelected.content
-        when (content.contentType) {
+        when (contentSelected.content.contentType) {
             ARTICLE -> {
-                contentRepository.getAudiocast(DEBUG, content).addOnCompleteListener { task ->
+                contentRepository.getAudiocast(contentSelected.content).addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         val response = task.result
                         if (response?.get(ERROR_PATH_PARAM).isNullOrEmpty()) {
-                            content.audioUrl = response?.get(FILE_PATH_PARAM)!!
+                            contentSelected.response = response?.get(FILE_PATH_PARAM)!!
                             Log.v(LOG_TAG, "getAudioCast Success: " + response.get(FILE_PATH_PARAM))
                         } else {
-                            content.audioUrl = response?.get(ERROR_PATH_PARAM)!!
+                            contentSelected.response = response?.get(ERROR_PATH_PARAM)!!
                             Log.v(LOG_TAG, "getAudioCast Error: " + response.get(ERROR_PATH_PARAM))
                         }
-                        _contentSelected.value = Event(contentSelected)  // Trigger the event by setting a new Event as a new value
+                        _contentSelected.value = Event(contentSelected)
                     } else {
                         val e = task.exception
                         if (e is FirebaseFunctionsException) {
@@ -95,7 +96,7 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
                     }
                 }
             }
-            YOUTUBE -> _contentSelected.value = Event(contentSelected)  // Trigger the event by setting a new Event as a new value
+            YOUTUBE -> _contentSelected.value = Event(contentSelected)
             NONE -> throw IllegalArgumentException("contentType expected, contentType is 'NONE'")
         }
     }
@@ -108,6 +109,8 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
                 .subscribe { status -> statusSubscriber.onNext(status) }.dispose()
         return statusSubscriber
     }
+
+    fun updateContentAudioUrl(contentId: String, url: Uri) = contentRepository.updateContentAudioUrl(contentId, url)
 
     fun updateActions(actionType: UserActionType, content: Content, user: FirebaseUser) {
         contentRepository.updateActions(actionType, content, user)

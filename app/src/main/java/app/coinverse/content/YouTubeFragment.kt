@@ -9,7 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import app.coinverse.BuildConfig.DEBUG
 import app.coinverse.R
-import app.coinverse.content.models.Content
+import app.coinverse.content.models.ContentSelected
 import app.coinverse.content.room.CoinverseDatabase
 import app.coinverse.databinding.FragmentContentDialogBinding
 import app.coinverse.utils.*
@@ -26,7 +26,7 @@ class YouTubeFragment : Fragment() {
     private var LOG_TAG = YouTubeFragment::class.java.simpleName
 
     private lateinit var analytics: FirebaseAnalytics
-    private lateinit var content: Content
+    private lateinit var contentSelected: ContentSelected
     private lateinit var binding: FragmentContentDialogBinding
     private lateinit var contentViewModel: ContentViewModel
     private lateinit var coinverseDatabase: CoinverseDatabase
@@ -45,7 +45,7 @@ class YouTubeFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         analytics = FirebaseAnalytics.getInstance(FirebaseApp.getInstance()!!.applicationContext)
-        content = arguments!!.getParcelable(CONTENT_KEY)!!
+        contentSelected = arguments!!.getParcelable(CONTENT_SELECTED_KEY)!!
         contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
         coinverseDatabase = CoinverseDatabase.getAppDatabase(context!!)
     }
@@ -61,15 +61,9 @@ class YouTubeFragment : Fragment() {
                             youtubePlayer = player
                             player.setPlayerStateChangeListener(PlayerStateChangeListener(savedInstanceState))
                             player.setPlaybackEventListener(PlaybackEventListener())
-                            if (savedInstanceState == null) {
-                                Log.v(LOG_TAG, "YOUTUBE_FIX: onCreateView() savedInstanceState == null")
-                                player.loadVideo(content.id.substring(8))
-                            } else {
-                                Log.v(LOG_TAG, "YOUTUBE_FIX: onCreateView() savedInstanceState " +
-                                        "${savedInstanceState.getInt(MEDIA_CURRENT_TIME_KEY)}")
-                                player.loadVideo(content.id.substring(8),
-                                        savedInstanceState.getInt(MEDIA_CURRENT_TIME_KEY))
-                            }
+                            val youTubeId = Regex(YOUTUBE_ID_REGEX).replace(contentSelected.content.id, "")
+                            if (savedInstanceState == null) player.loadVideo(youTubeId)
+                            else player.loadVideo(youTubeId, savedInstanceState.getInt(MEDIA_CURRENT_TIME_KEY))
                         }
                     }
 
@@ -90,7 +84,7 @@ class YouTubeFragment : Fragment() {
 
         override fun onAdStarted() {}
         override fun onVideoStarted() {
-            updateStartActionsAndAnalytics(savedInstanceState, content, contentViewModel, analytics)
+            updateStartActionsAndAnalytics(savedInstanceState, contentSelected.content, contentViewModel, analytics)
         }
 
         override fun onVideoEnded() {}
@@ -109,7 +103,7 @@ class YouTubeFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        if (youtubePlayer != null) updateActionsAndAnalytics(content, contentViewModel, coinverseDatabase.contentDao(),
+        if (youtubePlayer != null) updateActionsAndAnalytics(contentSelected.content, contentViewModel, coinverseDatabase.contentDao(),
                 analytics, (youtubePlayer.currentTimeMillis.toDouble() - seekToPositionMillis) / youtubePlayer.durationMillis)
     }
 }

@@ -2,7 +2,7 @@ package app.coinverse.content
 
 import android.content.Intent
 import android.content.Intent.*
-import android.net.Uri
+import android.net.Uri.parse
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -21,6 +21,7 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import app.coinverse.Enums.ContentType.ARTICLE
+import app.coinverse.Enums.ContentType.YOUTUBE
 import app.coinverse.Enums.FeedType.*
 import app.coinverse.Enums.PaymentStatus.FREE
 import app.coinverse.Enums.PaymentStatus.PAID
@@ -33,6 +34,7 @@ import app.coinverse.R.layout.native_ad_item
 import app.coinverse.R.string.*
 import app.coinverse.content.adapter.ContentAdapter
 import app.coinverse.content.adapter.ItemTouchHelper
+import app.coinverse.content.models.Content
 import app.coinverse.content.models.ContentSelected
 import app.coinverse.databinding.FragmentContentBinding
 import app.coinverse.home.HomeViewModel
@@ -276,20 +278,39 @@ class ContentFragment : Fragment() {
     }
 
     private fun observeContentShared() {
-        compositeDisposable.add(adapter.onContentShared
-                .subscribeOn(io()).observeOn(mainThread()).subscribe({ content ->
-                    startActivity(createChooser(Intent(ACTION_SEND)
-                            .setType(CONTENT_SHARE_TYPE)
-                            .putExtra(EXTRA_SUBJECT, CONTENT_SHARE_SUBJECT_PREFFIX + content.title)
-                            .putExtra(EXTRA_TEXT, CONTENT_SHARE_TEXT_PREFFIX + content.url),
-                            CONTENT_SHARE_TITLE))
+        compositeDisposable.add(adapter.onContentShared.subscribeOn(io()).observeOn(mainThread())
+                .subscribe({ content ->
+                    compositeDisposable.add(contentViewModel.getContent(content.id).subscribeOn(io())
+                            .observeOn(mainThread())
+                            .subscribe { content: Content ->
+                                val shareTextContent =
+                                        "$SHARED_VIA_COINVERSE '${content.title}' - ${content.creator}" +
+                                                content.audioUrl.let { audioUrl ->
+                                                    if (!audioUrl.isNullOrBlank()) "$AUDIOCAST_SHARE_MESSAGE $audioUrl"
+                                                    else {
+                                                        if (content.contentType == YOUTUBE) VIDEO_SHARE_MESSAGE + content.url
+                                                        else SOURCE_SHARE_MESSAGE + content.url
+                                                    }
+                                                }
+                                startActivity(createChooser(Intent(ACTION_SEND).apply {
+                                    this.type = CONTENT_SHARE_TYPE
+                                    this.putExtra(EXTRA_SUBJECT, CONTENT_SHARE_SUBJECT_PREFFIX + content.title)
+                                    this.putExtra(EXTRA_TEXT, shareTextContent)
+                                    if (content.contentType != YOUTUBE) {
+                                        this.putExtra(EXTRA_STREAM, parse(content.previewImage))
+                                        this.type = SHARE_CONTENT_TYPE
+                                        this.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                    }
+                                },
+                                        CONTENT_SHARE_TITLE))
+                            })
                 }, { throwable -> Log.e(LOG_TAG, throwable.toString()) }))
     }
 
     private fun observeContentSourceOpened() {
         compositeDisposable.add(adapter.onContentSourceOpened
                 .subscribeOn(io()).observeOn(mainThread()).subscribe({ contentUrl ->
-                    startActivity(Intent(Intent.ACTION_VIEW).setData(Uri.parse(contentUrl)))
+                    startActivity(Intent(Intent.ACTION_VIEW).setData(parse(contentUrl)))
                 }, { throwable -> Log.e(LOG_TAG, throwable.toString()) }))
     }
 
@@ -299,7 +320,7 @@ class ContentFragment : Fragment() {
             val content = contentSelected.content
             when (feedType) {
                 MAIN.name, DISMISSED.name -> {
-                    if (content.contentType == ARTICLE && content.audioUrl.equals(TTS_CHAR_LIMIT_ERROR)) {
+                    if (content.contentType == ARTICLE && contentSelected.response.equals(TTS_CHAR_LIMIT_ERROR)) {
                         homeViewModel.bottomSheetState.value = BottomSheetBehavior.STATE_HIDDEN
                         snackbarWithText(TTS_CHAR_LIMIT_MESSAGE, contentFragment)
                         emptyContent.postDelayed({
@@ -307,15 +328,15 @@ class ContentFragment : Fragment() {
                         }, BOTTOM_SHEET_COLLAPSE_DELAY)
                     } else
                         if (childFragmentManager.findFragmentByTag(CONTENT_DIALOG_FRAGMENT_TAG) == null)
-                            ContentDialogFragment()
-                                    .newInstance(Bundle().apply { putParcelable(CONTENT_KEY, content) })
-                                    .show(childFragmentManager, CONTENT_DIALOG_FRAGMENT_TAG)
+                            ContentDialogFragment().newInstance(Bundle().apply {
+                                putParcelable(CONTENT_SELECTED_KEY, contentSelected)
+                            }).show(childFragmentManager, CONTENT_DIALOG_FRAGMENT_TAG)
                 }
                 // Launch content from saved bottom sheet screen via HomeFragment.
                 SAVED.name -> {
                     if (content.contentType == ARTICLE && content.audioUrl.equals(TTS_CHAR_LIMIT_ERROR))
                         snackbarWithText(TTS_CHAR_LIMIT_MESSAGE, contentFragment)
-                    else homeViewModel._savedContentSelected.value = Event(content) // Trigger the event by setting a new Event as a new value
+                    else homeViewModel._savedContentSelected.value = Event(contentSelected)
                 }
             }
             setContentProgressBar(contentSelected, GONE)

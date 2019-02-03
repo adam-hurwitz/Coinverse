@@ -6,10 +6,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
-import androidx.lifecycle.ViewModelProviders
 import app.coinverse.Enums.ContentType.*
 import app.coinverse.R
-import app.coinverse.content.models.Content
+import app.coinverse.content.models.ContentSelected
 import app.coinverse.content.room.CoinverseDatabase
 import app.coinverse.databinding.FragmentContentDialogBinding
 import app.coinverse.utils.*
@@ -17,17 +16,15 @@ import app.coinverse.utils.*
 class ContentDialogFragment : DialogFragment() {
     private var LOG_TAG = ContentDialogFragment::class.java.simpleName
 
-    private lateinit var content: Content
+    private lateinit var contentSelected: ContentSelected
     private lateinit var binding: FragmentContentDialogBinding
-    private lateinit var contentViewModel: ContentViewModel
     private lateinit var coinverseDatabase: CoinverseDatabase
 
     fun newInstance(bundle: Bundle) = ContentDialogFragment().apply { arguments = bundle }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        content = arguments!!.getParcelable(CONTENT_KEY)!!
-        contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
+        contentSelected = arguments!!.getParcelable(CONTENT_SELECTED_KEY)!!
         coinverseDatabase = CoinverseDatabase.getAppDatabase(context!!)
     }
 
@@ -35,9 +32,9 @@ class ContentDialogFragment : DialogFragment() {
         binding = FragmentContentDialogBinding.inflate(inflater, container, false)
         if (savedInstanceState == null && childFragmentManager.findFragmentById(R.id.dialog_content) == null)
             childFragmentManager.beginTransaction().replace(R.id.dialog_content,
-                    when (content.contentType) {
-                        ARTICLE -> AudioFragment().newInstance(Bundle().apply { putParcelable(CONTENT_KEY, content) })
-                        YOUTUBE -> YouTubeFragment().newInstance(Bundle().apply { putParcelable(CONTENT_KEY, content) })
+                    when (contentSelected.content.contentType) {
+                        ARTICLE -> AudioFragment().newInstance(arguments!!)
+                        YOUTUBE -> YouTubeFragment().newInstance(arguments!!)
                         NONE -> throw(IllegalArgumentException("contentType expected, contentType is 'NONE'"))
                     }
             ).commit()

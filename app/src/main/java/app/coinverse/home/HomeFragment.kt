@@ -38,12 +38,15 @@ import app.coinverse.R.string.*
 import app.coinverse.content.ContentDialogFragment
 import app.coinverse.content.ContentFragment
 import app.coinverse.databinding.FragmentHomeBinding
-import app.coinverse.firebase.FirestoreCollections.usersCollection
-import app.coinverse.home.HomeFragmentDirections.actionHomeFragmentToProfileFragment
+import app.coinverse.firebase.ACCOUNT_DOCUMENT
+import app.coinverse.firebase.ACTIONS_DOCUMENT
+import app.coinverse.firebase.usersDocument
+import app.coinverse.home.HomeFragmentDirections.actionHomeFragmentToUserFragment
 import app.coinverse.priceGraph.PriceFragment
 import app.coinverse.user.PermissionsDialogFragment
 import app.coinverse.user.SignInDialogFragment
 import app.coinverse.user.models.User
+import app.coinverse.user.models.UserActionCount
 import app.coinverse.utils.*
 import app.coinverse.utils.livedata.EventObserver
 import com.bumptech.glide.Glide
@@ -228,8 +231,8 @@ class HomeFragment : Fragment() {
 
     private fun setClickListeners() {
         profileButton.setOnClickListener { view: View ->
-            if (user != null) view.findNavController().navigate(R.id.action_homeFragment_to_profileFragment,
-                    actionHomeFragmentToProfileFragment(user!!).apply { user = user }.arguments)
+            if (user != null) view.findNavController().navigate(R.id.action_homeFragment_to_userFragment,
+                    actionHomeFragmentToUserFragment(user!!).apply { user = user }.arguments)
             else SignInDialogFragment.newInstance(Bundle().apply { putInt(SIGNIN_TYPE_KEY, DIALOG.ordinal) })
                     .show(childFragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
         }
@@ -255,25 +258,32 @@ class HomeFragment : Fragment() {
             initProfileButton(user != null)
             if (user != null) { // Signed in.
                 //TODO: 1) Move to repository 2) Replace with Firestore security rule.
-                usersCollection.document(user.uid).get().addOnCompleteListener { userQuery ->
-                    // Create user.
-                    if (!userQuery.result!!.exists()) {
-                        usersCollection.document(user.uid).set(
-                                User(user.uid, user.displayName, user.email, user.phoneNumber,
-                                        user.photoUrl.toString(),
-                                        Timestamp(Date(user.metadata!!.creationTimestamp)),
-                                        Timestamp(Date(user.metadata!!.lastSignInTimestamp)),
-                                        user.providerId, FREE, READ,
-                                        0.0, 0.0, 0.0,
-                                        0.0, 0.0, 0.0,
-                                        0.0, 0.0))
-                                .addOnSuccessListener {
-                                    Log.v(LOG_TAG, String.format("New user added success:%s", it))
+                usersDocument.collection(user.uid).document(ACCOUNT_DOCUMENT).get()
+                        .addOnCompleteListener { userQuery ->
+                            // Create user.
+                            if (!userQuery.result!!.exists()) {
+                                usersDocument.collection(user.uid).document(ACCOUNT_DOCUMENT).set(
+                                        User(user.uid, user.displayName, user.email, user.phoneNumber,
+                                                user.photoUrl.toString(),
+                                                Timestamp(Date(user.metadata!!.creationTimestamp)),
+                                                Timestamp(Date(user.metadata!!.lastSignInTimestamp)),
+                                                user.providerId, FREE, READ))
+                                        .addOnSuccessListener {
+                                            Log.v(LOG_TAG, String.format("New user account data success:%s", it))
+                                        }.addOnFailureListener {
+                                            Log.v(LOG_TAG, String.format("New user account data failure:%s", it))
+                                        }
+                                usersDocument.collection(user.uid).document(ACTIONS_DOCUMENT).set(
+                                        UserActionCount(0.0, 0.0, 0.0,
+                                                0.0, 0.0, 0.0,
+                                                0.0, 0.0)
+                                ).addOnSuccessListener {
+                                    Log.v(LOG_TAG, String.format("New user action data success:%s", it))
                                 }.addOnFailureListener {
-                                    Log.v(LOG_TAG, String.format("New user added failure:%s", it))
+                                    Log.v(LOG_TAG, String.format("New user action data failure:%s", it))
                                 }
-                    }
-                }
+                            }
+                        }
                 if (savedInstanceState == null || savedInstanceState.getParcelable<FirebaseUser>(USER_KEY) == null) {
                     initMainContent()
                     initSavedContentFragment()
@@ -351,11 +361,11 @@ class HomeFragment : Fragment() {
     }
 
     private fun observeSavedContentSelected() {
-        homeViewModel.savedContentSelected.observe(viewLifecycleOwner, EventObserver { content ->
+        homeViewModel.savedContentSelected.observe(viewLifecycleOwner, EventObserver { contentSelected ->
             if (childFragmentManager.findFragmentByTag(CONTENT_DIALOG_FRAGMENT_TAG) == null)
-                ContentDialogFragment()
-                        .newInstance(Bundle().apply { putParcelable(CONTENT_KEY, content) })
-                        .show(childFragmentManager, CONTENT_DIALOG_FRAGMENT_TAG)
+                ContentDialogFragment().newInstance(Bundle().apply {
+                    putParcelable(CONTENT_SELECTED_KEY, contentSelected)
+                }).show(childFragmentManager, CONTENT_DIALOG_FRAGMENT_TAG)
         })
     }
 }

@@ -18,7 +18,7 @@
         android:id="@+id/profileFragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="app.coinverse.user.ProfileFragment">
+        tools:context="app.coinverse.user.UserFragment">
 
         <include layout="@layout/toolbar" />
 

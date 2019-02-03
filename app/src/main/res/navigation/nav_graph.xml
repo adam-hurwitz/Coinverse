@@ -11,8 +11,8 @@
         android:label="fragment_home"
         tools:layout="@layout/fragment_home">
         <action
-            android:id="@+id/action_homeFragment_to_profileFragment"
-            app:destination="@id/profileFragment"
+            android:id="@+id/action_homeFragment_to_userFragment"
+            app:destination="@id/userFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
@@ -28,15 +28,15 @@
             app:popUpTo="@id/homeFragment" />
     </fragment>
     <fragment
-        android:id="@+id/profileFragment"
-        android:name="app.coinverse.user.ProfileFragment"
-        android:label="fragment_profile"
-        tools:layout="@layout/fragment_profile">
+        android:id="@+id/userFragment"
+        android:name="app.coinverse.user.UserFragment"
+        android:label="fragment_user"
+        tools:layout="@layout/fragment_user">
         <argument
             android:name="user"
             app:argType="com.google.firebase.auth.FirebaseUser" />
         <action
-            android:id="@+id/action_profileFragment_to_dismissedContentFragment"
+            android:id="@+id/action_userFragment_to_dismissedContentFragment"
             app:destination="@id/dismissedContentFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_pop_exit_anim"

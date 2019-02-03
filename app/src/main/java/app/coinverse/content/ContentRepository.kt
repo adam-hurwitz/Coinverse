@@ -1,11 +1,13 @@
 package app.coinverse.content
 
 import android.app.Application
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.paging.DataSource
+import app.coinverse.BuildConfig.DEBUG
 import app.coinverse.Enums.FeedType
 import app.coinverse.Enums.FeedType.*
 import app.coinverse.Enums.Status
@@ -17,14 +19,12 @@ import app.coinverse.Enums.UserActionType.*
 import app.coinverse.content.models.Content
 import app.coinverse.content.models.UserAction
 import app.coinverse.content.room.CoinverseDatabase
-import app.coinverse.firebase.FirestoreCollections
-import app.coinverse.firebase.FirestoreCollections.contentEnCollection
-import app.coinverse.firebase.FirestoreCollections.usersCollection
+import app.coinverse.firebase.*
 import app.coinverse.user.models.ContentAction
 import app.coinverse.utils.*
 import app.coinverse.utils.DateAndTime.getTimeframe
-import com.google.android.gms.tasks.Task
 import com.google.firebase.Timestamp
+import com.google.firebase.Timestamp.now
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -34,7 +34,6 @@ import com.google.firebase.firestore.Query.Direction.DESCENDING
 import com.google.firebase.functions.FirebaseFunctions
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers.mainThread
-import io.reactivex.schedulers.Schedulers.io
 import io.reactivex.subjects.ReplaySubject
 
 class ContentRepository(application: Application) {
@@ -61,12 +60,11 @@ class ContentRepository(application: Application) {
         val contentDao = database.contentDao()
         val user = FirebaseAuth.getInstance().currentUser
         if (user != null) {
-            val userReference = usersCollection.document(user.uid)
+            val userReference = usersDocument.collection(user.uid)
             organizedSet.clear()
             // Get Saved collection.
-            savedListenerRegistration = userReference
-                    .collection(SAVE_COLLECTION)
-                    .orderBy(TIMESTAMP, DESCENDING)
+            savedListenerRegistration = userReference.document(COLLECTIONS_DOCUMENT)
+                    .collection(SAVE_COLLECTION).orderBy(TIMESTAMP, DESCENDING)
                     .whereGreaterThanOrEqualTo(TIMESTAMP, getTimeframe(timeframe))
                     .addSnapshotListener(EventListener { value, error ->
                         error?.run {
@@ -83,7 +81,7 @@ class ContentRepository(application: Application) {
                     })
             // Get Dismissed collection.
             dismissedListenerRegistration = userReference
-                    .collection(DISMISS_COLLECTION)
+                    .document(COLLECTIONS_DOCUMENT).collection(DISMISS_COLLECTION)
                     .orderBy(TIMESTAMP, DESCENDING)
                     .whereGreaterThanOrEqualTo(TIMESTAMP, getTimeframe(timeframe))
                     .addSnapshotListener(EventListener { value, error ->
@@ -101,8 +99,7 @@ class ContentRepository(application: Application) {
                     })
             //Logged in and realtime enabled.
             if (isRealtime) {
-                contentListenerRegistration = FirestoreCollections.contentEnCollection
-                        .orderBy(TIMESTAMP, DESCENDING)
+                contentListenerRegistration = contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
                         .whereGreaterThanOrEqualTo(TIMESTAMP, getTimeframe(timeframe))
                         .addSnapshotListener(EventListener { value, error ->
                             error?.run {
@@ -119,11 +116,9 @@ class ContentRepository(application: Application) {
                             Thread(Runnable { run { contentDao.insertContentList(contentList) } }).start()
                         })
             } else { // Logged in, not realtime.
-                FirestoreCollections.contentEnCollection
-                        .orderBy(TIMESTAMP, DESCENDING)
+                contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
                         .whereGreaterThanOrEqualTo(TIMESTAMP, getTimeframe(timeframe))
-                        .get()
-                        .addOnCompleteListener {
+                        .get().addOnCompleteListener {
                             val contentList = arrayListOf<Content?>()
                             it.result!!.documentChanges.all { document ->
                                 val content = document.document.toObject(Content::class.java)
@@ -139,8 +134,7 @@ class ContentRepository(application: Application) {
             }
 
         } else { // Logged out, not realtime.
-            FirestoreCollections.contentEnCollection
-                    .orderBy(TIMESTAMP, DESCENDING)
+            contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
                     .whereGreaterThanOrEqualTo(TIMESTAMP, getTimeframe(timeframe))
                     .get()
                     .addOnCompleteListener {
@@ -159,6 +153,14 @@ class ContentRepository(application: Application) {
         return status
     }
 
+    fun getContent(contentId: String): Observable<Content> {
+        val contentSubscriber = ReplaySubject.create<Content>()
+        contentEnCollection.document(contentId).get().addOnCompleteListener { result ->
+            contentSubscriber.onNext(result.result?.toObject(Content::class.java)!!)
+        }
+        return contentSubscriber
+    }
+
     fun getMainRoomContent(timeframe: Timestamp): DataSource.Factory<Int, Content> =
             database.contentDao().getMainContentList(timeframe, MAIN)
 
@@ -168,61 +170,63 @@ class ContentRepository(application: Application) {
     fun organizeContent(feedType: String, actionType: UserActionType, content: Content?,
                         user: FirebaseUser, mainFeedEmptied: Boolean): Observable<Status> {
         val statusSubscriber = ReplaySubject.create<Status>()
-        val userReference = usersCollection.document(user.uid)
-        // Add content to new collection.
+        val userReference = usersDocument.collection(user.uid)
         if (actionType == SAVE) {
-            if (feedType == MAIN.name) updateActions(actionType, content!!, user)
-            else if (feedType == DISMISSED.name) deleteContent(userReference, DISMISS_COLLECTION, content)
             content?.feedType = SAVED
+            if (feedType == DISMISSED.name) deleteContent(userReference, DISMISS_COLLECTION, content)
             setContent(feedType, userReference, SAVE_COLLECTION, content, mainFeedEmptied)
-                    .subscribeOn(io()).observeOn(mainThread()).subscribe { status ->
+                    .subscribeOn(mainThread()).observeOn(mainThread()).subscribe { status ->
+                        if (status == SUCCESS && feedType == MAIN.name) updateActions(actionType, content!!, user)
                         statusSubscriber.onNext(status)
                     }
         } else if (actionType == DISMISS) {
-            if (feedType == MAIN.name) updateActions(actionType, content!!, user)
-            else if (feedType == SAVED.name) deleteContent(userReference, SAVE_COLLECTION, content)
             content?.feedType = DISMISSED
+            if (feedType == SAVED.name) deleteContent(userReference, SAVE_COLLECTION, content)
             setContent(feedType, userReference, DISMISS_COLLECTION, content, mainFeedEmptied)
-                    .subscribeOn(io()).observeOn(mainThread()).subscribe { status ->
+                    .subscribeOn(mainThread()).observeOn(mainThread()).subscribe { status ->
+                        if (status == SUCCESS && feedType == MAIN.name) updateActions(actionType, content!!, user)
                         statusSubscriber.onNext(status)
                     }
         }
         if (mainFeedEmptied) {
             analytics.logEvent(CLEAR_FEED_EVENT, Bundle().apply {
-                putString(TIMESTAMP_PARAM, Timestamp.now().toString())
+                putString(TIMESTAMP_PARAM, now().toString())
             })
             updateUserActionCounter(user.uid, CLEAR_FEED_COUNT)
         }
         return statusSubscriber
     }
 
-    fun setContent(feedType: String, userReference: DocumentReference, collection: String,
+    fun setContent(feedType: String, userCollection: CollectionReference, collection: String,
                    content: Content?, mainFeedEmptied: Boolean): Observable<Status> {
         val statusSubscriber = ReplaySubject.create<Status>()
-        userReference.collection(collection).document(content!!.id).set(content)
-                .addOnSuccessListener {
+        userCollection.document(COLLECTIONS_DOCUMENT).collection(collection).document(content!!.id)
+                .set(content).addOnSuccessListener {
                     logCategorizeContentAnalyticsEvent(feedType, content, mainFeedEmptied)
                     Thread(Runnable { run { database.contentDao().updateContentItem(content) } }).start()
                     statusSubscriber.onNext(SUCCESS)
-                    Log.v(LOG_TAG, String.format("Content added to collection:%s", it))
+                    Log.v(LOG_TAG, "Content '${content.title}' added to collection $collection")
                 }.addOnFailureListener {
                     statusSubscriber.onNext(ERROR)
-                    Log.e(LOG_TAG, String.format("Content failed to be added to collection:%s", it))
+                    Log.e(LOG_TAG, "Content failed to be added to collection ${it}")
                 }
         return statusSubscriber
     }
 
-    fun deleteContent(userReference: DocumentReference, collection: String, content: Content?) {
-        userReference
-                .collection(collection)
-                .document(content!!.id)
-                .delete()
-                .addOnSuccessListener {
-                    //TODO: Add Observerable to animate RecyclerView
+    fun updateContentAudioUrl(contentId: String, url: Uri) = contentEnCollection.document(contentId)
+            .update(AUDIO_URL, Regex(AUDIO_URL_TOKEN_REGEX).replace(url.toString(), ""))
+
+    fun deleteContent(userReference: CollectionReference, collection: String, content: Content?): Observable<Status> {
+        val statusSubscriber = ReplaySubject.create<Status>()
+        userReference.document(COLLECTIONS_DOCUMENT).collection(collection).document(content!!.id)
+                .delete().addOnSuccessListener {
+                    statusSubscriber.onNext(SUCCESS)
                     Log.v(LOG_TAG, String.format("Content deleted from to collection:%s", it))
                 }.addOnFailureListener {
+                    statusSubscriber.onNext(ERROR)
                     Log.e(LOG_TAG, String.format("Content failed to be deleted from collection:%s", it))
                 }
+        return statusSubscriber
     }
 
     fun updateActions(actionType: UserActionType, content: Content, user: FirebaseUser) {
@@ -257,12 +261,15 @@ class ContentRepository(application: Application) {
             }
         }
         contentEnCollection.document(content.id).collection(actionCollection)
-                .document(user.email!!).set(UserAction(Timestamp.now(), user.email!!))
+                .document(user.email!!).set(UserAction(now(), user.email!!))
                 .addOnSuccessListener { status ->
                     updateContentActionCounter(content.id, countType)
                     updateUserActions(user.uid, actionCollection, content, countType)
                     updateQualityScore(score, content.id)
-                }.addOnFailureListener { e -> Log.w(LOG_TAG, "Transaction failure.", e) }
+                }.addOnFailureListener { e ->
+                    Log.e(LOG_TAG,
+                            "Transaction failure update action $actionCollection ${countType}.", e)
+                }
     }
 
     fun updateContentActionCounter(contentId: String, counterType: String) {
@@ -272,37 +279,33 @@ class ContentRepository(application: Application) {
             val newCounter = contentSnapshot.getDouble(counterType)!! + 1.0
             counterTransaction.update(contentRef, counterType, newCounter)
             return@Function "Content counter update SUCCESS."
-        }).addOnSuccessListener { status ->
-            Log.w(LOG_TAG, status)
-        }.addOnFailureListener { e ->
-            Log.w(LOG_TAG, "Content counter update FAIL.", e)
-        }
+        }).addOnSuccessListener { status -> Log.v(LOG_TAG, status) }
+                .addOnFailureListener { e -> Log.e(LOG_TAG, "Content counter update FAIL.", e) }
     }
 
     fun updateUserActions(userId: String, actionCollection: String, content: Content, countType: String) {
-        usersCollection.document(userId).collection(actionCollection).document(content.id)
-                .set(ContentAction(Timestamp.now(), content.id, content.title, content.creator,
+        usersDocument.collection(userId).document(ACTIONS_DOCUMENT).collection(actionCollection)
+                .document(content.id).set(ContentAction(now(), content.id, content.title, content.creator,
                         content.qualityScore)).addOnSuccessListener {
                     updateUserActionCounter(userId, countType)
                 }.addOnFailureListener {
-                    Log.w(LOG_TAG, "User content action update FAIL.")
+                    Log.e(LOG_TAG, "User content action update FAIL.")
                 }
     }
 
     fun updateUserActionCounter(userId: String, counterType: String) {
-        val userRef = usersCollection.document(userId)
+        val userRef = usersDocument.collection(userId).document(ACTIONS_DOCUMENT)
         firestore.runTransaction(Transaction.Function<String> { counterTransaction ->
-            val userSnapshot = counterTransaction.get(userRef)
-            val newCounter = userSnapshot.getDouble(counterType)!! + 1.0
+            val newCounter = counterTransaction.get(userRef).getDouble(counterType)!! + 1.0
             counterTransaction.update(userRef, counterType, newCounter)
             return@Function "User counter update SUCCESS."
-        }).addOnSuccessListener { status -> Log.w(LOG_TAG, status) }
-                .addOnFailureListener { e -> Log.w(LOG_TAG, "user counter update FAIL.", e) }
+        }).addOnSuccessListener { status -> Log.v(LOG_TAG, status) }
+                .addOnFailureListener { e -> Log.e(LOG_TAG, "user counter update FAIL.", e) }
     }
 
     fun updateQualityScore(score: Double, contentId: String) {
         Log.d(LOG_TAG, "Transaction success: " + score)
-        val contentDocRef = FirestoreCollections.contentEnCollection.document(contentId)
+        val contentDocRef = contentEnCollection.document(contentId)
         firestore.runTransaction(object : Transaction.Function<Void> {
             @Throws(FirebaseFirestoreException::class)
             override fun apply(transaction: Transaction): Void? {
@@ -313,7 +316,7 @@ class ContentRepository(application: Application) {
                 return null
             }
         }).addOnSuccessListener({ Log.d(LOG_TAG, "Transaction success!") })
-                .addOnFailureListener({ e -> Log.w(LOG_TAG, "Transaction failure.", e) })
+                .addOnFailureListener({ e -> Log.e(LOG_TAG, "Transaction failure updateQualityScore.", e) })
     }
 
     fun logCategorizeContentAnalyticsEvent(feedType: String, content: Content, mainFeedEmptied: Boolean) {
@@ -332,15 +335,11 @@ class ContentRepository(application: Application) {
         }
     }
 
-    fun getAudiocast(debugEnabled: Boolean, content: Content): Task<HashMap<String, String>> {
-        val data = hashMapOf(
-                DEBUG_ENABLED_PARAM to debugEnabled,
-                CONTENT_ID_PARAM to content.id,
-                CONTENT_TITLE_PARAM to content.title,
-                CONTENT_PREVIEW_IMAGE_PARAM to content.previewImage)
-        return functions
-                .getHttpsCallable(GET_AUDIOCAST_FUNCTION)
-                .call(data)
-                .continueWith { task -> (task.result?.data as HashMap<String, String>) }
-    }
+    fun getAudiocast(content: Content) = functions.getHttpsCallable(GET_AUDIOCAST_FUNCTION).call(
+            hashMapOf(
+                    DEBUG_ENABLED_PARAM to DEBUG,
+                    CONTENT_ID_PARAM to content.id,
+                    CONTENT_TITLE_PARAM to content.title,
+                    CONTENT_PREVIEW_IMAGE_PARAM to content.previewImage))
+            .continueWith { task -> (task.result?.data as HashMap<String, String>) }
 }

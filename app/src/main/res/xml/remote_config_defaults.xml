@@ -11,7 +11,9 @@
     </entry>
     <entry>
         <key>support_body</key>
-        <value>Thank you for helping to improve Coinverse! Please include a video using AZ Screen Recorder / your app of choice, or a screenshot. I will take a look at the issue as soon as possible. - Adam, Coinverse Founder
+        <value>Thank you for helping to improve Coinverse! Please include a video using AZ Screen
+            Recorder / your app of choice, or a screenshot. I will take a look at the issue as soon
+            as possible. - Adam, Coinverse Founder
         </value>
     </entry>
     <entry>
@@ -37,8 +39,16 @@
 
     <!--User-->
     <entry>
-        <key>users_collection</key>
-        <value>users</value>
+        <key>users_document</key>
+        <value>users/users/</value>
+    </entry>
+    <entry>
+        <key>account_document</key>
+        <value>account</value>
+    </entry>
+    <entry>
+        <key>collections_document</key>
+        <value>collections</value>
     </entry>
     <entry>
         <key>save_collection</key>
@@ -47,6 +57,10 @@
     <entry>
         <key>dismiss_collection</key>
         <value>dismissCollection</value>
+    </entry>
+    <entry>
+        <key>actions_document</key>
+        <value>actions</value>
     </entry>
     <entry>
         <key>sign_out_on_back_press_delay_in_millis</key>
@@ -81,10 +95,6 @@
         <value>1.2</value>
     </entry>
     <entry>
-        <key>content_feed_visibility_delay</key>
-        <value>300</value>
-    </entry>
-    <entry>
         <key>default_lat</key>
         <value>374629.6</value>
     </entry>
@@ -92,19 +102,23 @@
         <key>default_lng</key>
         <value>1222509.8</value>
     </entry>
+    <entry>
+        <key>delete_user_function</key>
+        <value>deleteUser</value>
+    </entry>
+    <entry>
+        <key>user_id_function_param</key>
+        <value>userId</value>
+    </entry>
+    <entry>
+        <key>path_function_param</key>
+        <value>path</value>
+    </entry>
 
     <!--Content-->
     <entry>
-        <key>content_collection</key>
-        <value>content</value>
-    </entry>
-    <entry>
-        <key>feeds_doc</key>
-        <value>feeds</value>
-    </entry>
-    <entry>
-        <key>en_collection</key>
-        <value>en</value>
+        <key>content_en_collection</key>
+        <value>content/feeds/en</value>
     </entry>
     <entry>
         <key>saved_bottom_sheet_peek_height</key>
@@ -171,29 +185,43 @@
         <value>Via Coinverse:</value>
     </entry>
     <entry>
-        <key>content_share_text_prefix</key>
-        <value>I found this via Coinverse:</value>
+        <key>shared_via_coinverse</key>
+        <value>Shared via Coinverse:</value>
     </entry>
     <entry>
         <key>content_share_title_prefix</key>
         <value>Share From Coinverse</value>
     </entry>
+    <entry>
+        <key>audio_url</key>
+        <value>audioUrl</value>
+    </entry>
+    <entry>
+        <key>share_content_type</key>
+        <value>image/*</value>
+    </entry>
+    <entry>
+        <key>audiocast_share_message</key>
+        <value>| audiocast:</value>
+    </entry>
+    <entry>
+        <key>video_share_message</key>
+        <value>| video:</value>
+    </entry>
+    <entry>
+        <key>source_share_message</key>
+        <value>| source:</value>
+    </entry>
+    <entry>
+        <key>youtube_id_regex</key>
+        <value>yt-\\b</value>
+    </entry>
 
     <!--Price-->
     <entry>
-        <key>price_collection</key>
-        <value>price</value>
+        <key>price_eth_btc_collection</key>
+        <value>price/eth-btc/prices</value>
     </entry>
-    <entry>
-        <key>eth_btc_doc</key>
-        <value>eth-btc</value>
-    </entry>
-    <entry>
-        <key>prices_collection</key>
-        <value>prices</value>
-    </entry>
-
-    <!--Actions-->
 
     <!--Collections-->
     <entry>
