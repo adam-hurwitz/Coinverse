@@ -23,9 +23,9 @@ fun ImageView.setImageUrl(context: Context, url: String) {
     GlideApp.with(context)
             .load(url)
             .transform(RoundedCorners(CONTENT_IMAGE_CORNER_RADIUS))
-            .placeholder(R.drawable.content_placeholder)
-            .error(R.drawable.coinverse_logo_placeholder)
-            .fallback(R.drawable.coinverse_logo_placeholder)
+            .placeholder(R.drawable.ic_content_placeholder)
+            .error(R.drawable.ic_coinverse_icon_placeholder)
+            .fallback(R.drawable.ic_coinverse_icon_placeholder)
             .into(this)
 }
 

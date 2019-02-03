@@ -202,6 +202,7 @@ class HomeFragment : Fragment() {
                 if (newState == STATE_COLLAPSED) {
                     isSavedContentExpanded = false
                     appBar.visibility = VISIBLE
+                    bottom_handle_logo.visibility = VISIBLE
                     bottom_handle.visibility = VISIBLE
                     bottom_handle_elevation.visibility = VISIBLE
                 }
@@ -215,6 +216,8 @@ class HomeFragment : Fragment() {
     private fun setBottomSheetExpanded() {
         isSavedContentExpanded = true
         appBar.visibility = GONE
+
+        bottom_handle_logo.visibility = GONE
         bottom_handle.visibility = GONE
         bottom_handle_elevation.visibility = GONE
     }

@@ -105,7 +105,7 @@ class ItemTouchHelper(var homeViewModel: HomeViewModel) {
 
                     if (dX > 0 && feedType != SAVED.name) { // Save
                         // Draw icon.
-                        icon = getDrawable(context, ic_save_planet_dark_48dp)
+                        icon = getDrawable(context, ic_coinverse_48dp)
                         background = ColorDrawable(getColor(context, color.colorPrimary))
                         background.setBounds(0, itemView.top, (itemView.left + dX).toInt(), itemView.bottom)
                         iconLeft = margin

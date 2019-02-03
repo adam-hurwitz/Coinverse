@@ -379,7 +379,7 @@ class ContentFragment : Fragment() {
                 emptyContent.confirmation.visibility = GONE
             }
             SAVED.name -> {
-                emptyContent.emptyImage.setImageDrawable(getDrawable(context!!, ic_save_planet_dark_48dp))
+                emptyContent.emptyImage.setImageDrawable(getDrawable(context!!, ic_coinverse_48dp))
                 emptyContent.title.text = getString(no_saved_content_title)
                 emptyContent.swipe_right_one.setImageDrawable(getDrawable(context!!, ic_chevron_right_color_accent_24dp))
                 emptyContent.swipe_right_two.setImageDrawable(getDrawable(context!!, ic_chevron_right_color_accent_fade_one_24dp))

@@ -4,6 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
+
         <variable
             name="viewmodel"
             type="app.coinverse.home.HomeViewModel" />
@@ -62,13 +63,23 @@
                 app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
                 <ImageView
+                    android:id="@+id/bottom_handle_logo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/ic_coinverse_48dp"
+                    android:elevation="@dimen/bottom_sheet_logo_elevation"
+                    app:layout_constraintBottom_toBottomOf="@id/bottom_handle"
+                    app:layout_constraintLeft_toLeftOf="@id/bottom_handle"
+                    app:layout_constraintRight_toRightOf="@id/bottom_handle"
+                    app:layout_constraintTop_toTopOf="@id/bottom_handle" />
+
+                <ImageView
                     android:id="@+id/bottom_handle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/ic_bottom_sheet_handle"
                     android:contentDescription="@string/saved_bottomsheet_handle_content_description"
-                    android:elevation="@dimen/bottom_sheet_elevation_height"
-                    android:src="@drawable/ic_save_planet_dark_48dp"
+                    android:elevation="@dimen/bottom_sheet_elevation"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -76,7 +87,7 @@
                 <ImageView
                     android:id="@+id/bottom_handle_elevation"
                     android:layout_width="0dp"
-                    android:layout_height="@dimen/bottom_sheet_elevation_height"
+                    android:layout_height="@dimen/bottom_sheet_elevation"
                     android:background="@color/bottom_sheet_handle_elevation"
                     android:contentDescription="@string/saved_bottomsheet_handle_content_description"
                     app:layout_constraintBottom_toBottomOf="@id/bottom_handle"

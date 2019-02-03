@@ -28,7 +28,8 @@
 
     <!--Home Fragment-->
     <dimen name="toolbar_button_dimen">24dp</dimen>
-    <dimen name="bottom_sheet_elevation_height">1dp</dimen>
+    <dimen name="bottom_sheet_logo_elevation">2dp</dimen>
+    <dimen name="bottom_sheet_elevation">1dp</dimen>
 
     <!--Price Graph-->
     <dimen name="price_graph_height">350dp</dimen>
