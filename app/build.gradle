@@ -16,8 +16,8 @@ android {
         applicationId "app.coinverse"
         minSdkVersion 27
         targetSdkVersion 28
-        versionCode 15
-        versionName "0.15"
+        versionCode 17
+        versionName "0.17"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
             annotationProcessorOptions {
@@ -30,8 +30,6 @@ android {
     }
     buildTypes {
         release {
-            shrinkResources true
-            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro',
                     'proguard.cfg'
         }
