@@ -334,7 +334,7 @@ class ContentFragment : Fragment() {
                 }
                 // Launch content from saved bottom sheet screen via HomeFragment.
                 SAVED.name -> {
-                    if (content.contentType == ARTICLE && content.audioUrl.equals(TTS_CHAR_LIMIT_ERROR))
+                    if (content.contentType == ARTICLE && contentSelected.response.equals(TTS_CHAR_LIMIT_ERROR))
                         snackbarWithText(TTS_CHAR_LIMIT_MESSAGE, contentFragment)
                     else homeViewModel._savedContentSelected.value = Event(contentSelected)
                 }
