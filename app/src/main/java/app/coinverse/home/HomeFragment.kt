@@ -51,6 +51,7 @@ import app.coinverse.utils.*
 import app.coinverse.utils.livedata.EventObserver
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions.circleCropTransform
+import com.crashlytics.android.Crashlytics
 import com.firebase.ui.auth.IdpResponse
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.appbar.AppBarLayout
@@ -260,6 +261,7 @@ class HomeFragment : Fragment() {
             this.user = user
             initProfileButton(user != null)
             if (user != null) { // Signed in.
+                Crashlytics.setUserIdentifier(user.uid)
                 //TODO: 1) Move to repository 2) Replace with Firestore security rule.
                 usersDocument.collection(user.uid).document(ACCOUNT_DOCUMENT).get()
                         .addOnCompleteListener { userQuery ->
