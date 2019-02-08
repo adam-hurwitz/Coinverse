@@ -262,10 +262,10 @@ class HomeFragment : Fragment() {
             initProfileButton(user != null)
             if (user != null) { // Signed in.
                 Crashlytics.setUserIdentifier(user.uid)
-                //TODO: 1) Move to repository 2) Replace with Firestore security rule.
+                //TODO: Replace with Cloud Function.
                 usersDocument.collection(user.uid).document(ACCOUNT_DOCUMENT).get()
                         .addOnCompleteListener { userQuery ->
-                            // Create user.
+                            // Create user if user does not exist.
                             if (!userQuery.result!!.exists()) {
                                 usersDocument.collection(user.uid).document(ACCOUNT_DOCUMENT).set(
                                         User(user.uid, user.displayName, user.email, user.phoneNumber,
