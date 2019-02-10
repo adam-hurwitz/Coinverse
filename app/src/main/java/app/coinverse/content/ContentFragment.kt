@@ -108,7 +108,7 @@ class ContentFragment : Fragment() {
                               savedInstanceState: Bundle?): View? {
         analytics.setCurrentScreen(activity!!, feedType, null)
         binding = FragmentContentBinding.inflate(inflater, container, false)
-        binding.setLifecycleOwner(this)
+        binding.lifecycleOwner = this
         binding.viewmodel = contentViewModel
         binding.actionbar.viewmodel = contentViewModel
         binding.emptyContent.viewmodel = contentViewModel
@@ -163,6 +163,7 @@ class ContentFragment : Fragment() {
         moPubAdapter.setAdLoadedListener(object : MoPubNativeAdLoadedListener {
             override fun onAdRemoved(position: Int) {
                 moPubAdapter.notifyItemRemoved(position)
+                adapter.notifyDataSetChanged()
             }
 
             override fun onAdLoaded(position: Int) {
