@@ -35,7 +35,6 @@ class PriceViewModel : ViewModel() {
             Pair(Enums.Exchange.COINBASE, PriceGraphData(LineGraphSeries(), LineGraphSeries())),
             Pair(Enums.Exchange.BINANCE, PriceGraphData(LineGraphSeries(), LineGraphSeries())),
             Pair(Enums.Exchange.GEMINI, PriceGraphData(LineGraphSeries(), LineGraphSeries())),
-            Pair(Enums.Exchange.KUCOIN, PriceGraphData(LineGraphSeries(), LineGraphSeries())),
             Pair(Enums.Exchange.KRAKEN, PriceGraphData(LineGraphSeries(), LineGraphSeries())))
 
     private var toInitializePriceGraphData = MutableLiveData<Boolean>()

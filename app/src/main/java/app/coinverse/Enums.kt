@@ -8,7 +8,7 @@ object Enums {
 
     // Price graph.
     enum class Exchange {
-        COINBASE, BINANCE, KUCOIN, KRAKEN, GEMINI, EMPTY
+        COINBASE, BINANCE, KRAKEN, GEMINI, EMPTY
     }
 
     enum class OrderType {

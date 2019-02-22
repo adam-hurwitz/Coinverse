@@ -12,8 +12,6 @@
     <color name="binanceBids">#FFF5BC01</color>
     <color name="geminiAsks">#4049DCFA</color>
     <color name="geminiBids">#FF49DCFA</color>
-    <color name="kucoinAsks">#4068B92E</color>
-    <color name="kucoinBids">#FF68B92E</color>
     <color name="krakenAsks">#403098D4</color>
     <color name="krakenBids">#FF3098D4</color>
 

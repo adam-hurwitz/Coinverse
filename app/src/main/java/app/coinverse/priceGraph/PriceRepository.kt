@@ -19,7 +19,7 @@ import com.jjoe64.graphview.series.LineGraphSeries
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.functions.Function5
+import io.reactivex.functions.Function4
 import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers
 
@@ -87,9 +87,8 @@ object PriceRepository {
                     generateGraphData(Exchange.COINBASE, priceData.coinbaseExchangeOrderData).subscribeOn(Schedulers.io()),
                     generateGraphData(Exchange.BINANCE, priceData.binanceExchangeOrderData).subscribeOn(Schedulers.io()),
                     generateGraphData(Exchange.GEMINI, priceData.geminiExchangeOrderData).subscribeOn(Schedulers.io()),
-                    generateGraphData(Exchange.KUCOIN, priceData.kucoinExchangeOrderData).subscribeOn(Schedulers.io()),
                     generateGraphData(Exchange.KRAKEN, priceData.krakenExchangeOrderData).subscribeOn(Schedulers.io()),
-                    getFunction5())
+                    getFunction4())
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribeWith(object : DisposableObserver<Status>() {
@@ -133,22 +132,19 @@ object PriceRepository {
         return Observable.just(exchangeOrdersDataMap)
     }
 
-    private fun getFunction5(): Function5<
-            HashMap<Exchange, PriceGraphData>,
+    private fun getFunction4(): Function4<
             HashMap<Exchange, PriceGraphData>,
             HashMap<Exchange, PriceGraphData>,
             HashMap<Exchange, PriceGraphData>,
             HashMap<Exchange, PriceGraphData>,
             Status> {
-        return Function5 { coinbasePriceGraphData,
+        return Function4 { coinbasePriceGraphData,
                            binancePriceGraphData,
                            geminiPriceGraphData,
-                           kucoinPriceGraphData,
                            krakenPriceGraphData ->
             graphLiveData.postValue(coinbasePriceGraphData)
             graphLiveData.postValue(binancePriceGraphData)
             graphLiveData.postValue(geminiPriceGraphData)
-            graphLiveData.postValue(kucoinPriceGraphData)
             graphLiveData.postValue(krakenPriceGraphData)
             SUCCESS
         }

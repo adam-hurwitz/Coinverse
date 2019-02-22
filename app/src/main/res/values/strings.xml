@@ -22,7 +22,6 @@
     <string name="bid">bid</string>
     <string name="coinbase">Coinbase</string>
     <string name="binance">Binance</string>
-    <string name="kucoin">Kucoin</string>
     <string name="kraken">Kraken</string>
     <string name="gemini">Gemini</string>
     <string name="max_min_format">%s: %.5f</string>

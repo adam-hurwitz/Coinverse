@@ -153,15 +153,6 @@
                     android:onClick="@{() -> viewmodel.exchangeToggle(exchange.GEMINI)}"
                     android:text="@string/gemini"
                     app:layout_constraintLeft_toRightOf="@id/binanceToggle"
-                    app:layout_constraintRight_toLeftOf="@id/kucoinToggle"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/kucoinToggle"
-                    style="@style/ButtonStyle"
-                    android:onClick="@{() -> viewmodel.exchangeToggle(exchange.KUCOIN)}"
-                    android:text="@string/kucoin"
-                    app:layout_constraintLeft_toRightOf="@id/geminiToggle"
                     app:layout_constraintRight_toLeftOf="@id/krakenToggle"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -170,7 +161,7 @@
                     style="@style/ButtonStyle"
                     android:onClick="@{() -> viewmodel.exchangeToggle(exchange.KRAKEN)}"
                     android:text="@string/kraken"
-                    app:layout_constraintLeft_toRightOf="@+id/kucoinToggle"
+                    app:layout_constraintLeft_toRightOf="@+id/geminiToggle"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 

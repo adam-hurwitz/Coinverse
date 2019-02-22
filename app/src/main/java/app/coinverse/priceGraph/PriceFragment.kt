@@ -61,7 +61,7 @@ class PriceFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         binding = FragmentPriceBinding.inflate(inflater, container, false)
-        binding.setLifecycleOwner(this)
+        binding.lifecycleOwner = this
         binding.viewmodel = priceViewModel
         return binding.root
     }
@@ -123,7 +123,6 @@ class PriceFragment : Fragment() {
             setExchangeToggleColor(COINBASE, enabledExchangeList, coinbaseToggle)
             setExchangeToggleColor(BINANCE, enabledExchangeList, binanceToggle)
             setExchangeToggleColor(GEMINI, enabledExchangeList, geminiToggle)
-            setExchangeToggleColor(KUCOIN, enabledExchangeList, kucoinToggle)
             setExchangeToggleColor(KRAKEN, enabledExchangeList, krakenToggle)
 
             for (exchange in enabledExchangeList!!) {
