@@ -1,11 +1,9 @@
 package app.coinverse.home
 
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.Intent.*
-import android.location.Location
 import android.net.Uri
 import android.os.Build.BRAND
 import android.os.Build.MODEL
@@ -53,7 +51,6 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions.circleCropTransform
 import com.crashlytics.android.Crashlytics
 import com.firebase.ui.auth.IdpResponse
-import com.google.android.gms.location.LocationServices
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.*
@@ -74,14 +71,6 @@ class HomeFragment : Fragment() {
     private lateinit var binding: FragmentHomeBinding
     private lateinit var homeViewModel: HomeViewModel
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<*>
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        when (requestCode) {
-            REQUEST_CODE_LOC_PERMISSION ->
-                if ((grantResults.isNotEmpty() && grantResults[0] == PERMISSION_GRANTED)) getLocation()
-                else homeViewModel.location.value = null
-        }
-    }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
@@ -111,7 +100,7 @@ class HomeFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         binding = FragmentHomeBinding.inflate(inflater, container, false)
-        binding.setLifecycleOwner(this)
+        binding.lifecycleOwner = this
         binding.viewmodel = homeViewModel
         return binding.root
     }
@@ -192,8 +181,7 @@ class HomeFragment : Fragment() {
                     R.id.savedContentContainer,
                     SignInDialogFragment.newInstance(Bundle().apply {
                         putInt(SIGNIN_TYPE_KEY, FULLSCREEN.code)
-                    }))
-                    .commit()
+                    })).commit()
         bottomSheetBehavior.setBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
                 if (newState == STATE_EXPANDED) {
@@ -311,8 +299,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun getLocationPermissionCheck() {
-        if (checkSelfPermission(activity!!, ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED) getLocation()
-        else {
+        if (checkSelfPermission(activity!!, ACCESS_COARSE_LOCATION) != PERMISSION_GRANTED) {
             val pref = activity?.getPreferences(MODE_PRIVATE) ?: return
             if (pref.getBoolean(getString(first_open), true)
                     || shouldShowRequestPermissionRationale(activity!!, ACCESS_COARSE_LOCATION)) {
@@ -325,29 +312,6 @@ class HomeFragment : Fragment() {
                     if (showPermission) requestPermissions(arrayOf(ACCESS_COARSE_LOCATION), REQUEST_CODE_LOC_PERMISSION)
                 })
             } else requestPermissions(arrayOf(ACCESS_COARSE_LOCATION), REQUEST_CODE_LOC_PERMISSION)
-        }
-    }
-
-    // Permission checked above.
-    @SuppressLint("MissingPermission")
-    private fun getLocation() {
-        LocationServices.getFusedLocationProviderClient(activity!!).lastLocation.addOnSuccessListener { location: Location? ->
-            homeViewModel.location.value =
-                    activity?.getPreferences(MODE_PRIVATE)?.let { pref ->
-                        if (location != null) {
-                            pref.edit().apply {
-                                putFloat(getString(user_lat), location.latitude.toFloat())
-                                putFloat(getString(user_lng), location.longitude.toFloat())
-                                apply()
-                            }
-                            location
-                        } else
-                            Location("").apply {
-                                latitude = pref.getFloat(getString(user_lat), DEFAULT_LAT.toFloat()).toDouble()
-                                longitude = pref.getFloat(getString(user_lng), DEFAULT_LNG.toFloat()).toDouble()
-
-                            }
-                    }
         }
     }
 

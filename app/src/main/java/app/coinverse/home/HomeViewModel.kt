@@ -1,7 +1,6 @@
 package app.coinverse.home
 
 import android.app.Application
-import android.location.Location
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -14,7 +13,6 @@ import com.google.firebase.auth.FirebaseUser
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val homeRepository: HomeRepository
-    val location = MutableLiveData<Location?>()
     val showLocationPermission = MutableLiveData<Event<Boolean>>()
     val isRealtime = MutableLiveData<Boolean>()
     val accountType = MutableLiveData<PaymentStatus>()

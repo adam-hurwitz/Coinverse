@@ -5,7 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil.setContentView
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.Navigation.findNavController
-import app.coinverse.R.layout
+import app.coinverse.R.layout.activity_main
 import app.coinverse.databinding.ActivityMainBinding
 import app.coinverse.firebase.FirestoreHelper
 import app.coinverse.home.HomeViewModel
@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity() {
         homeViewModel = ViewModelProviders.of(this).get(HomeViewModel::class.java)
         resourcesUtil = resources
         MoPub.initializeSdk(this, SdkConfiguration.Builder(AD_UNIT_ID).build(), initSdkListener())
-        binding = setContentView(this, layout.activity_main)
+        binding = setContentView(this, activity_main)
     }
 
     override fun onSupportNavigateUp() = findNavController(navHostFragment.view!!).navigateUp()

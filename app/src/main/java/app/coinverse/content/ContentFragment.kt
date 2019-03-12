@@ -98,7 +98,7 @@ class ContentFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         feedType = ContentFragmentArgs.fromBundle(arguments!!).feedType
-        analytics = getInstance(FirebaseApp.getInstance()!!.applicationContext)
+        analytics = getInstance(FirebaseApp.getInstance().applicationContext)
         contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
         contentViewModel.feedType = feedType
@@ -154,25 +154,15 @@ class ContentFragment : Fragment() {
 
     fun updateAds(toLoad: Boolean) {
         var toLoad = toLoad
-        homeViewModel.location.observe(viewLifecycleOwner, Observer { location ->
-            moPubAdapter.loadAds(AD_UNIT_ID,
-                    if (location != null) RequestParameters.Builder().location(location)
-                            .userDataKeywords(MOPUB_KEYWORDS).build()
-                    else RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build())
-        })
+        moPubAdapter.loadAds(AD_UNIT_ID, RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build())
         moPubAdapter.setAdLoadedListener(object : MoPubNativeAdLoadedListener {
             override fun onAdRemoved(position: Int) {
                 moPubAdapter.notifyItemRemoved(position)
                 adapter.notifyDataSetChanged()
             }
-
             override fun onAdLoaded(position: Int) {
                 if (moPubAdapter.isAd(position + 1) || moPubAdapter.isAd(position - 1)) {
-                    moPubAdapter.refreshAds(AD_UNIT_ID,
-                            if (homeViewModel.location.value != null)
-                                RequestParameters.Builder().location(homeViewModel.location.value)
-                                        .userDataKeywords(MOPUB_KEYWORDS).build()
-                            else RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build())
+                    moPubAdapter.refreshAds(AD_UNIT_ID, RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build())
                     moPubAdapter.notifyDataSetChanged()
                 } else moPubAdapter.notifyItemRangeInserted(position, 1)
                 adapter.notifyDataSetChanged()
