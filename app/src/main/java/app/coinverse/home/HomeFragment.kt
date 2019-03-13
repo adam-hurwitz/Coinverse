@@ -222,6 +222,9 @@ class HomeFragment : Fragment() {
     }
 
     private fun setClickListeners() {
+        appStatus.setOnClickListener{ view: View ->
+            startActivity(Intent(ACTION_VIEW).setData(Uri.parse(ABOUT_LINK)))
+        }
         profileButton.setOnClickListener { view: View ->
             if (user != null) view.findNavController().navigate(R.id.action_homeFragment_to_userFragment,
                     actionHomeFragmentToUserFragment(user!!).apply { user = user }.arguments)

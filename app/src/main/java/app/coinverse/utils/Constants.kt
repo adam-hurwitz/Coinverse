@@ -11,6 +11,7 @@ const val QUALITY_SCORE = "qualityScore"
 const val DATABASE_NAME = "coinverse-db"
 
 // Home
+val ABOUT_LINK = getInstance().getString("about_link")
 val SUPPORT_EMAIL = getInstance().getString("support_email")
 val SUPPORT_SUBJECT = getInstance().getString("support_subject")
 val SUPPORT_BODY = getInstance().getString("support_body")

@@ -2,6 +2,10 @@
 <defaultsMap>
     <!--Home-->
     <entry>
+        <key>about_link</key>
+        <value>https://medium.com/coinverse/coinverse-8b0dd8f2c3ce</value>
+    </entry>
+    <entry>
         <key>support_email</key>
         <value>support@coinverse.app</value>
     </entry>
