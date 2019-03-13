@@ -10,13 +10,13 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
-import app.coinverse.Enums
 import app.coinverse.Enums.ContentType.*
 import app.coinverse.Enums.FeedType
 import app.coinverse.Enums.FeedType.DISMISSED
 import app.coinverse.Enums.FeedType.SAVED
 import app.coinverse.Enums.Status
 import app.coinverse.Enums.Timeframe
+import app.coinverse.Enums.Timeframe.DAY
 import app.coinverse.Enums.UserActionType
 import app.coinverse.content.models.Content
 import app.coinverse.content.models.ContentSelected
@@ -50,7 +50,7 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
 
     init {
         contentRepository = ContentRepository(application)
-        timeframe.value = Enums.Timeframe.WEEK
+        timeframe.value = DAY
     }
 
     fun initMainContent(isRealtime: Boolean) = contentRepository.initMainContent(isRealtime, timeframe.value!!)
