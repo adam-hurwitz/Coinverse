@@ -25,6 +25,7 @@ import app.coinverse.Enums.ContentType.YOUTUBE
 import app.coinverse.Enums.FeedType.*
 import app.coinverse.Enums.PaymentStatus.FREE
 import app.coinverse.Enums.PaymentStatus.PAID
+import app.coinverse.Enums.Status.SUCCESS
 import app.coinverse.R
 import app.coinverse.R.anim
 import app.coinverse.R.drawable.*
@@ -148,6 +149,7 @@ class ContentFragment : Fragment() {
 
     fun initMainContent(isRealtime: Boolean) {
         contentViewModel.initMainContent(isRealtime).observe(viewLifecycleOwner, Observer { status ->
+            if (status == SUCCESS && homeViewModel.accountType.value == FREE) updateAds(true)
             Log.v(LOG_TAG, "initMainContent status ${status}")
         })
     }
