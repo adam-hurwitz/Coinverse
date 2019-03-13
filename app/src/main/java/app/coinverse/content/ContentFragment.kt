@@ -158,13 +158,14 @@ class ContentFragment : Fragment() {
         moPubAdapter.setAdLoadedListener(object : MoPubNativeAdLoadedListener {
             override fun onAdRemoved(position: Int) {
                 moPubAdapter.notifyItemRemoved(position)
-                adapter.notifyDataSetChanged()
             }
+
             override fun onAdLoaded(position: Int) {
                 if (moPubAdapter.isAd(position + 1) || moPubAdapter.isAd(position - 1)) {
                     moPubAdapter.refreshAds(AD_UNIT_ID, RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build())
                     moPubAdapter.notifyDataSetChanged()
-                } else moPubAdapter.notifyItemRangeInserted(position, 1)
+                } else
+                    moPubAdapter.notifyItemRangeInserted(position, 1)
                 adapter.notifyDataSetChanged()
                 if (toLoad) toLoad = false
             }
