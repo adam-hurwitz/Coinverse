@@ -24,8 +24,8 @@ fun ImageView.setImageUrl(context: Context, url: String) {
             .load(url)
             .transform(RoundedCorners(CONTENT_IMAGE_CORNER_RADIUS))
             .placeholder(R.drawable.ic_content_placeholder)
-            .error(R.drawable.ic_coinverse_icon_placeholder)
-            .fallback(R.drawable.ic_coinverse_icon_placeholder)
+            .error(R.drawable.ic_coinverse_24dp)
+            .fallback(R.drawable.ic_coinverse_24dp)
             .into(this)
 }
 

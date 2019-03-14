@@ -18,10 +18,10 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "app.coinverse"
-        minSdkVersion 27
+        minSdkVersion 24
         targetSdkVersion 28
-        versionCode 23
-        versionName "0.23"
+        versionCode 24
+        versionName "0.24"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
             annotationProcessorOptions {

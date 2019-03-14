@@ -1,5 +1,7 @@
 package app.coinverse.priceGraph
 
+import android.os.Build.VERSION.SDK_INT
+import android.os.Build.VERSION_CODES.O
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.LayoutInflater
@@ -7,6 +9,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast.LENGTH_SHORT
+import android.widget.Toast.makeText
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -18,7 +22,11 @@ import app.coinverse.Enums.OrderType.ASK
 import app.coinverse.Enums.OrderType.BID
 import app.coinverse.Enums.Timeframe
 import app.coinverse.Enums.Timeframe.DAY
-import app.coinverse.R
+import app.coinverse.R.color.colorAccent
+import app.coinverse.R.color.colorPrimaryDark
+import app.coinverse.R.dimen.data_point_radius
+import app.coinverse.R.integer
+import app.coinverse.R.string.*
 import app.coinverse.databinding.FragmentPriceBinding
 import app.coinverse.home.HomeViewModel
 import app.coinverse.priceGraph.models.PriceGraphData
@@ -28,7 +36,6 @@ import com.jjoe64.graphview.GridLabelRenderer
 import com.jjoe64.graphview.series.DataPoint
 import com.jjoe64.graphview.series.LineGraphSeries
 import kotlinx.android.synthetic.main.fragment_price.*
-
 
 
 private val dataPointRadiusValue = TypedValue()
@@ -89,11 +96,11 @@ class PriceFragment : Fragment() {
         graphLabels.gridStyle = GridLabelRenderer.GridStyle.NONE
         graphLabels.isHorizontalLabelsVisible = false
         graphLabels.isVerticalLabelsVisible = false
-        resources.getValue(R.dimen.data_point_radius, dataPointRadiusValue, true)
+        resources.getValue(data_point_radius, dataPointRadiusValue, true)
         priceViewModel.timeframe.observe(viewLifecycleOwner, Observer { timeframeToQuery: Timeframe? ->
             when (timeframeToQuery) {
-                DAY -> timeframe.text = resources.getString(R.string.timeframe_last_day)
-                else -> timeframe.text = resources.getString(R.string.timeframe_last_day)
+                DAY -> timeframe.text = resources.getString(timeframe_last_day)
+                else -> timeframe.text = resources.getString(timeframe_last_day)
             }
         })
     }
@@ -148,15 +155,12 @@ class PriceFragment : Fragment() {
                                        toggleView: TextView) {
         if (enabledExchangeList!!.contains(exchange))
             toggleView.setTextColor(ContextCompat.getColor(context!!, getExchangeColor(exchange)))
-        else toggleView.setTextColor(ContextCompat.getColor(context!!, R.color.colorPrimaryDark))
+        else toggleView.setTextColor(ContextCompat.getColor(context!!, colorPrimaryDark))
     }
 
     private fun setExchangeToggleColor(isToggled: Boolean?, toggleView: TextView) {
-        if (isToggled == true) {
-            toggleView.setTextColor(ContextCompat.getColor(context!!, R.color.colorAccent))
-        } else {
-            toggleView.setTextColor(ContextCompat.getColor(context!!, R.color.colorPrimaryDark))
-        }
+        if (isToggled == true) toggleView.setTextColor(ContextCompat.getColor(context!!, colorAccent))
+        else toggleView.setTextColor(ContextCompat.getColor(context!!, colorPrimaryDark))
     }
 
     private fun observeGraphData() {
@@ -174,24 +178,33 @@ class PriceFragment : Fragment() {
         priceViewModel.priceGraphXAndYConstraintsLiveData.observe(
                 viewLifecycleOwner,
                 Observer { priceGraphXAndYConstraints: PriceGraphXAndYConstraints? ->
-                    graph.viewport.setMinY(priceGraphXAndYConstraints?.minY
-                            ?: 0.0)
-                    graph.viewport.setMaxY(priceGraphXAndYConstraints?.maxY
-                            ?: 0.0)
-                    graph.viewport.setMinX(priceGraphXAndYConstraints?.minX
-                            ?: 0.0)
-                    graph.viewport.setMaxX(priceGraphXAndYConstraints?.maxX
-                            ?: 0.0)
+                    graph.viewport.setMinY(priceGraphXAndYConstraints?.minY ?: 0.0)
+                    graph.viewport.setMaxY(priceGraphXAndYConstraints?.maxY ?: 0.0)
+                    graph.viewport.setMinX(priceGraphXAndYConstraints?.minX ?: 0.0)
+                    graph.viewport.setMaxX(priceGraphXAndYConstraints?.maxX ?: 0.0)
                     graph.onDataChanged(true, false)
                 })
     }
 
     private fun observePriceDifferenceDetails() {
         priceViewModel.priceDifferenceLiveData.observe(viewLifecycleOwner, Observer { minAndMaxPriceData ->
-            maxBid.tooltipText = String.format(getString(R.string.max_min_format),
-                    minAndMaxPriceData?.bidExchange, minAndMaxPriceData?.baseToQuoteBid?.toFloat())
-            minAsk.tooltipText = String.format(getString(R.string.max_min_format),
-                    minAndMaxPriceData?.askExchange, minAndMaxPriceData?.baseToQuoteAsk?.toFloat())
+            if (SDK_INT >= O) {
+                maxBid.tooltipText = String.format(getString(max_min_format),
+                        minAndMaxPriceData?.bidExchange, minAndMaxPriceData?.baseToQuoteBid?.toFloat())
+                minAsk.tooltipText = String.format(getString(max_min_format),
+                        minAndMaxPriceData?.askExchange, minAndMaxPriceData?.baseToQuoteAsk?.toFloat())
+            } else {
+                maxBid.setOnClickListener {
+                    makeText(context, String.format(getString(max_min_format),
+                            minAndMaxPriceData?.bidExchange, minAndMaxPriceData?.baseToQuoteBid?.toFloat()),
+                            LENGTH_SHORT).show()
+                }
+                minAsk.setOnClickListener {
+                    makeText(context, String.format(getString(max_min_format),
+                            minAndMaxPriceData?.askExchange, minAndMaxPriceData?.baseToQuoteAsk?.toFloat()),
+                            LENGTH_SHORT).show()
+                }
+            }
         })
     }
 
@@ -208,14 +221,14 @@ class PriceFragment : Fragment() {
                 graphSeriesMap?.bids = priceGraphDataMap[exchange]?.bids
                 orders = graphSeriesMap?.bids
                 color = getExchangeColor(exchange, BID)
-                thickness = resources.getInteger(R.integer.price_graph_bids_thickness)
-                priceLabel = getString(R.string.bid)
+                thickness = resources.getInteger(integer.price_graph_bids_thickness)
+                priceLabel = getString(bid)
             } else {
                 graphSeriesMap?.asks = priceGraphDataMap[exchange]?.asks
                 orders = graphSeriesMap?.asks
                 color = getExchangeColor(exchange, ASK)
-                thickness = resources.getInteger(R.integer.price_graph_asks_thickness)
-                priceLabel = getString(R.string.ask)
+                thickness = resources.getInteger(integer.price_graph_asks_thickness)
+                priceLabel = getString(ask)
             }
             setOrderPriceGraphStyle(orders, color, thickness)
             if (enabledExchangeList?.contains(exchange) == true &&
