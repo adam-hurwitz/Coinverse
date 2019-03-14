@@ -63,12 +63,18 @@ class ItemTouchHelper(var homeViewModel: HomeViewModel) {
                             if (direction == RIGHT_SWIPE && feedType != SAVED.name) // Save
                                 adapter.organizeContent(feedType, SAVE, contentAdapterPosition!!, user)
                                         .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                                        .subscribe { status -> Log.v(LOG_TAG, "Move to SAVED status: $status") }
+                                        .subscribe { status ->
+                                            moPubAdapter.notifyItemChanged(viewHolder.adapterPosition)
+                                            Log.v(LOG_TAG, "Move to SAVED status: $status")
+                                        }
                                         .dispose()
                             if (direction == LEFT_SWIPE && feedType != DISMISSED.name)
                                 adapter.organizeContent(feedType, DISMISS, contentAdapterPosition!!, user)
                                         .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                                        .subscribe { status -> Log.v(LOG_TAG, "Move to DISMISSED status: $status") }
+                                        .subscribe { status ->
+                                            moPubAdapter.notifyItemChanged(viewHolder.adapterPosition)
+                                            Log.v(LOG_TAG, "Move to DISMISSED status: $status")
+                                        }
                                         .dispose()
                         } else {
                             if (direction == RIGHT_SWIPE && feedType != SAVED.name)  // Save
