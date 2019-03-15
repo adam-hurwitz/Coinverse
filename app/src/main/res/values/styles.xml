@@ -4,8 +4,6 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@android:color/white</item>
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:navigationBarColor">@android:color/white</item>
-        <item name="android:windowLightNavigationBar">true</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
