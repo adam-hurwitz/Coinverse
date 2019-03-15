@@ -158,10 +158,7 @@ class ContentFragment : Fragment() {
         var toLoad = toLoad
         moPubAdapter.loadAds(AD_UNIT_ID, RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build())
         moPubAdapter.setAdLoadedListener(object : MoPubNativeAdLoadedListener {
-            override fun onAdRemoved(position: Int) {
-                //TODO: Refresh MoPubAdapter after swipe.
-                Log.v(LOG_TAG, "Position: $position MoPubAdapter: ${moPubAdapter.itemCount}")
-            }
+            override fun onAdRemoved(position: Int) {}
 
             override fun onAdLoaded(position: Int) {
                 if (moPubAdapter.isAd(position + 1) || moPubAdapter.isAd(position - 1)) {

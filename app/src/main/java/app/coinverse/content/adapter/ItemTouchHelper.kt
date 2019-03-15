@@ -30,8 +30,8 @@ import app.coinverse.user.SignInDialogFragment
 import app.coinverse.utils.*
 import com.google.firebase.auth.FirebaseAuth
 import com.mopub.nativeads.MoPubRecyclerAdapter
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import io.reactivex.android.schedulers.AndroidSchedulers.mainThread
+import io.reactivex.schedulers.Schedulers.io
 
 private val LOG_TAG = ItemTouchHelper::class.java.simpleName
 
@@ -62,20 +62,18 @@ class ItemTouchHelper(var homeViewModel: HomeViewModel) {
                             val contentAdapterPosition = moPubAdapter?.getOriginalPosition(viewHolder.adapterPosition)
                             if (direction == RIGHT_SWIPE && feedType != SAVED.name) // Save
                                 adapter.organizeContent(feedType, SAVE, contentAdapterPosition!!, user)
-                                        .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                                        .subscribe { status ->
-                                            moPubAdapter.notifyItemChanged(viewHolder.adapterPosition)
+                                        //TODO: Test. Move outside observable if needed.
+                                        .subscribeOn(io()).observeOn(mainThread()).subscribe { status ->
+                                            adapter.notifyItemRemoved(contentAdapterPosition)
                                             Log.v(LOG_TAG, "Move to SAVED status: $status")
-                                        }
-                                        .dispose()
+                                        }.dispose()
                             if (direction == LEFT_SWIPE && feedType != DISMISSED.name)
                                 adapter.organizeContent(feedType, DISMISS, contentAdapterPosition!!, user)
-                                        .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                                        .subscribe { status ->
-                                            moPubAdapter.notifyItemChanged(viewHolder.adapterPosition)
+                                        //TODO: Test. Move outside observable if needed.
+                                        .subscribeOn(io()).observeOn(mainThread()).subscribe { status ->
+                                            adapter.notifyItemRemoved(contentAdapterPosition)
                                             Log.v(LOG_TAG, "Move to DISMISSED status: $status")
-                                        }
-                                        .dispose()
+                                        }.dispose()
                         } else {
                             if (direction == RIGHT_SWIPE && feedType != SAVED.name)  // Save
                                 adapter.organizeContent(feedType, SAVE, viewHolder.adapterPosition, user)
