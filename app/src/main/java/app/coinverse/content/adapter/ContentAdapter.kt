@@ -59,8 +59,11 @@ class ContentAdapter(var contentViewModel: ContentViewModel) : PagedListAdapter<
         return OnClickListener { view ->
             when (view.id) {
                 preview, contentTypeLogo -> {
-                    if (elapsedRealtime() - lastClickTime > CLICK_SPAM_PREVENTION_THRESHOLD)
+                    if (elapsedRealtime() - lastClickTime > CLICK_SPAM_PREVENTION_THRESHOLD) {
+                        content.loadingStatus = true
+                        contentViewModel.updateContentDb(content)
                         onContentSelected.onNext(ContentSelected(view.getTag(ADAPTER_POSITION_KEY) as Int, content, null))
+                    }
                     lastClickTime = elapsedRealtime()
                 }
                 share -> onContentShared.onNext(content)

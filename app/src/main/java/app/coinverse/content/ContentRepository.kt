@@ -213,6 +213,8 @@ class ContentRepository(application: Application) {
         return statusSubscriber
     }
 
+    fun updateContentDb(content: Content) = Thread(Runnable { run {database.contentDao().updateContentItem(content)}}).start()
+
     fun updateContentAudioUrl(contentId: String, url: Uri) = contentEnCollection.document(contentId)
             .update(AUDIO_URL, Regex(AUDIO_URL_TOKEN_REGEX).replace(url.toString(), ""))
 

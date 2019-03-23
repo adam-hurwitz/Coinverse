@@ -4,7 +4,6 @@ import android.app.Application
 import android.net.Uri
 import android.util.Log
 import android.view.View
-import android.widget.ProgressBar.*
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -46,7 +45,6 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
 
     var feedType = NONE.name
     //TODO: Add isRealtime Boolean for paid feature.
-    var contentLoadingStatusMap = hashMapOf<String, Int>()
 
     init {
         contentRepository = ContentRepository(application)
@@ -84,6 +82,8 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
                             contentSelected.response = response?.get(ERROR_PATH_PARAM)!!
                             Log.v(LOG_TAG, "getAudioCast Error: " + response.get(ERROR_PATH_PARAM))
                         }
+                        contentSelected.content.loadingStatus = false
+                        updateContentDb(contentSelected.content)
                         _contentSelected.value = Event(contentSelected)
                     } else {
                         val e = task.exception
@@ -116,9 +116,5 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
         contentRepository.updateActions(actionType, content, user)
     }
 
-    fun getLoadingState(contentId: String?) =
-            if (contentId != null) when (contentLoadingStatusMap.get(contentId)) {
-                GONE, INVISIBLE, null -> GONE
-                else -> VISIBLE
-            } else GONE
+    fun updateContentDb(content: Content) = contentRepository.updateContentDb(content)
 }
