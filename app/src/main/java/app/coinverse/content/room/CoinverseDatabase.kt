@@ -38,15 +38,11 @@ abstract class CoinverseDatabase : RoomDatabase() {
 
         val MIGRATION_2_3: Migration = object : Migration(2, 3) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                // Create the new table
                 database.execSQL(
                         "CREATE TABLE content_new (id TEXT DEFAULT '123' NOT NULL, qualityScore REAL DEFAULT 0.0 NOT NULL, contentType INTEGER DEFAULT 0 NOT NULL, timestamp INTEGER DEFAULT 0 NOT NULL, creator TEXT DEFAULT '' NOT NULL, title TEXT DEFAULT '' NOT NULL, previewImage TEXT DEFAULT '' NOT NULL, description TEXT DEFAULT '' NOT NULL, url TEXT DEFAULT '' NOT NULL, textUrl TEXT DEFAULT '' NOT NULL, audioUrl TEXT DEFAULT '' NOT NULL, feedType INTEGER DEFAULT 0 NOT NULL, savedPosition INTEGER DEFAULT 0 NOT NULL, viewCount REAL DEFAULT 0.0 NOT NULL, startCount REAL DEFAULT 0.0 NOT NULL, consumeCount REAL DEFAULT 0.0 NOT NULL, finishCount REAL DEFAULT 0.0 NOT NULL, organizeCount REAL DEFAULT 0.0 NOT NULL, shareCount REAL DEFAULT 0.0 NOT NULL, clearFeedCount REAL DEFAULT 0.0 NOT NULL, dismissCount REAL DEFAULT 0.0 NOT NULL, PRIMARY KEY(id))")
-                // Copy the data
                 database.execSQL(
                         "INSERT INTO content_new (id, qualityScore, contentType, timestamp, creator, title, previewImage, description, url, textUrl, audioUrl, feedType, savedPosition, viewCount, startCount, consumeCount, finishCount, organizeCount, shareCount, clearFeedCount, dismissCount) SELECT id, qualityScore, contentType, timestamp, creator, title, previewImage, description, url, textUrl, audioUrl, feedType, savedPosition, viewCount, startCount, consumeCount, finishCount, organizeCount, shareCount, clearFeedCount, dismissCount FROM content")
-                // Remove the old table
                 database.execSQL("DROP TABLE content")
-                // Change the table name to the correct one
                 database.execSQL("ALTER TABLE content_new RENAME TO content")
             }
         }
