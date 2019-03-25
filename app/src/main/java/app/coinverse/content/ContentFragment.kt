@@ -36,6 +36,7 @@ import app.coinverse.R.string.*
 import app.coinverse.content.adapter.ContentAdapter
 import app.coinverse.content.adapter.ItemTouchHelper
 import app.coinverse.content.models.Content
+import app.coinverse.content.models.ContentSelected
 import app.coinverse.databinding.FragmentContentBinding
 import app.coinverse.home.HomeViewModel
 import app.coinverse.utils.*
@@ -263,6 +264,7 @@ class ContentFragment : Fragment() {
     private fun observeContentSelected() {
         compositeDisposable.add(adapter.onContentSelected
                 .subscribeOn(io()).observeOn(mainThread()).subscribe({ contentSelected ->
+                    setContentProgressBar(contentSelected, View.VISIBLE)
                     contentViewModel.onContentClicked(contentSelected)
                 }, { throwable -> Log.e(LOG_TAG, throwable.toString()) }))
     }
@@ -329,7 +331,15 @@ class ContentFragment : Fragment() {
                     else homeViewModel._savedContentSelected.value = Event(contentSelected)
                 }
             }
+            setContentProgressBar(contentSelected, View.GONE)
         })
+    }
+
+    private fun setContentProgressBar(contentSelected: ContentSelected, visibility: Int) {
+        if (visibility == VISIBLE) contentViewModel.contentLoadingSet.add(contentSelected.content.id)
+        else contentViewModel.contentLoadingSet.remove(contentSelected.content.id)
+        if (homeViewModel.accountType.value == FREE) moPubAdapter.notifyItemChanged(contentSelected.position)
+        else adapter.notifyItemChanged(contentSelected.position)
     }
 
     fun setEmptyView() {

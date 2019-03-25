@@ -80,7 +80,7 @@
                 android:id="@+id/progressBar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:visibility="@{data.loadingStatus == true ? view.VISIBLE : view.GONE }"
+                android:visibility="@{viewmodel.getContentLoadingStatus(data.id)}"
                 app:layout_constraintBottom_toBottomOf="@id/preview"
                 app:layout_constraintLeft_toLeftOf="@id/preview"
                 app:layout_constraintRight_toRightOf="@id/preview"

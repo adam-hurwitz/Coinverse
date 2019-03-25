@@ -14,10 +14,10 @@ data class Content(@PrimaryKey var id: String, var qualityScore: Double,
                    var contentType: ContentType, var timestamp: Timestamp, var creator: String,
                    var title: String, var previewImage: String, var description: String,
                    var url: String, var textUrl: String, var audioUrl: String, var feedType: FeedType,
-                   var loadingStatus: Boolean, var savedPosition: Int, var viewCount: Double,
-                   var startCount: Double, var consumeCount: Double, var finishCount: Double,
-                   var organizeCount: Double, var shareCount: Double, var clearFeedCount: Double,
-                   var dismissCount: Double) : Parcelable {
+                   var savedPosition: Int, var viewCount: Double, var startCount: Double,
+                   var consumeCount: Double, var finishCount: Double, var organizeCount: Double,
+                   var shareCount: Double, var clearFeedCount: Double, var dismissCount: Double)
+    : Parcelable {
 
     constructor(parcel: Parcel) : this(
             parcel.readString()!!,
@@ -32,7 +32,6 @@ data class Content(@PrimaryKey var id: String, var qualityScore: Double,
             parcel.readString()!!,
             parcel.readString()!!,
             FeedType.values()[parcel.readInt()],
-            parcel.readBoolean(),
             parcel.readInt(),
             parcel.readDouble(),
             parcel.readDouble(),
@@ -45,8 +44,8 @@ data class Content(@PrimaryKey var id: String, var qualityScore: Double,
 
     constructor() : this("", 0.0, ContentType.NONE, Timestamp.now(), "",
             "", "", "", "", "", "", FeedType.NONE,
-            false, 0, 0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0, 0.0, 0.0)
+            0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0)
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(id)
@@ -61,7 +60,6 @@ data class Content(@PrimaryKey var id: String, var qualityScore: Double,
         parcel.writeString(textUrl)
         parcel.writeString(audioUrl)
         parcel.writeInt(feedType.ordinal)
-        parcel.writeBoolean(loadingStatus)
         parcel.writeInt(savedPosition)
         parcel.writeDouble(viewCount)
         parcel.writeDouble(startCount)
@@ -85,10 +83,6 @@ data class Content(@PrimaryKey var id: String, var qualityScore: Double,
         override fun newArray(size: Int): Array<Content?> {
             return arrayOfNulls(size)
         }
-
-        fun Parcel.readBoolean() = readInt() != 0
-
-        fun Parcel.writeBoolean(value: Boolean) = writeInt(if (value) 1 else 0)
 
     }
 }
