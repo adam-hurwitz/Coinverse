@@ -20,6 +20,7 @@ val SUPPORT_VERSION = getInstance().getString("support_version")
 val SUPPORT_ANDROID_API = getInstance().getString("support_android_api")
 val SUPPORT_DEVICE = getInstance().getString("support_device")
 val SUPPORT_USER = getInstance().getString("support_user")
+val PRIVACY_POLICY_LINK = getInstance().getString("privacy_policy_link")
 
 const val PRICEGRAPH_FRAGMENT_TAG = "priceGraphFragmentTag"
 const val SIGNIN_DIALOG_FRAGMENT_TAG = "signinDialogFragmentTag"

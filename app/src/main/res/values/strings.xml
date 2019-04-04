@@ -9,8 +9,10 @@
     <!--Home-->
     <string name="profile">Profile</string>
     <string name="app_status">beta</string>
+    <string name="privacy_policy">Privacy Policy</string>
     <string name="app_status_tools_tip">App Version</string>
     <string name="submit_bug_content_description">Submit bug button.</string>
+    <string name="home_menu_content_description">Home menu button.</string>
     <string name="submit_bug">Submit Bug</string>
     <string name="logged_out">logged out</string>
     <string name="mail_to">mailto:</string>

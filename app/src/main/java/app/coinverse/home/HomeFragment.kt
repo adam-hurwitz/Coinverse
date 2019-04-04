@@ -1,10 +1,10 @@
 package app.coinverse.home
 
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
-import android.app.Activity
+import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.Intent.*
-import android.net.Uri
+import android.net.Uri.parse
 import android.os.Build.BRAND
 import android.os.Build.MODEL
 import android.os.Build.VERSION.SDK_INT
@@ -16,6 +16,7 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity.MODE_PRIVATE
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.core.content.PermissionChecker.PERMISSION_GRANTED
 import androidx.core.content.PermissionChecker.checkSelfPermission
@@ -92,6 +93,17 @@ class HomeFragment : Fragment() {
         }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == RC_SIGN_IN) {
+            val response = IdpResponse.fromResultIntent(data)
+            if (resultCode == RESULT_OK) {
+                user = homeViewModel.getCurrentUser()
+                initProfileButton(user != null)
+            } else println(String.format("sign_in fail:%s", response?.error?.errorCode))
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
@@ -130,17 +142,6 @@ class HomeFragment : Fragment() {
                         putString(FEED_TYPE_KEY, MAIN.name)
                     }), CONTENT_FEED_FRAGMENT_TAG)
                     .commit()
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == RC_SIGN_IN) {
-            val response = IdpResponse.fromResultIntent(data)
-            if (resultCode == Activity.RESULT_OK) {
-                user = homeViewModel.getCurrentUser()
-                initProfileButton(user != null)
-            } else println(String.format("sign_in fail:%s", response?.error?.errorCode))
         }
     }
 
@@ -222,8 +223,8 @@ class HomeFragment : Fragment() {
     }
 
     private fun setClickListeners() {
-        appStatus.setOnClickListener{ view: View ->
-            startActivity(Intent(ACTION_VIEW).setData(Uri.parse(ABOUT_LINK)))
+        appStatus.setOnClickListener { view: View ->
+            startActivity(Intent(ACTION_VIEW).setData(parse(ABOUT_LINK)))
         }
         profileButton.setOnClickListener { view: View ->
             if (user != null) view.findNavController().navigate(R.id.action_homeFragment_to_userFragment,
@@ -233,7 +234,7 @@ class HomeFragment : Fragment() {
         }
         submitBugButton.setOnClickListener { view: View ->
             Intent(ACTION_SENDTO).let { intent ->
-                intent.data = Uri.parse(getString(mail_to))
+                intent.data = parse(getString(mail_to))
                 intent.putExtra(EXTRA_EMAIL, arrayOf(SUPPORT_EMAIL))
                         .putExtra(EXTRA_SUBJECT, "${SUPPORT_SUBJECT} $VERSION_NAME")
                         .putExtra(EXTRA_TEXT, "${SUPPORT_BODY} " +
@@ -243,6 +244,21 @@ class HomeFragment : Fragment() {
                                 "${SUPPORT_DEVICE} ${BRAND.substring(0, 1).toUpperCase() + BRAND.substring(1)}, $MODEL" +
                                 "${SUPPORT_USER + if (user != null) user!!.uid else getString(logged_out)}")
                 if (intent.resolveActivity(activity?.packageManager) != null) startActivity(intent)
+            }
+        }
+        menuHomeButton.setOnClickListener { view: View ->
+            PopupMenu(context!!, view).apply {
+                this.menuInflater.inflate(R.menu.menu_home, this.menu)
+                this.show()
+                this.setOnMenuItemClickListener {
+                    when(it.itemId) {
+                        R.id.privacy_policy -> {
+                            startActivity(Intent(ACTION_VIEW).setData(parse(PRIVACY_POLICY_LINK)))
+                            true
+                        }
+                        else -> false
+                    }
+                }
             }
         }
     }

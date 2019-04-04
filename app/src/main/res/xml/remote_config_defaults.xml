@@ -38,6 +38,10 @@
         <key>support_user</key>
         <value>\n User ID:</value>
     </entry>
+    <entry>
+        <key>privacy_policy_link</key>
+        <value>https://www.freeprivacypolicy.com/privacy/view/8a8fefa768125d2ccea009d01569a613</value>
+    </entry>
 
     <!--User-->
     <entry>

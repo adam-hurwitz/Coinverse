@@ -44,6 +44,17 @@
             android:contentDescription="@string/submit_bug_content_description"
             android:src="@drawable/ic_bug"
             android:tooltipText="@string/submit_bug"
+            app:layout_constraintRight_toLeftOf="@id/menuHomeButton"
+            app:layout_constraintTop_toTopOf="@id/appStatus" />
+
+        <ImageView
+            android:id="@+id/menuHomeButton"
+            style="@style/IconButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/home_menu_content_description"
+            android:src="@drawable/ic_menu_home_24dp"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="@id/appStatus" />
 
