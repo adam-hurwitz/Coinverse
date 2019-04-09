@@ -236,8 +236,8 @@ class PriceFragment : Fragment() {
             setGraphVisibility(View.VISIBLE)
             homeViewModel.setSwipeToRefreshState(false)
             orders?.setOnDataPointTapListener { series, dataPoint ->
-                priceViewModel.priceSelected.value =
-                        Pair(exchange, String.format("%.5f %s", dataPoint.y.toFloat(), priceLabel))
+                priceViewModel.setPriceSelected(
+                        Pair(exchange, String.format("%.5f %s", dataPoint.y.toFloat(), priceLabel)))
             }
 
         }

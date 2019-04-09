@@ -8,7 +8,6 @@ import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProviders
 import app.coinverse.databinding.FragmentPermissionsDialogBinding
 import app.coinverse.home.HomeViewModel
-import app.coinverse.utils.livedata.Event
 import kotlinx.android.synthetic.main.fragment_permissions_dialog.*
 
 class PermissionsDialogFragment : DialogFragment() {
@@ -30,7 +29,7 @@ class PermissionsDialogFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         confirm.setOnClickListener {
-            homeViewModel.showLocationPermission.value = Event(true)
+            homeViewModel.setShowLocationPermission(true)
             dismiss()
         }
     }

@@ -4,6 +4,7 @@ import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.Intent.*
+import android.net.Uri
 import android.net.Uri.parse
 import android.os.Build.BRAND
 import android.os.Build.MODEL
@@ -181,12 +182,12 @@ class HomeFragment : Fragment() {
             childFragmentManager.beginTransaction().replace(
                     R.id.savedContentContainer,
                     SignInDialogFragment.newInstance(Bundle().apply {
-                        putInt(SIGNIN_TYPE_KEY, FULLSCREEN.code)
+                        putString(SIGNIN_TYPE_KEY, FULLSCREEN.name)
                     })).commit()
         bottomSheetBehavior.setBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
                 if (newState == STATE_EXPANDED) {
-                    homeViewModel.bottomSheetState.value = STATE_EXPANDED
+                    homeViewModel.setBottomSheetState(STATE_EXPANDED)
                     setBottomSheetExpanded()
                 }
                 if (newState == STATE_COLLAPSED) {
@@ -224,17 +225,20 @@ class HomeFragment : Fragment() {
 
     private fun setClickListeners() {
         appStatus.setOnClickListener { view: View ->
-            startActivity(Intent(ACTION_VIEW).setData(parse(ABOUT_LINK)))
+            startActivity(Intent(ACTION_VIEW).setData(Uri.parse(ABOUT_LINK)))
         }
         profileButton.setOnClickListener { view: View ->
-            if (user != null) view.findNavController().navigate(R.id.action_homeFragment_to_userFragment,
-                    actionHomeFragmentToUserFragment(user!!).apply { user = user }.arguments)
-            else SignInDialogFragment.newInstance(Bundle().apply { putInt(SIGNIN_TYPE_KEY, DIALOG.ordinal) })
-                    .show(childFragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
+            if (user != null)
+                view.findNavController().navigate(R.id.action_homeFragment_to_userFragment,
+                        actionHomeFragmentToUserFragment(user!!).apply { user = user }.arguments)
+            else
+                SignInDialogFragment.newInstance(Bundle().apply {
+                    putString(SIGNIN_TYPE_KEY, DIALOG.name)
+                }).show(childFragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
         }
         submitBugButton.setOnClickListener { view: View ->
             Intent(ACTION_SENDTO).let { intent ->
-                intent.data = parse(getString(mail_to))
+                intent.data = Uri.parse(getString(mail_to))
                 intent.putExtra(EXTRA_EMAIL, arrayOf(SUPPORT_EMAIL))
                         .putExtra(EXTRA_SUBJECT, "${SUPPORT_SUBJECT} $VERSION_NAME")
                         .putExtra(EXTRA_TEXT, "${SUPPORT_BODY} " +

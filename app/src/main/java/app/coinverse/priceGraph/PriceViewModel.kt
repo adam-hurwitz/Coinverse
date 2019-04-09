@@ -2,14 +2,13 @@ package app.coinverse.priceGraph
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
+import androidx.lifecycle.Transformations.map
+import androidx.lifecycle.Transformations.switchMap
 import androidx.lifecycle.ViewModel
-import app.coinverse.Enums
 import app.coinverse.Enums.Currency.BTC
 import app.coinverse.Enums.Currency.ETH
 import app.coinverse.Enums.Exchange
-import app.coinverse.Enums.Exchange.COINBASE
-import app.coinverse.Enums.Exchange.EMPTY
+import app.coinverse.Enums.Exchange.*
 import app.coinverse.Enums.OrderType
 import app.coinverse.Enums.OrderType.BID
 import app.coinverse.Enums.Timeframe
@@ -22,42 +21,49 @@ import com.jjoe64.graphview.series.LineGraphSeries
 class PriceViewModel : ViewModel() {
 
     //TODO: Set timeframe from UI.
-    var timeframe = MutableLiveData<Timeframe>()
-    var priceSelected = MutableLiveData<Pair<Exchange, String>>()
-    var enabledOrderTypes = MutableLiveData<ArrayList<OrderType?>>()
-    var enabledExchanges = MutableLiveData<ArrayList<Exchange?>>()
-    var priceDifferenceLiveData: LiveData<PercentDifference>
 
     //TODO: Query Firebase by pricePair.
-    var pricePair = PricePair(ETH, BTC)
+    val pricePair = PricePair(ETH, BTC)
+    val timeframe: LiveData<Timeframe> get() = _timeframe
+    val enabledExchanges: LiveData<ArrayList<Exchange?>> get() = _enabledExchanges
+    val enabledOrderTypes: LiveData<ArrayList<OrderType?>> get() = _enabledOrderTypes
+    val graphSeriesMap = hashMapOf(
+            Pair(COINBASE, PriceGraphData(LineGraphSeries(), LineGraphSeries())),
+            Pair(BINANCE, PriceGraphData(LineGraphSeries(), LineGraphSeries())),
+            Pair(GEMINI, PriceGraphData(LineGraphSeries(), LineGraphSeries())),
+            Pair(KRAKEN, PriceGraphData(LineGraphSeries(), LineGraphSeries())))
+    val priceSelected: LiveData<Pair<Exchange, String>> get() = _priceSelected
+    val priceDifferenceLiveData: LiveData<PercentDifference>
 
-    var graphSeriesMap = hashMapOf(
-            Pair(Enums.Exchange.COINBASE, PriceGraphData(LineGraphSeries(), LineGraphSeries())),
-            Pair(Enums.Exchange.BINANCE, PriceGraphData(LineGraphSeries(), LineGraphSeries())),
-            Pair(Enums.Exchange.GEMINI, PriceGraphData(LineGraphSeries(), LineGraphSeries())),
-            Pair(Enums.Exchange.KRAKEN, PriceGraphData(LineGraphSeries(), LineGraphSeries())))
-
-    private var toInitializePriceGraphData = MutableLiveData<Boolean>()
+    private val toInitializeGraphData = MutableLiveData<Boolean>()
+    private val _timeframe = MutableLiveData<Timeframe>()
+    private val _enabledExchanges = MutableLiveData<ArrayList<Exchange?>>()
+    private val _enabledOrderTypes = MutableLiveData<ArrayList<OrderType?>>()
+    private val _priceSelected = MutableLiveData<Pair<Exchange, String>>()
 
     init {
-        val priceDifferenceLiveData = PriceRepository.priceDifferenceDetailsLiveData
-        timeframe.value = DAY
-        enabledOrderTypes.value = arrayListOf(BID)
-        enabledExchanges.value = arrayListOf(COINBASE)
-        this.priceDifferenceLiveData = Transformations.map(priceDifferenceLiveData) { result -> result }
+        _timeframe.value = DAY
+        _enabledOrderTypes.value = arrayListOf(BID)
+        _enabledExchanges.value = arrayListOf(COINBASE)
+        val _priceDifferenceLiveData = PriceRepository.priceDifferenceDetailsLiveData
+        this.priceDifferenceLiveData = map(_priceDifferenceLiveData) { result -> result }
     }
 
-    fun getPrices(isRealtime: Boolean, isOnCreateCall: Boolean) {
-        this.toInitializePriceGraphData.value = true
-        PriceRepository.getPrices(isRealtime, isOnCreateCall, timeframe.value!!)
-    }
-
-    val graphLiveData = Transformations.switchMap(toInitializePriceGraphData) {
+    val graphLiveData = switchMap(toInitializeGraphData) {
         PriceRepository.graphLiveData
     }
 
-    val priceGraphXAndYConstraintsLiveData = Transformations.switchMap(toInitializePriceGraphData) {
+    val priceGraphXAndYConstraintsLiveData = switchMap(toInitializeGraphData) {
         PriceRepository.graphConstraintsLiveData
+    }
+
+    fun getPrices(isRealtime: Boolean, isOnCreateCall: Boolean) {
+        this.toInitializeGraphData.value = true
+        PriceRepository.getPrices(isRealtime, isOnCreateCall, timeframe.value!!)
+    }
+
+    fun setPriceSelected(priceSelected: Pair<Exchange, String>) {
+        _priceSelected.value = priceSelected
     }
 
     fun exchangeToggle(exchange: Exchange) {
@@ -73,8 +79,8 @@ class PriceViewModel : ViewModel() {
             updatedEnabledExchanges = currentEnabledExchanges
         }
         if (!updatedEnabledExchanges.contains(priceSelected.value?.first))
-            priceSelected.value = Pair(EMPTY, "")
-        this.enabledExchanges.value = updatedEnabledExchanges
+            _priceSelected.value = Pair(EMPTY, "")
+        _enabledExchanges.value = updatedEnabledExchanges
     }
 
     fun orderToggle(orderType: OrderType) {
@@ -82,8 +88,8 @@ class PriceViewModel : ViewModel() {
         if (!enabledOrderTypes!!.contains(orderType)) enabledOrderTypes.add(orderType)
         else {
             enabledOrderTypes.remove(orderType)
-            priceSelected.value = Pair(EMPTY, "")
+            _priceSelected.value = Pair(EMPTY, "")
         }
-        this.enabledOrderTypes.value = enabledOrderTypes
+        _enabledOrderTypes.value = enabledOrderTypes
     }
 }

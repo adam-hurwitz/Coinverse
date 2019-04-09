@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProviders
+import app.coinverse.Enums.SignInType
 import app.coinverse.Enums.SignInType.DIALOG
 import app.coinverse.Enums.SignInType.FULLSCREEN
 import app.coinverse.databinding.FragmentSignInBinding
@@ -18,7 +19,7 @@ import app.coinverse.utils.RC_SIGN_IN
 import app.coinverse.utils.SIGNIN_TYPE_KEY
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
-import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuth.getInstance
 import kotlinx.android.synthetic.main.fragment_sign_in_dialog.*
 
 private val LOG_TAG = SignInDialogFragment::class.java.simpleName
@@ -37,10 +38,9 @@ class SignInDialogFragment : DialogFragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) =
-            when (arguments?.getInt(SIGNIN_TYPE_KEY)) {
-                DIALOG.code -> FragmentSignInDialogBinding.inflate(inflater, container, false).root
-                FULLSCREEN.code -> FragmentSignInBinding.inflate(inflater, container, false).root
-                else -> FragmentSignInDialogBinding.inflate(inflater, container, false).root
+            when (SignInType.valueOf(arguments?.getString(SIGNIN_TYPE_KEY)!!)) {
+                DIALOG -> FragmentSignInDialogBinding.inflate(inflater, container, false).root
+                FULLSCREEN -> FragmentSignInBinding.inflate(inflater, container, false).root
             }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -58,7 +58,7 @@ class SignInDialogFragment : DialogFragment() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == RC_SIGN_IN)
             if (resultCode == Activity.RESULT_OK) {
-                homeViewModel.user.value = FirebaseAuth.getInstance().currentUser
+                homeViewModel.setUser(getInstance().currentUser)
                 dismiss()
             } else Log.e(LOG_TAG, "Sign in fail ${IdpResponse.fromResultIntent(data)?.error?.errorCode}")
     }

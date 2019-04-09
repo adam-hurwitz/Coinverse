@@ -2,7 +2,7 @@ package app.coinverse.content.room
 
 import android.content.Context
 import androidx.room.Database
-import androidx.room.Room
+import androidx.room.Room.databaseBuilder
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
@@ -22,7 +22,7 @@ abstract class CoinverseDatabase : RoomDatabase() {
 
         fun getAppDatabase(context: Context): CoinverseDatabase {
             if (INSTANCE == null) {
-                INSTANCE = Room.databaseBuilder(context.applicationContext,
+                INSTANCE = databaseBuilder(context.applicationContext,
                         CoinverseDatabase::class.java, DATABASE_NAME)
                         .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                         .build()

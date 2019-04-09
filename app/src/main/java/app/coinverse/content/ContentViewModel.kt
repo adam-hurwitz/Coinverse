@@ -10,12 +10,11 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.paging.LivePagedListBuilder
-import androidx.paging.PagedList
+import androidx.paging.PagedList.Config.Builder
 import app.coinverse.Enums.ContentType.*
 import app.coinverse.Enums.FeedType
 import app.coinverse.Enums.FeedType.DISMISSED
 import app.coinverse.Enums.FeedType.SAVED
-import app.coinverse.Enums.Status
 import app.coinverse.Enums.Timeframe
 import app.coinverse.Enums.Timeframe.DAY
 import app.coinverse.Enums.UserActionType
@@ -26,50 +25,49 @@ import app.coinverse.utils.DateAndTime.getTimeframe
 import app.coinverse.utils.livedata.Event
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.functions.FirebaseFunctionsException
-import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers.mainThread
-import io.reactivex.schedulers.Schedulers.io
-import io.reactivex.subjects.ReplaySubject
 
 class ContentViewModel(application: Application) : AndroidViewModel(application) {
     private val LOG_TAG = ContentViewModel::class.java.simpleName
 
-    val timeframe = MutableLiveData<Timeframe>()
-    val contentSelected: LiveData<Event<ContentSelected>>
-        get() = _contentSelected
-    val pagedListConfiguration = PagedList.Config.Builder()
-            .setEnablePlaceholders(true)
-            .setPrefetchDistance(PREFETCH_DISTANCE)
-            .setPageSize(PAGE_SIZE)
-            .build()
-    private val _contentSelected = MutableLiveData<Event<ContentSelected>>()
-    private var contentRepository: ContentRepository
-
-    var contentLoadingSet = hashSetOf<String>()
-
-    var feedType = NONE.name
     //TODO: Add isRealtime Boolean for paid feature.
+    var feedType = FeedType.NONE
+    val contentLoadingSet = hashSetOf<String>()
+    val timeframe: LiveData<Timeframe> get() = _timeframe
+    val contentSelected: LiveData<Event<ContentSelected>> get() = _contentSelected
+
+    private val contentRepository: ContentRepository
+    private val _timeframe = MutableLiveData<Timeframe>()
+    private val pagedListConfiguration =
+            Builder().setEnablePlaceholders(true)
+                    .setPrefetchDistance(PREFETCH_DISTANCE)
+                    .setPageSize(PAGE_SIZE)
+                    .build()
+    private val _contentSelected = MutableLiveData<Event<ContentSelected>>()
 
     init {
         contentRepository = ContentRepository(application)
-        timeframe.value = DAY
+        _timeframe.value = DAY
     }
 
-    fun initMainContent(isRealtime: Boolean) = contentRepository.initMainContent(isRealtime, timeframe.value!!)
+    fun initMainContent(isRealtime: Boolean) =
+            contentRepository.initMainContent(isRealtime, timeframe.value!!)
 
     fun getContent(contentId: String) = contentRepository.getContent(contentId)
 
-    fun getMainRoomContent() = LivePagedListBuilder(
-            contentRepository.getMainRoomContent(getTimeframe(timeframe.value)),
-            pagedListConfiguration).build()
+    fun getMainRoomContent() =
+            LivePagedListBuilder(
+                    contentRepository.getMainRoomContent(getTimeframe(timeframe.value)),
+                    pagedListConfiguration).build()
 
-    fun getCategorizedRoomContent(feedType: FeedType) = LivePagedListBuilder(
-            contentRepository.getCategorizedRoomContent(feedType),
-            pagedListConfiguration).build()
+    fun getCategorizedRoomContent(feedType: FeedType) =
+            LivePagedListBuilder(
+                    contentRepository.getCategorizedRoomContent(feedType),
+                    pagedListConfiguration)
+                    .build()
 
     fun getToolbarVisibility() =
             when (feedType) {
-                SAVED.name, DISMISSED.name -> View.VISIBLE
+                SAVED, DISMISSED -> View.VISIBLE
                 else -> View.GONE
             }
 
@@ -103,19 +101,20 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun organizeContent(feedType: String, actionType: UserActionType, user: FirebaseUser,
-                        content: Content?, mainFeedEmptied: Boolean): Observable<Status> {
-        val statusSubscriber = ReplaySubject.create<Status>()
-        contentRepository.organizeContent(feedType, actionType, content, user, mainFeedEmptied)
-                .subscribeOn(io()).observeOn(mainThread())
-                .subscribe { status -> statusSubscriber.onNext(status) }.dispose()
-        return statusSubscriber
-    }
+    fun organizeContent(feedType: FeedType, actionType: UserActionType, user: FirebaseUser,
+                        content: Content?, mainFeedEmptied: Boolean) =
+            contentRepository.organizeContent(feedType, actionType, content, user, mainFeedEmptied)
 
-    fun updateContentAudioUrl(contentId: String, url: Uri) = contentRepository.updateContentAudioUrl(contentId, url)
+    fun updateContentAudioUrl(contentId: String, url: Uri) =
+            contentRepository.updateContentAudioUrl(contentId, url)
 
     fun updateActions(actionType: UserActionType, content: Content, user: FirebaseUser) {
         contentRepository.updateActions(actionType, content, user)
+    }
+
+    fun setContentLoadingStatus(contentId: String, visibility: Int) {
+        if (visibility == VISIBLE) contentLoadingSet.add(contentId)
+        else contentLoadingSet.remove(contentId)
     }
 
     fun getContentLoadingStatus(contentId: String?) =

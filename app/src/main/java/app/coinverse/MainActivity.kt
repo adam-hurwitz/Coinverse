@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         if (homeViewModel.bottomSheetState.value == STATE_EXPANDED)
-            homeViewModel.bottomSheetState.value = STATE_COLLAPSED
+            homeViewModel.setBottomSheetState(STATE_COLLAPSED)
         else super.onBackPressed()
     }
 

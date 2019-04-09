@@ -3,8 +3,7 @@ package app.coinverse.priceGraph
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import app.coinverse.Enums.Exchange
-import app.coinverse.Enums.Status
-import app.coinverse.Enums.Status.SUCCESS
+import app.coinverse.Enums.Exchange.*
 import app.coinverse.Enums.Timeframe
 import app.coinverse.firebase.contentEthBtcCollection
 import app.coinverse.priceGraph.models.*
@@ -12,22 +11,26 @@ import app.coinverse.utils.DateAndTime.getTimeframe
 import app.coinverse.utils.TIMESTAMP
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.EventListener
-import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.jjoe64.graphview.series.DataPoint
 import com.jjoe64.graphview.series.LineGraphSeries
 import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.Observable.just
+import io.reactivex.Observable.zip
+import io.reactivex.android.schedulers.AndroidSchedulers.mainThread
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.functions.Function4
 import io.reactivex.observers.DisposableObserver
-import io.reactivex.schedulers.Schedulers
+import io.reactivex.schedulers.Schedulers.io
 
 private val LOG_TAG = PriceRepository::class.java.simpleName
 
 object PriceRepository {
 
     val compositeDisposable = CompositeDisposable()
+    //TODO: Refactor backend service.
+    //TODO: 1) 1 source per price pair.
+    //TODO: 2) Remove RxJava and subscribe to LiveData from functions instead of instance methods.
     var graphLiveData = MutableLiveData<HashMap<Exchange, PriceGraphData>>()
     var priceDifferenceDetailsLiveData = MutableLiveData<PercentDifference>()
     var graphConstraintsLiveData = MutableLiveData<PriceGraphXAndYConstraints>()
@@ -42,8 +45,6 @@ object PriceRepository {
     private var exchangeOrdersPointsMap = HashMap<Exchange, ExchangeOrdersDataPoints>()
     private var exchangeOrdersDataMap = HashMap<Exchange, PriceGraphData>()
 
-    private lateinit var listenerRegistration: ListenerRegistration
-
     fun getPrices(isRealtime: Boolean, isOnCreateCall: Boolean, timeframe: Timeframe) {
         if (isRealtime) {
             if (isOnCreateCall) {
@@ -51,7 +52,7 @@ object PriceRepository {
                 exchangeOrdersDataMap.clear()
                 index = 0
             }
-            listenerRegistration = contentEthBtcCollection
+            contentEthBtcCollection
                     .orderBy(TIMESTAMP, Query.Direction.ASCENDING)
                     .whereGreaterThan(TIMESTAMP, getTimeframe(timeframe))
                     .addSnapshotListener(EventListener { value, error ->
@@ -65,43 +66,45 @@ object PriceRepository {
             exchangeOrdersPointsMap.clear()
             exchangeOrdersDataMap.clear()
             index = 0
-            contentEthBtcCollection
-                    .orderBy(TIMESTAMP, Query.Direction.ASCENDING)
+            contentEthBtcCollection.orderBy(TIMESTAMP, Query.Direction.ASCENDING)
                     .whereGreaterThan(TIMESTAMP, getTimeframe(timeframe))
                     .get()
-                    .addOnCompleteListener {
-                        parsePriceData(it.result!!.documentChanges)
-                    }
+                    .addOnCompleteListener { parsePriceData(it.result!!.documentChanges) }
         }
     }
 
     private fun parsePriceData(documentChanges: List<DocumentChange>) {
-        for (priceDataDocument in documentChanges) {
+        documentChanges.all { priceDataDocument ->
             xIndex = index++.toDouble()
-            val priceData = priceDataDocument.document
-                    .toObject(MaximumPercentPriceDifference::class.java)
-            priceDifferenceDetailsLiveData.value = priceData.percentDifference
-            //TODO: Refactor axis to use dates.
+            priceDataDocument.document.toObject(MaximumPercentPriceDifference::class.java).also { priceData ->
+                priceDifferenceDetailsLiveData.value = priceData.percentDifference
+                //TODO: Refactor axis to use dates.
+                compositeDisposable.add(zip(
+                        generateGraphData(COINBASE, priceData.coinbaseExchangeOrderData).subscribeOn(io()),
+                        generateGraphData(BINANCE, priceData.binanceExchangeOrderData).subscribeOn(io()),
+                        generateGraphData(GEMINI, priceData.geminiExchangeOrderData).subscribeOn(io()),
+                        generateGraphData(KRAKEN, priceData.krakenExchangeOrderData).subscribeOn(io()),
+                        getFunction4())
+                        .subscribeOn(io())
+                        .observeOn(mainThread())
+                        .subscribeWith(object : DisposableObserver<List<HashMap<Exchange, PriceGraphData>>>() {
+                            override fun onNext(priceGraphDataList: List<HashMap<Exchange, PriceGraphData>>) {
+                                priceGraphDataList.all {
+                                    graphLiveData.postValue(it)
+                                    true
+                                }
+                            }
 
-            compositeDisposable.add(Observable.zip(
-                    generateGraphData(Exchange.COINBASE, priceData.coinbaseExchangeOrderData).subscribeOn(Schedulers.io()),
-                    generateGraphData(Exchange.BINANCE, priceData.binanceExchangeOrderData).subscribeOn(Schedulers.io()),
-                    generateGraphData(Exchange.GEMINI, priceData.geminiExchangeOrderData).subscribeOn(Schedulers.io()),
-                    generateGraphData(Exchange.KRAKEN, priceData.krakenExchangeOrderData).subscribeOn(Schedulers.io()),
-                    getFunction4())
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribeWith(object : DisposableObserver<Status>() {
-                        override fun onNext(status: Status) {}
+                            override fun onError(e: Throwable) {
+                                e.printStackTrace()
+                            }
 
-                        override fun onError(e: Throwable) {
-                            e.printStackTrace()
-                        }
-
-                        override fun onComplete() {
-                            compositeDisposable.clear()
-                        }
-                    }))
+                            override fun onComplete() {
+                                compositeDisposable.clear()
+                            }
+                        }))
+            }
+            true
         }
     }
 
@@ -129,24 +132,18 @@ object PriceRepository {
             exchangeOrdersDataMap[exchange]?.asks = LineGraphSeries(askDataPoints?.toTypedArray())
         }
         findMinAndMaxGraphConstraints(baseToQuoteBid, baseToQuoteAsk)
-        return Observable.just(exchangeOrdersDataMap)
+        return just(exchangeOrdersDataMap)
     }
 
-    private fun getFunction4(): Function4<
-            HashMap<Exchange, PriceGraphData>,
-            HashMap<Exchange, PriceGraphData>,
-            HashMap<Exchange, PriceGraphData>,
-            HashMap<Exchange, PriceGraphData>,
-            Status> {
-        return Function4 { coinbasePriceGraphData,
-                           binancePriceGraphData,
-                           geminiPriceGraphData,
-                           krakenPriceGraphData ->
-            graphLiveData.postValue(coinbasePriceGraphData)
-            graphLiveData.postValue(binancePriceGraphData)
-            graphLiveData.postValue(geminiPriceGraphData)
-            graphLiveData.postValue(krakenPriceGraphData)
-            SUCCESS
+    private fun getFunction4(): Function4<HashMap<Exchange, PriceGraphData>, HashMap<Exchange,
+            PriceGraphData>, HashMap<Exchange, PriceGraphData>, HashMap<Exchange, PriceGraphData>,
+            List<HashMap<Exchange, PriceGraphData>>> {
+        return Function4 { coinbasePriceGraphData: HashMap<Exchange, PriceGraphData>,
+                           binancePriceGraphData: HashMap<Exchange, PriceGraphData>,
+                           geminiPriceGraphData: HashMap<Exchange, PriceGraphData>,
+                           krakenPriceGraphData: HashMap<Exchange, PriceGraphData> ->
+            listOf(coinbasePriceGraphData, binancePriceGraphData, geminiPriceGraphData,
+                    krakenPriceGraphData)
         }
     }
 
@@ -157,19 +154,12 @@ object PriceRepository {
     }
 
     private fun findMinAndMaxX(xIndex: Double) {
-        if (xIndex < minX) {
-            minX = xIndex
-        } else if (xIndex > maxX) {
-            maxX = xIndex
-        }
+        if (xIndex < minX) minX = xIndex
+        else if (xIndex > maxX) maxX = xIndex
     }
 
     private fun findMinAndMaxY(averageWeightedPrice: Double?) {
-        if (averageWeightedPrice!! < minY) {
-            minY = averageWeightedPrice
-        } else if (averageWeightedPrice > maxY) {
-            maxY = averageWeightedPrice
-        }
+        if (averageWeightedPrice!! < minY) minY = averageWeightedPrice
+        else if (averageWeightedPrice > maxY) maxY = averageWeightedPrice
     }
-
 }

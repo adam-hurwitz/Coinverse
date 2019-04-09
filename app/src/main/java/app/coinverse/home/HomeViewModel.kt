@@ -8,41 +8,63 @@ import app.coinverse.Enums.PaymentStatus
 import app.coinverse.Enums.PaymentStatus.FREE
 import app.coinverse.content.models.ContentSelected
 import app.coinverse.utils.livedata.Event
-import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuth.getInstance
 import com.google.firebase.auth.FirebaseUser
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
-    val homeRepository: HomeRepository
-    val showLocationPermission = MutableLiveData<Event<Boolean>>()
-    val isRealtime = MutableLiveData<Boolean>()
-    val accountType = MutableLiveData<PaymentStatus>()
-    val isSwipeToRefreshEnabled = MutableLiveData<Boolean>()
-    val isRefreshing = MutableLiveData<Boolean>()
-    val bottomSheetState = MutableLiveData<Int>()
-    val user = MutableLiveData<FirebaseUser>()
-    // Saved Content
-    val _savedContentSelected = MutableLiveData<Event<ContentSelected>>()
-    val savedContentSelected: LiveData<Event<ContentSelected>>
-        get() = _savedContentSelected
+    val user: LiveData<FirebaseUser> get() = _user
+    val showLocationPermission: LiveData<Event<Boolean>> get() = _showLocationPermission
+    val isRealtime: LiveData<Boolean> get() = _isRealtime
+    val accountType: LiveData<PaymentStatus> get() = _accountType
+    val isSwipeToRefreshEnabled: LiveData<Boolean> get() = _isSwipeToRefreshEnabled
+    val isRefreshing: LiveData<Boolean> get() = _isRefreshing
+    val bottomSheetState: LiveData<Int> get() = _bottomSheetState
+    val savedContentSelected: LiveData<Event<ContentSelected>> get() = _savedContentSelected
+
+    private val homeRepository: HomeRepository
+    private val _user = MutableLiveData<FirebaseUser>()
+    private val _showLocationPermission = MutableLiveData<Event<Boolean>>()
+    private val _isRealtime = MutableLiveData<Boolean>()
+    private val _accountType = MutableLiveData<PaymentStatus>()
+    private val _isSwipeToRefreshEnabled = MutableLiveData<Boolean>()
+    private val _isRefreshing = MutableLiveData<Boolean>()
+    private val _bottomSheetState = MutableLiveData<Int>()
+    private val _savedContentSelected = MutableLiveData<Event<ContentSelected>>()
 
     init {
         //TODO: Set ability to toggle based on user configuration.
         //TODO: Return info to ContentFragment observerSignIn().
         //TODO: Toggle with button if subscribed user.
         homeRepository = HomeRepository(application)
-        isRealtime.value = false
-        accountType.value = FREE
-        user.value = getCurrentUser()
+        _isRealtime.value = false
+        _accountType.value = FREE
+        _user.value = getCurrentUser()
     }
 
-    fun getCurrentUser() = FirebaseAuth.getInstance().currentUser
+    fun setUser(user: FirebaseUser?) {
+        _user.value = user
+    }
+
+    fun getCurrentUser() = getInstance().currentUser
+
+    fun setShowLocationPermission(toShow: Boolean) {
+        _showLocationPermission.value = Event(toShow)
+    }
 
     fun enableSwipeToRefresh(isEnabled: Boolean) {
-        isSwipeToRefreshEnabled.value = isEnabled
+        _isSwipeToRefreshEnabled.value = isEnabled
     }
 
     fun setSwipeToRefreshState(isRefreshing: Boolean) {
-        this.isRefreshing.value = isRefreshing
+        _isRefreshing.value = isRefreshing
+    }
+
+    fun setBottomSheetState(state: Int) {
+        _bottomSheetState.value = state
+    }
+
+    fun setSavedContentSelected(contentSelected: ContentSelected) {
+        _savedContentSelected.value = Event(contentSelected)
     }
 
 }
