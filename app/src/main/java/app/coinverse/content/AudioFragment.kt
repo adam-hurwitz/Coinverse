@@ -28,7 +28,10 @@ import android.view.WindowManager.LayoutParams
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import app.coinverse.R
-import app.coinverse.content.models.ContentSelected
+import app.coinverse.analytics.getWatchPercent
+import app.coinverse.analytics.updateActionsAndAnalytics
+import app.coinverse.analytics.updateStartActionsAndAnalytics
+import app.coinverse.content.models.ContentResult
 import app.coinverse.content.room.CoinverseDatabase
 import app.coinverse.databinding.FragmentAudioDialogBinding
 import app.coinverse.utils.*
@@ -74,7 +77,7 @@ class AudioFragment : Fragment() {
     private var LOG_TAG = AudioFragment::class.java.simpleName
 
     private lateinit var analytics: FirebaseAnalytics
-    private lateinit var contentSelected: ContentSelected
+    private lateinit var contentToPlay: ContentResult.ContentToPlay
     private lateinit var binding: FragmentAudioDialogBinding
     private lateinit var contentViewModel: ContentViewModel
     private lateinit var coinverseDatabase: CoinverseDatabase
@@ -115,8 +118,8 @@ class AudioFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         this.savedInstanceState = savedInstanceState
-        analytics = getInstance(FirebaseApp.getInstance()!!.applicationContext)
-        contentSelected = arguments!!.getParcelable(CONTENT_SELECTED_KEY)!!
+        analytics = getInstance(FirebaseApp.getInstance().applicationContext)
+        contentToPlay = arguments!!.getParcelable(CONTENT_SELECTED_KEY)!!
         contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
         coinverseDatabase = CoinverseDatabase.getAppDatabase(context!!)
     }
@@ -152,7 +155,7 @@ class AudioFragment : Fragment() {
         super.onPause()
         if (playerView != null && player != null) {
             playerView.onPause()
-            updateActionsAndAnalytics(contentSelected.content, contentViewModel, coinverseDatabase.contentDao(),
+            updateActionsAndAnalytics(contentToPlay.content, contentViewModel, coinverseDatabase.contentDao(),
                     analytics, getWatchPercent(player?.currentPosition!!.toDouble(),
                     seekToPositionMillis.toDouble(), player?.duration!!.toDouble()))
         }
@@ -171,8 +174,8 @@ class AudioFragment : Fragment() {
             CookieHandler.setDefault(DEFAULT_COOKIE_MANAGER)
         playerView.setErrorMessageProvider(PlayerErrorMessageProvider())
         playerView.requestFocus()
-        playerView.preview.setImageUrl(context!!, contentSelected.content.previewImage)
-        playerView.title.text = contentSelected.content.title
+        playerView.preview.setImageUrl(context!!, contentToPlay.content.previewImage)
+        playerView.title.text = contentToPlay.content.title
         activity!!.window.addFlags(LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
@@ -206,8 +209,8 @@ class AudioFragment : Fragment() {
     }
 
     private fun initializePlayer() {
-        storage.reference.child(contentSelected.response!!).downloadUrl.addOnSuccessListener { url ->
-            contentViewModel.updateContentAudioUrl(contentSelected.content.id, url)
+        storage.reference.child(contentToPlay.response!!).downloadUrl.addOnSuccessListener { url ->
+            contentViewModel.updateContentAudioUrl(contentToPlay.content.id, url)
             val haveStartPosition = startWindow != C.INDEX_UNSET
             if (haveStartPosition) player?.seekTo(startWindow, startPosition)
             player?.prepare(mediaSource, !haveStartPosition, false)
@@ -275,7 +278,7 @@ class AudioFragment : Fragment() {
             // Audiocast 'start' event.
             if (playbackState == STATE_READY && savedInstanceState == null
                     && player?.currentPosition == 0L && oldSeekToPositionMillis == 0)
-                updateStartActionsAndAnalytics(savedInstanceState, contentSelected.content, contentViewModel, analytics)
+                updateStartActionsAndAnalytics(savedInstanceState, contentToPlay.content, contentViewModel, analytics)
             // Audiocast seekTo.
             val newSeekPositionMillis = player?.currentPosition!!
             if (player?.currentPosition!! > 0L && newSeekPositionMillis > seekToPositionMillis

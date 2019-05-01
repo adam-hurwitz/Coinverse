@@ -14,7 +14,8 @@ import androidx.recyclerview.widget.RecyclerView
 import app.coinverse.R.id.*
 import app.coinverse.content.ContentViewModel
 import app.coinverse.content.models.Content
-import app.coinverse.content.models.ContentSelected
+import app.coinverse.content.models.ContentViewEvent
+import app.coinverse.content.models.ContentViewEvent.*
 import app.coinverse.databinding.CellContentBinding.inflate
 import app.coinverse.utils.ADAPTER_POSITION_KEY
 import app.coinverse.utils.CLICK_SPAM_PREVENTION_THRESHOLD
@@ -31,15 +32,11 @@ private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Content>() {
             oldContent == newContent
 }
 
-class ContentAdapter(var contentViewModel: ContentViewModel) : PagedListAdapter<Content, ContentAdapter.ViewHolder>(DIFF_CALLBACK) {
+class ContentAdapter(val contentViewModel: ContentViewModel,
+                     val _contentViewEvent: MutableLiveData<Event<ContentViewEvent>>) : PagedListAdapter<Content, ContentAdapter.ViewHolder>(DIFF_CALLBACK) {
 
-    val onContentSelected: LiveData<Event<ContentSelected>> get() = _onContentSelected
-    val onContentShared: LiveData<Event<Content>> get() = _onContentShared
-    val onContentSourceOpened: LiveData<Event<String>> get() = _onContentSourceOpened
-
-    private val _onContentSelected = MutableLiveData<Event<ContentSelected>>()
-    private val _onContentShared = MutableLiveData<Event<Content>>()
-    private val _onContentSourceOpened = MutableLiveData<Event<String>>()
+    val contentSelected: LiveData<Event<ContentSelected>> get() = _contentSelected
+    private val _contentSelected = MutableLiveData<Event<ContentSelected>>()
 
     private var lastClickTime = 0L
 
@@ -57,16 +54,16 @@ class ContentAdapter(var contentViewModel: ContentViewModel) : PagedListAdapter<
     private fun createOnClickListener(content: Content) = OnClickListener { view ->
         when (view.id) {
             preview, contentTypeLogo -> {
+                //TODO: Refactor click based on loading status.
                 if (elapsedRealtime() - lastClickTime > CLICK_SPAM_PREVENTION_THRESHOLD)
-                    _onContentSelected.value = Event(
-                            ContentSelected(
-                                    view.getTag(ADAPTER_POSITION_KEY) as Int,
-                                    content,
-                                    null))
+                    _contentSelected.value = Event(ContentSelected(
+                            view.getTag(ADAPTER_POSITION_KEY) as Int,
+                            content,
+                            null))
                 lastClickTime = elapsedRealtime()
             }
-            share -> _onContentShared.value = Event(content)
-            openSource -> _onContentSourceOpened.value = Event(content.url)
+            share -> _contentViewEvent.value = Event(ContentShared(content))
+            openSource -> _contentViewEvent.value = Event(ContentSourceOpened(content.url))
         }
     }
 

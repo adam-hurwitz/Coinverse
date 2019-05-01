@@ -3,9 +3,9 @@ package app.coinverse.user
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import app.coinverse.Enums
-import app.coinverse.Enums.Status.ERROR
-import app.coinverse.Enums.Status.SUCCESS
+import app.coinverse.utils.Enums
+import app.coinverse.utils.Enums.Status.ERROR
+import app.coinverse.utils.Enums.Status.SUCCESS
 import app.coinverse.utils.livedata.Event
 import com.google.firebase.auth.FirebaseUser
 

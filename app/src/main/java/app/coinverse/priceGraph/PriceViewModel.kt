@@ -5,17 +5,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations.map
 import androidx.lifecycle.Transformations.switchMap
 import androidx.lifecycle.ViewModel
-import app.coinverse.Enums.Currency.BTC
-import app.coinverse.Enums.Currency.ETH
-import app.coinverse.Enums.Exchange
-import app.coinverse.Enums.Exchange.*
-import app.coinverse.Enums.OrderType
-import app.coinverse.Enums.OrderType.BID
-import app.coinverse.Enums.Timeframe
-import app.coinverse.Enums.Timeframe.DAY
 import app.coinverse.priceGraph.models.PercentDifference
 import app.coinverse.priceGraph.models.PriceGraphData
 import app.coinverse.priceGraph.models.PricePair
+import app.coinverse.utils.Enums.Currency.BTC
+import app.coinverse.utils.Enums.Currency.ETH
+import app.coinverse.utils.Enums.Exchange
+import app.coinverse.utils.Enums.Exchange.*
+import app.coinverse.utils.Enums.OrderType
+import app.coinverse.utils.Enums.OrderType.BID
+import app.coinverse.utils.Enums.Timeframe
+import app.coinverse.utils.Enums.Timeframe.DAY
 import com.jjoe64.graphview.series.LineGraphSeries
 
 class PriceViewModel : ViewModel() {

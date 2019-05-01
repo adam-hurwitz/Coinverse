@@ -26,17 +26,13 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import app.coinverse.BuildConfig.VERSION_NAME
-import app.coinverse.Enums.AccountType.READ
-import app.coinverse.Enums.FeedType.MAIN
-import app.coinverse.Enums.FeedType.SAVED
-import app.coinverse.Enums.PaymentStatus.FREE
-import app.coinverse.Enums.SignInType.DIALOG
-import app.coinverse.Enums.SignInType.FULLSCREEN
 import app.coinverse.R
 import app.coinverse.R.drawable.ic_astronaut_color_accent_24dp
 import app.coinverse.R.string.*
+import app.coinverse.analytics.models.UserActionCount
 import app.coinverse.content.ContentDialogFragment
 import app.coinverse.content.ContentFragment
+import app.coinverse.content.models.ContentResult
 import app.coinverse.databinding.FragmentHomeBinding
 import app.coinverse.firebase.ACCOUNT_DOCUMENT
 import app.coinverse.firebase.ACTIONS_DOCUMENT
@@ -46,8 +42,12 @@ import app.coinverse.priceGraph.PriceFragment
 import app.coinverse.user.PermissionsDialogFragment
 import app.coinverse.user.SignInDialogFragment
 import app.coinverse.user.models.User
-import app.coinverse.user.models.UserActionCount
 import app.coinverse.utils.*
+import app.coinverse.utils.Enums.AccountType.READ
+import app.coinverse.utils.Enums.FeedType.SAVED
+import app.coinverse.utils.Enums.PaymentStatus.FREE
+import app.coinverse.utils.Enums.SignInType.DIALOG
+import app.coinverse.utils.Enums.SignInType.FULLSCREEN
 import app.coinverse.utils.livedata.EventObserver
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions.circleCropTransform
@@ -133,15 +133,9 @@ class HomeFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         if (savedInstanceState == null
-                && childFragmentManager.findFragmentByTag(PRICEGRAPH_FRAGMENT_TAG) == null
-                && childFragmentManager.findFragmentByTag(CONTENT_FEED_FRAGMENT_TAG) == null) {
+                && childFragmentManager.findFragmentByTag(PRICEGRAPH_FRAGMENT_TAG) == null) {
             childFragmentManager.beginTransaction()
                     .replace(priceContainer.id, PriceFragment.newInstance(), PRICEGRAPH_FRAGMENT_TAG)
-                    .commit()
-            childFragmentManager.beginTransaction().replace(contentContainer.id,
-                    ContentFragment.newInstance(Bundle().apply {
-                        putString(FEED_TYPE_KEY, MAIN.name)
-                    }), CONTENT_FEED_FRAGMENT_TAG)
                     .commit()
         }
     }
@@ -255,7 +249,7 @@ class HomeFragment : Fragment() {
                 this.menuInflater.inflate(R.menu.menu_home, this.menu)
                 this.show()
                 this.setOnMenuItemClickListener {
-                    when(it.itemId) {
+                    when (it.itemId) {
                         R.id.privacy_policy -> {
                             startActivity(Intent(ACTION_VIEW).setData(parse(PRIVACY_POLICY_LINK)))
                             true
@@ -294,24 +288,31 @@ class HomeFragment : Fragment() {
                                                 0.0, 0.0, 0.0,
                                                 0.0, 0.0)
                                 ).addOnSuccessListener {
+                                    Crashlytics.setUserIdentifier(user.uid)
                                     Log.v(LOG_TAG, String.format("New user action data success:%s", it))
                                 }.addOnFailureListener {
                                     Log.v(LOG_TAG, String.format("New user action data failure:%s", it))
                                 }
                             }
                         }
-                if (savedInstanceState == null || savedInstanceState.getParcelable<FirebaseUser>(USER_KEY) == null) {
-                    initMainContent()
+                if ((childFragmentManager.findFragmentByTag(CONTENT_FEED_FRAGMENT_TAG) == null
+                                && savedInstanceState == null)
+                        || savedInstanceState?.getParcelable<FirebaseUser>(USER_KEY) == null) {
+                    initMainFeedFragment()
                     initSavedContentFragment()
                 }
-            } else if (savedInstanceState == null)  /*Signed out.*/ initMainContent()
+            } else if (childFragmentManager.findFragmentByTag(CONTENT_FEED_FRAGMENT_TAG) == null &&
+                    savedInstanceState == null) initMainFeedFragment() // Signed out.
         })
     }
 
-    private fun initMainContent() {
+    private fun initMainFeedFragment() {
         if (homeViewModel.accountType.value == FREE) getLocationPermissionCheck()
-        (childFragmentManager.findFragmentById(R.id.contentContainer) as ContentFragment)
-                .initMainContent(false)
+        childFragmentManager.beginTransaction().replace(contentContainer.id,
+                ContentFragment.newInstance(Bundle().apply {
+                    putString(FEED_TYPE_KEY, Enums.FeedType.MAIN.name)
+                }), CONTENT_FEED_FRAGMENT_TAG)
+                .commit()
     }
 
     private fun initSavedContentFragment() {
@@ -346,9 +347,11 @@ class HomeFragment : Fragment() {
             swipeToRefresh.isRefreshing = isRefreshing
         })
         swipeToRefresh.setOnRefreshListener {
+            if (homeViewModel.accountType.value == FREE) getLocationPermissionCheck()
             (childFragmentManager.findFragmentById(R.id.priceContainer) as PriceFragment)
-                    .getPrices(false, false)
-            initMainContent()
+                    .getPrices(homeViewModel.isRealtime.value!!, false)
+            (childFragmentManager.findFragmentById(R.id.contentContainer) as ContentFragment)
+                    .swipeToRefresh()
         }
     }
 
@@ -356,7 +359,10 @@ class HomeFragment : Fragment() {
         homeViewModel.savedContentSelected.observe(viewLifecycleOwner, EventObserver { contentSelected ->
             if (childFragmentManager.findFragmentByTag(CONTENT_DIALOG_FRAGMENT_TAG) == null)
                 ContentDialogFragment().newInstance(Bundle().apply {
-                    putParcelable(CONTENT_SELECTED_KEY, contentSelected)
+                    putParcelable(
+                            CONTENT_SELECTED_KEY,
+                            ContentResult.ContentToPlay(contentSelected.position, contentSelected.content,
+                                    contentSelected.response))
                 }).show(childFragmentManager, CONTENT_DIALOG_FRAGMENT_TAG)
         })
     }

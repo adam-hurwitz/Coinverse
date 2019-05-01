@@ -1,7 +1,7 @@
 package app.coinverse.priceGraph.models
 
-import app.coinverse.Enums.Exchange
-import app.coinverse.Enums.Exchange.EMPTY
+import app.coinverse.utils.Enums.Exchange
+import app.coinverse.utils.Enums.Exchange.EMPTY
 
 data class PercentDifference(val percent: Double,
                              val baseToQuoteBid: Double, val bidExchange: Exchange,

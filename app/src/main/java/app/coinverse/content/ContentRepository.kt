@@ -5,25 +5,23 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
 import androidx.paging.DataSource
+import androidx.paging.LivePagedListBuilder
+import androidx.paging.PagedList
 import app.coinverse.BuildConfig.DEBUG
-import app.coinverse.Enums.FeedType
-import app.coinverse.Enums.FeedType.*
-import app.coinverse.Enums.Status
-import app.coinverse.Enums.Status.ERROR
-import app.coinverse.Enums.Status.SUCCESS
-import app.coinverse.Enums.Timeframe
-import app.coinverse.Enums.UserActionType
-import app.coinverse.Enums.UserActionType.*
+import app.coinverse.analytics.models.ContentAction
+import app.coinverse.analytics.models.UserAction
 import app.coinverse.content.models.Content
-import app.coinverse.content.models.ContentSwipedStatus
-import app.coinverse.content.models.UserAction
+import app.coinverse.content.models.ContentResult
 import app.coinverse.content.room.CoinverseDatabase
 import app.coinverse.firebase.*
-import app.coinverse.user.models.ContentAction
 import app.coinverse.utils.*
-import app.coinverse.utils.DateAndTime.getTimeframe
-import app.coinverse.utils.livedata.Event
+import app.coinverse.utils.Enums.FeedType
+import app.coinverse.utils.Enums.FeedType.*
+import app.coinverse.utils.Enums.UserActionType
+import app.coinverse.utils.Enums.UserActionType.*
+import app.coinverse.utils.models.Lce
 import com.google.firebase.Timestamp
 import com.google.firebase.Timestamp.now
 import com.google.firebase.analytics.FirebaseAnalytics
@@ -51,21 +49,20 @@ class ContentRepository(application: Application) {
         functions = FirebaseFunctions.getInstance()
     }
 
-    //TODO: Return LiveData of Status.
-    //TODO: Error message.
-    fun initMainContent(isRealtime: Boolean, timeframe: Timeframe) =
-            MutableLiveData<Status>().also { status ->
+    fun getMainFeedList(isRealtime: Boolean, timeframe: Timestamp) =
+            MutableLiveData<Lce<ContentResult.PagedListResult>>().also { lce ->
+                lce.value = Lce.Loading()
+                var errorMessage = ""
                 if (getInstance().currentUser != null) {
                     usersDocument.collection(getInstance().currentUser!!.uid).also { user ->
                         organizedSet.clear()
-                        // Get Saved collection.
+                        // Get save_collection.
                         user.document(COLLECTIONS_DOCUMENT)
                                 .collection(SAVE_COLLECTION).orderBy(TIMESTAMP, DESCENDING)
-                                .whereGreaterThanOrEqualTo(TIMESTAMP, getTimeframe(timeframe))
+                                .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe)
                                 .addSnapshotListener(EventListener { value, error ->
                                     error?.run {
-                                        status.value = ERROR
-                                        Log.e(LOG_TAG, "Get saved collection error. ${error.localizedMessage}")
+                                        errorMessage = "Error retrieving user save_collection: ${error.localizedMessage}"
                                         return@EventListener
                                     }
                                     value!!.documentChanges.all { document ->
@@ -78,15 +75,14 @@ class ContentRepository(application: Application) {
                                         true
                                     }
                                 })
-                        // Get Dismissed collection.
+                        // Get dismiss_collection.
                         user.document(COLLECTIONS_DOCUMENT)
                                 .collection(DISMISS_COLLECTION)
                                 .orderBy(TIMESTAMP, DESCENDING)
-                                .whereGreaterThanOrEqualTo(TIMESTAMP, getTimeframe(timeframe))
+                                .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe)
                                 .addSnapshotListener(EventListener { value, error ->
                                     error?.run {
-                                        status.value = ERROR
-                                        Log.e(LOG_TAG, "Get dismissed collection error. ${error.localizedMessage}")
+                                        errorMessage = "Error retrieving user dismiss_collection: ${error.localizedMessage}"
                                         return@EventListener
                                     }
                                     value!!.documentChanges.all { document ->
@@ -99,136 +95,168 @@ class ContentRepository(application: Application) {
                                         true
                                     }
                                 })
-                        //Logged in and realtime enabled.
-                        if (isRealtime) {
-                            contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
-                                    .whereGreaterThanOrEqualTo(TIMESTAMP, getTimeframe(timeframe))
-                                    .addSnapshotListener(EventListener { value, error ->
-                                        error?.run {
-                                            status.value = ERROR
-                                            Log.e(LOG_TAG, "Main feed filter error. Logged In and Realtime. ${error.localizedMessage}")
-                                            return@EventListener
-                                        }
-                                        arrayListOf<Content?>().also { contentList ->
-                                            value!!.documentChanges.all { document ->
-                                                document.document.toObject(Content::class.java).also { content ->
-                                                    if (!organizedSet.contains(content.id))
-                                                        contentList.add(content)
-                                                }
-                                                true
-                                            }
-                                            Thread(Runnable {
-                                                run { database.contentDao().insertContentList(contentList) }
-                                            }).start()
-                                        }
-                                    })
-                        } else { // Logged in, not realtime.
-                            contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
-                                    .whereGreaterThanOrEqualTo(TIMESTAMP, getTimeframe(timeframe))
-                                    .get().addOnCompleteListener {
-                                        arrayListOf<Content?>().also { contentList ->
-                                            it.result!!.documentChanges.all { document ->
-                                                document.document.toObject(Content::class.java).also { content ->
-                                                    if (!organizedSet.contains(content.id))
-                                                        contentList.add(content)
-                                                }
-                                                true
-                                            }
-                                            Thread(Runnable {
-                                                run { database.contentDao().insertContentList(contentList) }
-                                            }).start()
-                                        }
-                                        status.value = SUCCESS
-                                    }.addOnFailureListener {
-                                        status.value = ERROR
-                                        Log.e(LOG_TAG, "Main feed filter error. Logged In. ${it.localizedMessage}")
-                                    }
-                        }
+                        if (errorMessage.isNotEmpty())
+                            lce.value = Lce.Error(
+                                    ContentResult.PagedListResult(null, errorMessage))
                     }
-                } else { // Logged out, not realtime.
-                    contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
-                            .whereGreaterThanOrEqualTo(TIMESTAMP, getTimeframe(timeframe))
-                            .get()
-                            .addOnCompleteListener {
+                    // Logged in and realtime enabled.
+                    if (isRealtime)
+                        contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
+                                .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe)
+                                .addSnapshotListener(EventListener { value, error ->
+                                    error?.run {
+                                        lce.value = Lce.Error(
+                                                ContentResult.PagedListResult(
+                                                        null,
+                                                        "Error retrieving logged in, realtime content_en_collection: ${error.localizedMessage}"))
+                                        return@EventListener
+                                    }
+                                    arrayListOf<Content?>().also { contentList ->
+                                        value!!.documentChanges.all { document ->
+                                            document.document.toObject(Content::class.java).also { content ->
+                                                if (!organizedSet.contains(content.id))
+                                                    contentList.add(content)
+                                            }
+                                            true
+                                        }
+                                        Thread(Runnable {
+                                            run { database.contentDao().insertContentList(contentList) }
+                                        }).start()
+                                        lce.value = Lce.Content(ContentResult.PagedListResult(
+                                                getRoomMainList(timeframe),
+                                                ""))
+                                    }
+                                })
+                    // Logged in, non-realtime.
+                    else contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
+                            .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe)
+                            .get().addOnCompleteListener {
                                 arrayListOf<Content?>().also { contentList ->
-                                    it.result!!.documents.all { document ->
-                                        contentList.add(document.toObject(Content::class.java))
+                                    it.result!!.documentChanges.all { document ->
+                                        document.document.toObject(Content::class.java).also { content ->
+                                            if (!organizedSet.contains(content.id))
+                                                contentList.add(content)
+                                        }
                                         true
                                     }
                                     Thread(Runnable {
                                         run { database.contentDao().insertContentList(contentList) }
                                     }).start()
                                 }
-                                status.value = SUCCESS
+                                lce.value = Lce.Content(ContentResult.PagedListResult(
+                                        getRoomMainList(timeframe),
+                                        ""))
                             }.addOnFailureListener {
-                                status.value = ERROR
-                                Log.e(LOG_TAG, "Main feed filter error. Logged out. ${it.localizedMessage}")
+                                lce.value = Lce.Error(ContentResult.PagedListResult(
+                                        null,
+                                        "Error retrieving logged in, non-realtime content_en_collection: ${it.localizedMessage}"))
                             }
-                }
+                    // Logged out, non-realtime.
+                } else contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
+                        .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe)
+                        .get()
+                        .addOnCompleteListener {
+                            arrayListOf<Content?>().also { contentList ->
+                                it.result!!.documents.all { document ->
+                                    contentList.add(document.toObject(Content::class.java))
+                                    true
+                                }
+                                Thread(Runnable {
+                                    run { database.contentDao().insertContentList(contentList) }
+                                }).start()
+                            }
+                            lce.value = Lce.Content(ContentResult.PagedListResult(
+                                    getRoomMainList(timeframe),
+                                    ""))
+                        }.addOnFailureListener {
+                            lce.value = Lce.Error(ContentResult.PagedListResult(
+                                    null,
+                                    "Error retrieving logged out, non-realtime content_en_collection: ${it.localizedMessage}"))
+                        }
             }
 
-    fun getContent(contentId: String) = MutableLiveData<Event<Content>>().apply {
-        contentEnCollection.document(contentId).get().addOnCompleteListener { result ->
-            this.value = Event((result.result?.toObject(Content::class.java)!!))
-        }
-    }
+    fun getRoomMainList(timestamp: Timestamp) =
+            liveDataBuilder(database.contentDao().getMainContentList(timestamp, MAIN))
 
-    fun getMainRoomContent(timeframe: Timestamp): DataSource.Factory<Int, Content> =
-            database.contentDao().getMainContentList(timeframe, MAIN)
+    fun getRoomCategoryList(feedType: FeedType) =
+            liveDataBuilder(database.contentDao().getCategorizedContentList(feedType))
 
-    fun getCategorizedRoomContent(feedType: FeedType): DataSource.Factory<Int, Content> =
-            database.contentDao().getCategorizedContentList(feedType)
+    fun liveDataBuilder(dataSource: DataSource.Factory<Int, Content>) =
+            LivePagedListBuilder(dataSource,
+                    PagedList.Config.Builder().setEnablePlaceholders(true)
+                            .setPrefetchDistance(PREFETCH_DISTANCE)
+                            .setPageSize(PAGE_SIZE)
+                            .build())
+                    .build()
 
-    //TODO: Return LiveData of Status.
-    //TODO: Custom response object 1) deleteStatus 2) setContent status 3) mainFeedEmptiedStatus.
-    fun organizeContent(feedType: FeedType, actionType: UserActionType, content: Content?,
-                        user: FirebaseUser, mainFeedEmptied: Boolean) =
-            MutableLiveData<ContentSwipedStatus>().apply {
-                usersDocument.collection(user.uid).also { userReference ->
-                    content?.feedType =
-                            if (actionType == SAVE) SAVED
-                            else if (actionType == DISMISS) DISMISSED
-                            else MAIN
-                    if (actionType == SAVE || actionType == DISMISS) {
-                        if (feedType == SAVED || feedType == DISMISSED)
-                            deleteContent(
-                                    userReference,
-                                    if (actionType == SAVE && feedType == DISMISSED) DISMISS_COLLECTION
-                                    else if (actionType == DISMISS && feedType == SAVED) SAVE_COLLECTION
-                                    else "",
-                                    content)
-                        setContent(
-                                feedType,
+    fun editContentLabels(feedType: FeedType, actionType: UserActionType, content: Content?,
+                          user: FirebaseUser, position: Int) =
+            usersDocument.collection(user.uid).let { userReference ->
+                content?.feedType =
+                        if (actionType == SAVE) SAVED
+                        else if (actionType == DISMISS) DISMISSED
+                        else MAIN
+                if (actionType == SAVE || actionType == DISMISS) {
+                    if (feedType == SAVED || feedType == DISMISSED)
+                        Transformations.switchMap(removeContentLabel(
                                 userReference,
-                                if (actionType == SAVE) SAVE_COLLECTION
-                                else if (actionType == DISMISS) DISMISS_COLLECTION
+                                if (actionType == SAVE && feedType == DISMISSED) DISMISS_COLLECTION
+                                else if (actionType == DISMISS && feedType == SAVED) SAVE_COLLECTION
                                 else "",
                                 content,
-                                mainFeedEmptied)
-                    }
-                    if (mainFeedEmptied) {
-                        analytics.logEvent(CLEAR_FEED_EVENT, Bundle().apply {
-                            putString(TIMESTAMP_PARAM, now().toString())
-                        })
-                        updateUserActionCounter(user.uid, CLEAR_FEED_COUNT)
-                    }
+                                position)) { lce ->
+                            when (lce) {
+                                is Lce.Loading -> MutableLiveData()
+                                is Lce.Content -> addContentLabelSwitchMap(actionType, userReference,
+                                        content!!, position)
+                                is Lce.Error -> MutableLiveData<Lce<ContentResult.ContentLabeled>>().apply {
+                                    this.value = lce
+                                }
+                            }
+                        }
+                    else addContentLabelSwitchMap(actionType, userReference, content!!, position)
+                } else MutableLiveData()
+            }
+
+    fun addContentLabelSwitchMap(actionType: UserActionType, userReference: CollectionReference,
+                                 content: Content, position: Int) =
+            Transformations.switchMap(addContentLabel(actionType, userReference,
+                    content, position)) { lce ->
+                MutableLiveData<Lce<ContentResult.ContentLabeled>>().apply {
+                    this.value = lce
                 }
             }
 
-    //TODO: Return LiveData of Status.
-    //TODO: Error message.
-    fun setContent(feedType: FeedType, userCollection: CollectionReference, collection: String,
-                   content: Content?, mainFeedEmptied: Boolean) =
-            MutableLiveData<ContentSwipedStatus>().apply {
+    fun addContentLabel(actionType: UserActionType, userCollection: CollectionReference,
+                        content: Content?, position: Int) =
+            MutableLiveData<Lce<ContentResult.ContentLabeled>>().apply {
+                this.value = Lce.Loading()
+                val collection =
+                        if (actionType == SAVE) SAVE_COLLECTION
+                        else if (actionType == DISMISS) DISMISS_COLLECTION
+                        else ""
                 userCollection.document(COLLECTIONS_DOCUMENT).collection(collection).document(content!!.id)
                         .set(content).addOnSuccessListener {
-                            logCategorizeContentAnalyticsEvent(feedType, content, mainFeedEmptied)
                             Thread(Runnable { run { database.contentDao().updateContentItem(content) } }).start()
-                            this.value = ContentSwipedStatus(feedType, SUCCESS)
-                            Log.v(LOG_TAG, "Content '${content.title}' added to collection $collection")
+                            this.value = Lce.Content(ContentResult.ContentLabeled(position, ""))
                         }.addOnFailureListener {
-                            this.value = ContentSwipedStatus(feedType, ERROR)
-                            Log.e(LOG_TAG, "Content failed to be added to collection ${it}")
+                            this.value = Lce.Error(ContentResult.ContentLabeled(
+                                    position,
+                                    "'${content.title}' failed to be added to collection $collection"))
+                        }
+            }
+
+    fun removeContentLabel(userReference: CollectionReference, collection: String, content: Content?,
+                           position: Int) =
+            MutableLiveData<Lce<ContentResult.ContentLabeled>>().apply {
+                this.value = Lce.Loading()
+                userReference.document(COLLECTIONS_DOCUMENT).collection(collection).document(content!!.id)
+                        .delete().addOnSuccessListener {
+                            this.value = Lce.Content(ContentResult.ContentLabeled(position, ""))
+                        }.addOnFailureListener {
+                            this.value = Lce.Error(ContentResult.ContentLabeled(
+                                    position,
+                                    "Content failed to be deleted from ${collection}: ${it.localizedMessage}"))
                         }
             }
 
@@ -236,24 +264,9 @@ class ContentRepository(application: Application) {
             contentEnCollection.document(contentId)
                     .update(AUDIO_URL, Regex(AUDIO_URL_TOKEN_REGEX).replace(url.toString(), ""))
 
-    //TODO: Return LiveData of Status.
-    //TODO: Error message.
-    fun deleteContent(userReference: CollectionReference, collection: String, content: Content?) =
-            MutableLiveData<Status>().apply {
-                userReference.document(COLLECTIONS_DOCUMENT).collection(collection).document(content!!.id)
-                        .delete().addOnSuccessListener {
-                            this.value = SUCCESS
-                            Log.v(LOG_TAG, String.format("Content deleted from to collection:%s", it))
-                        }.addOnFailureListener {
-                            this.value = ERROR
-                            Log.e(LOG_TAG, String.format("Content failed to be deleted from collection:%s", it))
-                        }
-            }
-
-    //TODO: Return LiveData of Status.
-    //TODO: Error message.
+    //TODO: LCE
     //TODO: Custom response object 1) updateContentActionCounter 2) updateUserActions 3) updateQualityScore
-    fun updateActions(actionType: UserActionType, content: Content, user: FirebaseUser) {
+    fun updateActionAnalytics(actionType: UserActionType, content: Content, user: FirebaseUser) {
         var actionCollection = ""
         var score = INVALID_SCORE
         var countType = ""
@@ -296,8 +309,7 @@ class ContentRepository(application: Application) {
                 }
     }
 
-    //TODO: Return LiveData of Status.
-    //TODO: Error message.
+    //TODO: LCE
     fun updateContentActionCounter(contentId: String, counterType: String) {
         contentEnCollection.document(contentId).apply {
             firestore.runTransaction(Transaction.Function<String> { counterTransaction ->
@@ -310,8 +322,7 @@ class ContentRepository(application: Application) {
         }
     }
 
-    //TODO: Return LiveData of Status.
-    //TODO: Error message.
+    //TODO: LCE
     fun updateUserActions(userId: String, actionCollection: String, content: Content, countType: String) {
         usersDocument.collection(userId).document(ACTIONS_DOCUMENT).collection(actionCollection)
                 .document(content.id).set(ContentAction(now(), content.id, content.title, content.creator,
@@ -322,21 +333,19 @@ class ContentRepository(application: Application) {
                 }
     }
 
-    //TODO: Return LiveData of Status.
-    //TODO: Error message.
+    //TODO: LCE
     fun updateUserActionCounter(userId: String, counterType: String) {
         usersDocument.collection(userId).document(ACTIONS_DOCUMENT).apply {
             firestore.runTransaction(Transaction.Function<String> { counterTransaction ->
-                val newCounter = counterTransaction.get(this).getDouble(counterType)!! + 1.0
-                counterTransaction.update(this, counterType, newCounter)
+                counterTransaction.update(this, counterType,
+                        counterTransaction.get(this).getDouble(counterType)!! + 1.0)
                 return@Function "User counter update SUCCESS."
             }).addOnSuccessListener { status -> Log.v(LOG_TAG, status) }
                     .addOnFailureListener { e -> Log.e(LOG_TAG, "user counter update FAIL.", e) }
         }
     }
 
-    //TODO: Return LiveData of Status.
-    //TODO: Error message.
+    //TODO: LCE
     fun updateQualityScore(score: Double, contentId: String) {
         Log.d(LOG_TAG, "Transaction success: " + score)
         contentEnCollection.document(contentId).also {
@@ -356,15 +365,14 @@ class ContentRepository(application: Application) {
         }
     }
 
-    fun logCategorizeContentAnalyticsEvent(feedType: FeedType, content: Content, mainFeedEmptied: Boolean) {
-        if (feedType == MAIN)
-            Bundle().apply {
-                this.putString(ITEM_ID, content.id)
-                this.putString(USER_ID_PARAM, getInstance().currentUser?.uid)
-                this.putString(CREATOR_PARAM, content.creator)
-                analytics.logEvent(
-                        if (content.feedType == SAVED) ORGANIZE_EVENT else DISMISS_EVENT, this)
-            }
+    fun labelContentFirebaseAnalytics(content: Content) {
+        Bundle().apply {
+            this.putString(ITEM_ID, content.id)
+            this.putString(USER_ID_PARAM, getInstance().currentUser?.uid)
+            this.putString(CREATOR_PARAM, content.creator)
+            analytics.logEvent(
+                    if (content.feedType == SAVED) ORGANIZE_EVENT else DISMISS_EVENT, this)
+        }
     }
 
     fun getAudiocast(content: Content) =

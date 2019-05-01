@@ -1,15 +1,15 @@
 package app.coinverse.utils
 
 import android.content.Context
-import app.coinverse.Enums
-import app.coinverse.Enums.Timeframe.DAY
-import app.coinverse.Enums.Timeframe.WEEK
 import app.coinverse.R
+import app.coinverse.utils.Enums.Timeframe
+import app.coinverse.utils.Enums.Timeframe.DAY
+import app.coinverse.utils.Enums.Timeframe.WEEK
 import com.google.firebase.Timestamp
 import java.util.*
 
 object DateAndTime {
-    fun getTimeframe(timeframe: Enums.Timeframe?): Timestamp {
+    fun getTimeframe(timeframe: Timeframe?): Timestamp {
         val timeframeToQuery: Int
         when (timeframe) {
             DAY -> timeframeToQuery = -1

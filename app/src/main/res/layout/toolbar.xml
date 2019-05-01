@@ -13,7 +13,7 @@
 
         <variable
             name="feedType"
-            type="app.coinverse.Enums.FeedType" />
+            type="app.coinverse.utils.Enums.FeedType" />
 
     </data>
 
@@ -22,7 +22,7 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:theme="@style/ToolbarTheme"
-        android:visibility="@{viewmodel.getToolbarVisibility()}">
+        android:visibility="@{viewmodel.viewState.toolbar.visibility}">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
@@ -30,14 +30,14 @@
             android:layout_height="match_parent">
 
             <TextView
-                android:id="@+id/savedContentTitle"
+                android:id="@+id/title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="@string/saved"
+                android:text="@{viewmodel.viewState.toolbar.title}"
                 android:textColor="@color/colorAccent"
                 android:textSize="@dimen/text_size_medium"
-                android:visibility="gone" />
+                android:visibility="@{viewmodel.viewState.toolbar.visibility}" />
 
         </androidx.appcompat.widget.Toolbar>
 

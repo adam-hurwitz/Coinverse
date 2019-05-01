@@ -83,7 +83,7 @@ dependencies {
     implementation 'com.google.android.exoplayer:exoplayer-ui:2.9.5'
     implementation files('libs/YouTubeAndroidPlayerApi.jar')
     implementation 'io.reactivex.rxjava2:rxjava:2.2.5'
-    implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.1.0'
     implementation "android.arch.navigation:navigation-fragment-ktx:$nav_version"
     implementation "android.arch.navigation:navigation-ui-ktx:$nav_version"
     implementation "androidx.room:room-runtime:$room_version"

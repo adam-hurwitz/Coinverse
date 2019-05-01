@@ -1,11 +1,11 @@
 package app.coinverse.content.room
 
 import androidx.room.TypeConverter
-import app.coinverse.Enums.ContentType
-import app.coinverse.Enums.ContentType.ARTICLE
-import app.coinverse.Enums.ContentType.YOUTUBE
-import app.coinverse.Enums.FeedType
-import app.coinverse.Enums.FeedType.*
+import app.coinverse.utils.Enums.ContentType
+import app.coinverse.utils.Enums.ContentType.ARTICLE
+import app.coinverse.utils.Enums.ContentType.YOUTUBE
+import app.coinverse.utils.Enums.FeedType
+import app.coinverse.utils.Enums.FeedType.*
 import com.google.firebase.Timestamp
 import java.util.*
 
@@ -22,7 +22,6 @@ class Converters {
             when (contentType) {
                 ARTICLE.code -> ARTICLE
                 YOUTUBE.code -> YOUTUBE
-                NONE.code -> ContentType.NONE
                 else -> throw IllegalArgumentException("Could not recognize contentType")
             }
 
@@ -35,7 +34,6 @@ class Converters {
                 MAIN.code -> MAIN
                 SAVED.code -> SAVED
                 DISMISSED.code -> DISMISSED
-                NONE.code -> NONE
                 else -> throw IllegalArgumentException("Could not recognize feedType")
             }
 

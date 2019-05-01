@@ -1,4 +1,4 @@
-package app.coinverse.user.models
+package app.coinverse.analytics.models
 
 data class UserActionCount(var viewCount: Double, var startCount: Double,
                            var consumeCount: Double, var finishCount: Double, var organizeCount: Double,

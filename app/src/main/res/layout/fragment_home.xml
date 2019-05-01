@@ -36,7 +36,7 @@
 
                     <FrameLayout
                         android:id="@+id/priceContainer"
-                        android:name="app.carpecoin.PriceDataFragment"
+                        android:name="PriceFragment"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/price_graph_height"
                         app:layout_collapseMode="parallax"

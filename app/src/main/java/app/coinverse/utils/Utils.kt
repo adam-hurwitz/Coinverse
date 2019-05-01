@@ -30,9 +30,9 @@ fun ImageView.setImageUrl(context: Context, url: String) {
 }
 
 fun snackbarWithText(res: String, rootView: View) {
-    val snackbar = Snackbar.make(rootView, res, Snackbar.LENGTH_LONG)
-    snackbar.view.fitsSystemWindows = true
-    val textView = snackbar.view.findViewById(snackbar_text) as TextView
-    textView.setTextColor(resourcesUtil.getColor(R.color.colorPrimary, null))
-    snackbar.show()
+    Snackbar.make(rootView, res, Snackbar.LENGTH_LONG).apply {
+        this.view.fitsSystemWindows = true
+        (this.view.findViewById(snackbar_text) as TextView)
+                .setTextColor(resourcesUtil.getColor(R.color.colorPrimary, null))
+    }.show()
 }

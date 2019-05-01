@@ -6,17 +6,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
-import app.coinverse.Enums.ContentType.*
 import app.coinverse.R
-import app.coinverse.content.models.ContentSelected
+import app.coinverse.content.models.ContentResult
 import app.coinverse.content.room.CoinverseDatabase
 import app.coinverse.databinding.FragmentContentDialogBinding
 import app.coinverse.utils.*
+import app.coinverse.utils.Enums.ContentType.*
 
 class ContentDialogFragment : DialogFragment() {
     private var LOG_TAG = ContentDialogFragment::class.java.simpleName
 
-    private lateinit var contentSelected: ContentSelected
+    private lateinit var contentToPlay: ContentResult.ContentToPlay
     private lateinit var binding: FragmentContentDialogBinding
     private lateinit var coinverseDatabase: CoinverseDatabase
 
@@ -24,7 +24,7 @@ class ContentDialogFragment : DialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        contentSelected = arguments!!.getParcelable(CONTENT_SELECTED_KEY)!!
+        contentToPlay = arguments!!.getParcelable(CONTENT_SELECTED_KEY)!!
         coinverseDatabase = CoinverseDatabase.getAppDatabase(context!!)
     }
 
@@ -32,7 +32,7 @@ class ContentDialogFragment : DialogFragment() {
         binding = FragmentContentDialogBinding.inflate(inflater, container, false)
         if (savedInstanceState == null && childFragmentManager.findFragmentById(R.id.dialog_content) == null)
             childFragmentManager.beginTransaction().replace(R.id.dialog_content,
-                    when (contentSelected.content.contentType) {
+                    when (contentToPlay.content.contentType) {
                         ARTICLE -> AudioFragment().newInstance(arguments!!)
                         YOUTUBE -> YouTubeFragment().newInstance(arguments!!)
                         NONE -> throw(IllegalArgumentException("contentType expected, contentType is 'NONE'"))

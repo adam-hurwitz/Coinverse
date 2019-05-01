@@ -8,12 +8,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
-import app.coinverse.Enums.FeedType.DISMISSED
-import app.coinverse.Enums.Status.SUCCESS
 import app.coinverse.R
 import app.coinverse.R.string.*
 import app.coinverse.databinding.FragmentUserBinding
 import app.coinverse.home.HomeViewModel
+import app.coinverse.utils.Enums.FeedType.DISMISSED
+import app.coinverse.utils.Enums.Status.SUCCESS
 import app.coinverse.utils.PROFILE_VIEW
 import app.coinverse.utils.SIGN_OUT_ON_BACK_PRESS_DELAY_IN_MILLIS
 import app.coinverse.utils.livedata.EventObserver

@@ -2,12 +2,12 @@ package app.coinverse.priceGraph
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
-import app.coinverse.Enums.Exchange
-import app.coinverse.Enums.Exchange.*
-import app.coinverse.Enums.Timeframe
 import app.coinverse.firebase.contentEthBtcCollection
 import app.coinverse.priceGraph.models.*
 import app.coinverse.utils.DateAndTime.getTimeframe
+import app.coinverse.utils.Enums.Exchange
+import app.coinverse.utils.Enums.Exchange.*
+import app.coinverse.utils.Enums.Timeframe
 import app.coinverse.utils.TIMESTAMP
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.EventListener

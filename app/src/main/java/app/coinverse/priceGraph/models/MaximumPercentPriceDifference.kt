@@ -1,6 +1,6 @@
 package app.coinverse.priceGraph.models
 
-import app.coinverse.Enums.Exchange.EMPTY
+import app.coinverse.utils.Enums.Exchange.EMPTY
 import com.google.firebase.Timestamp
 
 data class MaximumPercentPriceDifference(

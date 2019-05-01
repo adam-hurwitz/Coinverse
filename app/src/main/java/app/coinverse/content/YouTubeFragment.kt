@@ -9,7 +9,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import app.coinverse.BuildConfig.DEBUG
 import app.coinverse.R
-import app.coinverse.content.models.ContentSelected
+import app.coinverse.analytics.updateActionsAndAnalytics
+import app.coinverse.analytics.updateStartActionsAndAnalytics
+import app.coinverse.content.models.ContentResult
 import app.coinverse.content.room.CoinverseDatabase
 import app.coinverse.databinding.FragmentContentDialogBinding
 import app.coinverse.utils.*
@@ -26,7 +28,7 @@ class YouTubeFragment : Fragment() {
     private var LOG_TAG = YouTubeFragment::class.java.simpleName
 
     private lateinit var analytics: FirebaseAnalytics
-    private lateinit var contentSelected: ContentSelected
+    private lateinit var contentToPlay: ContentResult.ContentToPlay
     private lateinit var binding: FragmentContentDialogBinding
     private lateinit var contentViewModel: ContentViewModel
     private lateinit var coinverseDatabase: CoinverseDatabase
@@ -44,8 +46,8 @@ class YouTubeFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        analytics = FirebaseAnalytics.getInstance(FirebaseApp.getInstance()!!.applicationContext)
-        contentSelected = arguments!!.getParcelable(CONTENT_SELECTED_KEY)!!
+        analytics = FirebaseAnalytics.getInstance(FirebaseApp.getInstance().applicationContext)
+        contentToPlay = arguments!!.getParcelable(CONTENT_SELECTED_KEY)!!
         contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
         coinverseDatabase = CoinverseDatabase.getAppDatabase(context!!)
     }
@@ -61,7 +63,7 @@ class YouTubeFragment : Fragment() {
                             youtubePlayer = player
                             player.setPlayerStateChangeListener(PlayerStateChangeListener(savedInstanceState))
                             player.setPlaybackEventListener(PlaybackEventListener())
-                            val youTubeId = Regex(YOUTUBE_ID_REGEX).replace(contentSelected.content.id, "")
+                            val youTubeId = Regex(YOUTUBE_ID_REGEX).replace(contentToPlay.content.id, "")
                             if (savedInstanceState == null) player.loadVideo(youTubeId)
                             else player.loadVideo(youTubeId, savedInstanceState.getInt(MEDIA_CURRENT_TIME_KEY))
                         }
@@ -84,7 +86,7 @@ class YouTubeFragment : Fragment() {
 
         override fun onAdStarted() {}
         override fun onVideoStarted() {
-            updateStartActionsAndAnalytics(savedInstanceState, contentSelected.content, contentViewModel, analytics)
+            updateStartActionsAndAnalytics(savedInstanceState, contentToPlay.content, contentViewModel, analytics)
         }
 
         override fun onVideoEnded() {}
@@ -103,7 +105,7 @@ class YouTubeFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        if (youtubePlayer != null) updateActionsAndAnalytics(contentSelected.content, contentViewModel, coinverseDatabase.contentDao(),
+        if (youtubePlayer != null) updateActionsAndAnalytics(contentToPlay.content, contentViewModel, coinverseDatabase.contentDao(),
                 analytics, (youtubePlayer.currentTimeMillis.toDouble() - seekToPositionMillis) / youtubePlayer.durationMillis)
     }
 }

@@ -1,4 +1,4 @@
-package app.coinverse.user.models
+package app.coinverse.analytics.models
 
 import com.google.firebase.Timestamp
 

@@ -4,8 +4,8 @@ import android.os.Parcel
 import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import app.coinverse.Enums.ContentType
-import app.coinverse.Enums.FeedType
+import app.coinverse.utils.Enums.ContentType
+import app.coinverse.utils.Enums.FeedType
 import com.google.firebase.Timestamp
 import java.util.*
 
@@ -43,7 +43,7 @@ data class Content(@PrimaryKey var id: String, var qualityScore: Double,
             parcel.readDouble())
 
     constructor() : this("", 0.0, ContentType.NONE, Timestamp.now(), "",
-            "", "", "", "", "", "", FeedType.NONE,
+            "", "", "", "", "", "", FeedType.MAIN,
             0, 0.0, 0.0, 0.0, 0.0,
             0.0, 0.0, 0.0, 0.0)
 

@@ -1,4 +1,4 @@
-package app.coinverse
+package app.coinverse.utils
 
 object Enums {
 
@@ -19,8 +19,9 @@ object Enums {
         BTC, ETH
     }
 
+    //TODO: Replace usages with LCEs.
     enum class Status {
-        SUCCESS, ERROR
+        LOADING, SUCCESS, ERROR
     }
 
     enum class ContentType(val code: Int) {
@@ -32,7 +33,7 @@ object Enums {
     }
 
     enum class FeedType(val code: Int) {
-        MAIN(1), SAVED(2), DISMISSED(3), NONE(-1)
+        MAIN(1), SAVED(2), DISMISSED(3)
     }
 
     enum class SignInType(val code: Int) {

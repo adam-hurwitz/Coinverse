@@ -1,10 +1,11 @@
-package app.coinverse.utils
+package app.coinverse.analytics
 
 import android.os.Bundle
-import app.coinverse.Enums.UserActionType.*
 import app.coinverse.content.ContentViewModel
 import app.coinverse.content.models.Content
 import app.coinverse.content.room.ContentDao
+import app.coinverse.utils.*
+import app.coinverse.utils.Enums.UserActionType.*
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.FirebaseAnalytics.Param
 import com.google.firebase.auth.FirebaseAuth
@@ -17,7 +18,7 @@ fun updateActionsAndAnalytics(content: Content, contentViewModel: ContentViewMod
         val user = FirebaseAuth.getInstance().currentUser
         bundle.putString(Param.ITEM_NAME, content.title)
         if (user != null) {
-            contentViewModel.updateActions(FINISH, content, user)
+            contentViewModel.updateActionAnalytics(FINISH, content, user)
             bundle.putString(USER_ID_PARAM, user.uid)
         }
         bundle.putString(CREATOR_PARAM, content.creator)
@@ -27,7 +28,7 @@ fun updateActionsAndAnalytics(content: Content, contentViewModel: ContentViewMod
         val user = FirebaseAuth.getInstance().currentUser
         bundle.putString(Param.ITEM_NAME, content.title)
         if (user != null) {
-            contentViewModel.updateActions(CONSUME, content, user)
+            contentViewModel.updateActionAnalytics(CONSUME, content, user)
             bundle.putString(USER_ID_PARAM, user.uid)
         }
         bundle.putString(CREATOR_PARAM, content.creator)
@@ -44,7 +45,7 @@ fun updateStartActionsAndAnalytics(savedInstanceState: Bundle?, content: Content
                     this.putString(CREATOR_PARAM, content.creator)
                     FirebaseAuth.getInstance().currentUser.let { user ->
                         if (user != null) {
-                            contentViewModel.updateActions(START, content, user)
+                            contentViewModel.updateActionAnalytics(START, content, user)
                             this.putString(USER_ID_PARAM, user.uid)
                         }
                     }

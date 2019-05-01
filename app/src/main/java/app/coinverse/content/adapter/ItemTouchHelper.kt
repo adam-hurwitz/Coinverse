@@ -7,25 +7,26 @@ import android.graphics.Paint
 import android.graphics.drawable.ColorDrawable
 import androidx.core.content.ContextCompat.getColor
 import androidx.core.content.ContextCompat.getDrawable
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ItemTouchHelper.*
 import androidx.recyclerview.widget.RecyclerView
-import app.coinverse.Enums.FeedType
-import app.coinverse.Enums.FeedType.*
-import app.coinverse.Enums.PaymentStatus
-import app.coinverse.Enums.PaymentStatus.FREE
-import app.coinverse.Enums.PaymentStatus.PAID
-import app.coinverse.Enums.UserActionType.DISMISS
-import app.coinverse.Enums.UserActionType.SAVE
 import app.coinverse.R.color
 import app.coinverse.R.dimen
 import app.coinverse.R.drawable.*
 import app.coinverse.R.string.dismiss
 import app.coinverse.R.string.save
-import app.coinverse.content.models.ContentSwiped
+import app.coinverse.content.models.ContentViewEvent
+import app.coinverse.content.models.ContentViewEvent.ContentSwipeDrawed
+import app.coinverse.content.models.ContentViewEvent.ContentSwiped
 import app.coinverse.utils.CELL_CONTENT_MARGIN
+import app.coinverse.utils.Enums.FeedType
+import app.coinverse.utils.Enums.FeedType.*
+import app.coinverse.utils.Enums.PaymentStatus
+import app.coinverse.utils.Enums.PaymentStatus.FREE
+import app.coinverse.utils.Enums.PaymentStatus.PAID
+import app.coinverse.utils.Enums.UserActionType.DISMISS
+import app.coinverse.utils.Enums.UserActionType.SAVE
 import app.coinverse.utils.RIGHT_SWIPE
 import app.coinverse.utils.SWIPE_CONTENT_Y_MARGIN_DP
 import app.coinverse.utils.convertDpToPx
@@ -34,13 +35,7 @@ import com.mopub.nativeads.MoPubRecyclerAdapter
 
 private val LOG_TAG = ItemTouchHelper::class.java.simpleName
 
-class ItemTouchHelper {
-
-    val onChildDraw: LiveData<Event<Boolean>> get() = _onChildDraw
-    val onContentSwiped: LiveData<Event<ContentSwiped>> get() = _onContentSwiped
-
-    private val _onChildDraw = MutableLiveData<Event<Boolean>>()
-    private val _onContentSwiped = MutableLiveData<Event<ContentSwiped>>()
+class ItemTouchHelper(val _contentViewEvent: MutableLiveData<Event<ContentViewEvent>>) {
 
     fun build(context: Context, paymentStatus: PaymentStatus, feedType: FeedType,
               moPubAdapter: MoPubRecyclerAdapter?) = ItemTouchHelper(object : Callback() {
@@ -52,7 +47,6 @@ class ItemTouchHelper {
                         MAIN -> makeMovementFlags(LEFT or RIGHT, LEFT or RIGHT)
                         SAVED -> makeMovementFlags(LEFT, LEFT)
                         DISMISSED -> makeMovementFlags(RIGHT, RIGHT)
-                        else -> makeMovementFlags(ACTION_STATE_IDLE, ACTION_STATE_IDLE)
                     }
                 else makeMovementFlags(ACTION_STATE_IDLE, ACTION_STATE_IDLE)
 
@@ -60,16 +54,16 @@ class ItemTouchHelper {
                             target: RecyclerView.ViewHolder) = false
 
         override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-            _onContentSwiped.value = Event(
-                    ContentSwiped(
-                            if (direction == RIGHT_SWIPE && feedType != SAVED) SAVE else DISMISS,
-                            viewHolder.adapterPosition))
+            _contentViewEvent.value = Event(ContentSwiped(
+                    feedType,
+                    if (direction == RIGHT_SWIPE && feedType != SAVED) SAVE else DISMISS,
+                    viewHolder.adapterPosition))
         }
 
         override fun onChildDraw(c: Canvas, recyclerView: RecyclerView,
                                  viewHolder: RecyclerView.ViewHolder, dX: Float, dY: Float,
                                  actionState: Int, isCurrentlyActive: Boolean) {
-            _onChildDraw.value = Event(true)
+            _contentViewEvent.value = Event(ContentSwipeDrawed(true))
             if (actionState == ACTION_STATE_SWIPE) {
                 var icon = getDrawable(context, ic_error_black_48dp)
                 val iconLeft: Int

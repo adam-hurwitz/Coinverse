@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.*
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -15,13 +16,6 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import app.coinverse.Enums.Exchange
-import app.coinverse.Enums.Exchange.*
-import app.coinverse.Enums.OrderType
-import app.coinverse.Enums.OrderType.ASK
-import app.coinverse.Enums.OrderType.BID
-import app.coinverse.Enums.Timeframe
-import app.coinverse.Enums.Timeframe.DAY
 import app.coinverse.R.color.colorAccent
 import app.coinverse.R.color.colorPrimaryDark
 import app.coinverse.R.dimen.data_point_radius
@@ -31,6 +25,13 @@ import app.coinverse.databinding.FragmentPriceBinding
 import app.coinverse.home.HomeViewModel
 import app.coinverse.priceGraph.models.PriceGraphData
 import app.coinverse.priceGraph.models.PriceGraphXAndYConstraints
+import app.coinverse.utils.Enums.Exchange
+import app.coinverse.utils.Enums.Exchange.*
+import app.coinverse.utils.Enums.OrderType
+import app.coinverse.utils.Enums.OrderType.ASK
+import app.coinverse.utils.Enums.OrderType.BID
+import app.coinverse.utils.Enums.Timeframe
+import app.coinverse.utils.Enums.Timeframe.DAY
 import app.coinverse.utils.getExchangeColor
 import com.jjoe64.graphview.GridLabelRenderer
 import com.jjoe64.graphview.series.DataPoint
@@ -76,8 +77,7 @@ class PriceFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setPriceGraphStyle()
-        setGraphVisibility(View.GONE)
-
+        setGraphVisibility(GONE)
         observeOrderTypesEnabled()
         observeExchangesEnabled()
         observePriceSelected()
@@ -233,7 +233,8 @@ class PriceFragment : Fragment() {
             setOrderPriceGraphStyle(orders, color, thickness)
             if (enabledExchangeList?.contains(exchange) == true &&
                     enabledOrderTypeList!!.contains(orderType)) graph.addSeries(orders)
-            setGraphVisibility(View.VISIBLE)
+            //TODO: Check HomeViewModel for progress status.
+            setGraphVisibility(VISIBLE)
             homeViewModel.setSwipeToRefreshState(false)
             orders?.setOnDataPointTapListener { series, dataPoint ->
                 priceViewModel.setPriceSelected(
@@ -252,11 +253,11 @@ class PriceFragment : Fragment() {
     }
 
     private fun setGraphVisibility(visibility: Int) {
-        if (visibility == View.VISIBLE) {
-            graph.visibility = View.VISIBLE
+        if (visibility == VISIBLE) {
+            graph.visibility = VISIBLE
             progressBar.visibility = ProgressBar.GONE
         } else {
-            graph.visibility = View.INVISIBLE
+            graph.visibility = INVISIBLE
             progressBar.progress = ProgressBar.VISIBLE
         }
     }

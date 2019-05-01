@@ -1,10 +1,10 @@
 package app.coinverse.utils
 
-import app.coinverse.Enums.Exchange
-import app.coinverse.Enums.Exchange.*
-import app.coinverse.Enums.OrderType
-import app.coinverse.Enums.OrderType.ASK
 import app.coinverse.R.color.*
+import app.coinverse.utils.Enums.Exchange
+import app.coinverse.utils.Enums.Exchange.*
+import app.coinverse.utils.Enums.OrderType
+import app.coinverse.utils.Enums.OrderType.ASK
 
 fun getExchangeColor(exchange: Exchange, orderType: OrderType) = when (exchange) {
     COINBASE -> if (orderType == ASK) coinbaseAsks else coinbaseBids

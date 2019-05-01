@@ -21,6 +21,7 @@ val SUPPORT_ANDROID_API = getInstance().getString("support_android_api")
 val SUPPORT_DEVICE = getInstance().getString("support_device")
 val SUPPORT_USER = getInstance().getString("support_user")
 val PRIVACY_POLICY_LINK = getInstance().getString("privacy_policy_link")
+val SAVED_BOTTOM_SHEET_PEEK_HEIGHT = getInstance().getDouble("saved_bottom_sheet_peek_height").toInt()
 
 const val PRICEGRAPH_FRAGMENT_TAG = "priceGraphFragmentTag"
 const val SIGNIN_DIALOG_FRAGMENT_TAG = "signinDialogFragmentTag"
@@ -30,9 +31,6 @@ const val USER_KEY = "userKey"
 
 // User
 val SIGN_OUT_ON_BACK_PRESS_DELAY_IN_MILLIS = getInstance().getLong("sign_out_on_back_press_delay_in_millis")
-val SAVED_BOTTOM_SHEET_PEEK_HEIGHT = getInstance().getDouble("saved_bottom_sheet_peek_height").toInt()
-val DEFAULT_LAT = getInstance().getDouble("default_lat")
-val DEFAULT_LNG = getInstance().getString("default_lng")
 val DELETE_USER_FUNCTION = getInstance().getString("delete_user_function")
 val USER_ID_FUNCTION_PARAM = getInstance().getString("user_id_function_param")
 val PATH_FUNCTION_PARAM = getInstance().getString("path_function_param")
@@ -40,6 +38,9 @@ val PATH_FUNCTION_PARAM = getInstance().getString("path_function_param")
 const val SIGNIN_TYPE_KEY = "signInTypeKey"
 
 // Content
+val CONTENT_REQUEST_NETWORK_ERROR = getInstance().getString("content_request_network_error")
+val CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR = getInstance().getString("content_swipe_to_refresh_network_error")
+val CONTENT_LABEL_ERROR = getInstance().getString("content_label_error")
 val CONTENT_IMAGE_CORNER_RADIUS = getInstance().getDouble("content_image_corner_radius").toInt()
 val CELL_CONTENT_MARGIN = getInstance().getDouble("cell_content_margin").toInt()
 val PREFETCH_DISTANCE = getInstance().getDouble("prefetch_distance").toInt()
@@ -63,12 +64,12 @@ val BOTTOM_SHEET_COLLAPSE_DELAY = getInstance().getLong("bottom_sheet_collapse_d
 val CONTENT_SHARE_TYPE = getInstance().getString("content_share_type")
 val CONTENT_SHARE_SUBJECT_PREFFIX = getInstance().getString("content_share_subject_prefix")
 val SHARED_VIA_COINVERSE = getInstance().getString("shared_via_coinverse")
-val CONTENT_SHARE_TITLE = getInstance().getString("content_share_title_prefix")
+val CONTENT_SHARE_DIALOG_TITLE = getInstance().getString("content_share_dialog_title")
 val AUDIO_URL = getInstance().getString("audio_url")
 val AUDIOCAST_SHARE_MESSAGE = getInstance().getString("audiocast_share_message")
 val VIDEO_SHARE_MESSAGE = getInstance().getString("video_share_message")
 val SOURCE_SHARE_MESSAGE = getInstance().getString("source_share_message")
-val SHARE_CONTENT_TYPE = getInstance().getString("share_content_type")
+val SHARE_CONTENT_IMAGE_TYPE = getInstance().getString("share_content_image_type")
 val YOUTUBE_ID_REGEX = getInstance().getString("youtube_id_regex")
 val AUDIO_URL_TOKEN_REGEX = "&token.+"
 const val RIGHT_SWIPE = 8

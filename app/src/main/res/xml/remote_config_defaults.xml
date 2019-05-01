@@ -42,6 +42,10 @@
         <key>privacy_policy_link</key>
         <value>https://www.freeprivacypolicy.com/privacy/view/8a8fefa768125d2ccea009d01569a613</value>
     </entry>
+    <entry>
+        <key>saved_bottom_sheet_peek_height</key>
+        <value>128</value>
+    </entry>
 
     <!--User-->
     <entry>
@@ -127,8 +131,16 @@
         <value>content/feeds/en</value>
     </entry>
     <entry>
-        <key>saved_bottom_sheet_peek_height</key>
-        <value>128</value>
+        <key>content_request_network_error</key>
+        <value>Unable to update feed. Swipe to refresh to try again!</value>
+    </entry>
+    <entry>
+        <key>content_swipe_to_refresh_network_error</key>
+        <value>Unable to update feed. Please try again later!</value>
+    </entry>
+    <entry>
+        <key>content_label_error</key>
+        <value>Unable to apply label. Please try again later.</value>
     </entry>
     <entry>
         <key>content_image_corner_radius</key>
@@ -195,7 +207,7 @@
         <value>Shared via Coinverse:</value>
     </entry>
     <entry>
-        <key>content_share_title_prefix</key>
+        <key>content_share_dialog_title</key>
         <value>Share From Coinverse</value>
     </entry>
     <entry>
@@ -203,7 +215,7 @@
         <value>audioUrl</value>
     </entry>
     <entry>
-        <key>share_content_type</key>
+        <key>share_content_image_type</key>
         <value>image/*</value>
     </entry>
     <entry>
