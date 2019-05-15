@@ -50,7 +50,7 @@ dependencies {
     def paging_version = "2.1.0"
     def nav_version = "1.0.0"
     def nav_testing_version = "1.0.0-alpha08"
-    def room_version = "2.1.0-alpha07"
+    def room_version = "2.1.0-beta01"
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
@@ -67,17 +67,17 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth:16.0.1'
     implementation 'com.google.android.gms:play-services-location:16.0.0'
     implementation 'com.firebase:firebase-client-android:2.5.2'
-    implementation 'com.google.firebase:firebase-core:16.0.8'
-    implementation 'com.crashlytics.sdk.android:crashlytics:2.9.9'
-    implementation 'com.google.firebase:firebase-perf:16.2.5'
-    implementation 'com.google.firebase:firebase-firestore:18.2.0'
-    implementation 'com.google.firebase:firebase-functions:16.3.0'
-    implementation 'com.google.firebase:firebase-auth:16.2.1'
+    implementation 'com.google.firebase:firebase-core:16.0.9'
+    implementation 'com.crashlytics.sdk.android:crashlytics:2.10.0'
+    implementation 'com.google.firebase:firebase-perf:17.0.0'
+    implementation 'com.google.firebase:firebase-firestore:19.0.0'
+    implementation 'com.google.firebase:firebase-functions:17.0.0'
+    implementation 'com.google.firebase:firebase-auth:17.0.0'
     implementation 'com.firebaseui:firebase-ui-firestore:4.2.0'
     implementation 'com.firebaseui:firebase-ui-auth:4.2.1'
-    implementation 'com.google.firebase:firebase-storage:16.1.0'
+    implementation 'com.google.firebase:firebase-storage:17.0.0'
     implementation 'com.google.firebase:firebase-inappmessaging-display:17.1.1'
-    implementation 'com.google.firebase:firebase-config:16.5.0'
+    implementation 'com.google.firebase:firebase-config:17.0.0'
     implementation 'com.jjoe64:graphview:4.2.2'
     implementation 'com.google.android.exoplayer:exoplayer-core:2.9.5'
     implementation 'com.google.android.exoplayer:exoplayer-ui:2.9.5'
