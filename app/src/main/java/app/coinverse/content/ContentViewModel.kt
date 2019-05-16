@@ -129,6 +129,7 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
                                                 })
                                         }
                                         MutableLiveData<Event<ContentResult.ContentLabeled>>().apply {
+                                            _viewEffect.value = Event(NotifyItemChanged(event.position))
                                             this.value = Event(ContentResult.ContentLabeled(
                                                     event.position, ""))
                                         }
