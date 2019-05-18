@@ -35,6 +35,7 @@ import app.coinverse.databinding.FragmentContentBinding
 import app.coinverse.home.HomeViewModel
 import app.coinverse.user.SignInDialogFragment
 import app.coinverse.utils.*
+import app.coinverse.utils.Enums.ContentType.YOUTUBE
 import app.coinverse.utils.Enums.FeedType.*
 import app.coinverse.utils.Enums.PaymentStatus.FREE
 import app.coinverse.utils.livedata.Event
@@ -253,25 +254,26 @@ class ContentFragment : Fragment() {
                     MAIN -> snackbarWithText(effect.text, this.parentFragment?.view!!)
                     SAVED, DISMISSED -> snackbarWithText(effect.text, contentFragment)
                 }
-                is ContentViewEffect.ShareContentIntent -> startActivity(createChooser(Intent(ACTION_SEND).apply {
-                    this.type = CONTENT_SHARE_TYPE
-                    this.putExtra(EXTRA_SUBJECT, CONTENT_SHARE_SUBJECT_PREFFIX + effect.content.title)
-                    this.putExtra(EXTRA_TEXT,
-                            "$SHARED_VIA_COINVERSE '${effect.content.title}' - ${effect.content.creator}" +
-                                    effect.content.audioUrl.let { audioUrl ->
-                                        if (!audioUrl.isNullOrBlank())
-                                            "$AUDIOCAST_SHARE_MESSAGE $audioUrl"
-                                        else
-                                            if (effect.content.contentType == Enums.ContentType.YOUTUBE)
-                                                VIDEO_SHARE_MESSAGE + effect.content.url
-                                            else SOURCE_SHARE_MESSAGE + effect.content.url
-                                    })
-                    if (effect.content.contentType != Enums.ContentType.YOUTUBE) {
-                        this.putExtra(EXTRA_STREAM, Uri.parse(effect.content.previewImage))
-                        this.type = SHARE_CONTENT_IMAGE_TYPE
-                        this.addFlags(FLAG_GRANT_READ_URI_PERMISSION)
-                    }
-                }, CONTENT_SHARE_DIALOG_TITLE))
+                is ContentViewEffect.ShareContentIntent ->
+                    effect.contentRequest.observe(viewLifecycleOwner, EventObserver { content ->
+                        startActivity(createChooser(Intent(ACTION_SEND).apply {
+                            this.type = CONTENT_SHARE_TYPE
+                            this.putExtra(EXTRA_SUBJECT, CONTENT_SHARE_SUBJECT_PREFFIX + content.title)
+                            this.putExtra(EXTRA_TEXT,
+                                    "$SHARED_VIA_COINVERSE '${content.title}' - ${content.creator}" +
+                                            content.audioUrl.let { audioUrl ->
+                                                if (!audioUrl.isNullOrBlank()) {
+                                                    this.putExtra(EXTRA_STREAM, Uri.parse(content.previewImage))
+                                                    this.type = SHARE_CONTENT_IMAGE_TYPE
+                                                    this.addFlags(FLAG_GRANT_READ_URI_PERMISSION)
+                                                    "$AUDIOCAST_SHARE_MESSAGE $audioUrl"
+                                                } else
+                                                    if (content.contentType == YOUTUBE)
+                                                        VIDEO_SHARE_MESSAGE + content.url
+                                                    else SOURCE_SHARE_MESSAGE + content.url
+                                            })
+                        }, CONTENT_SHARE_DIALOG_TITLE))
+                    })
                 is ContentViewEffect.OpenContentSourceIntent ->
                     startActivity(Intent(ACTION_VIEW).setData(Uri.parse(effect.url)))
                 is ContentViewEffect.ScreenEmpty -> {

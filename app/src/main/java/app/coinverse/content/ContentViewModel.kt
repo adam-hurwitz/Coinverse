@@ -146,7 +146,8 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
                     _viewEffect.value = Event(NotifyItemChanged(event.position))
                     _viewEffect.value = Event(SignIn(true))
                 }
-            is ContentViewEvent.ContentShared -> _viewEffect.value = Event(ShareContentIntent(event.content))
+            is ContentViewEvent.ContentShared ->
+                _viewEffect.value = Event(ShareContentIntent(contentRepository.getContent(event.content.id)))
             is ContentViewEvent.ContentSourceOpened -> _viewEffect.value = Event(OpenContentSourceIntent(event.url))
             is ContentViewEvent.UpdateAds -> _viewEffect.value = Event(UpdateAds())
         }

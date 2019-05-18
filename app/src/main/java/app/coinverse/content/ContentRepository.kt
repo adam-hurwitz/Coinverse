@@ -21,6 +21,7 @@ import app.coinverse.utils.Enums.FeedType
 import app.coinverse.utils.Enums.FeedType.*
 import app.coinverse.utils.Enums.UserActionType
 import app.coinverse.utils.Enums.UserActionType.*
+import app.coinverse.utils.livedata.Event
 import app.coinverse.utils.models.Lce
 import com.google.firebase.Timestamp
 import com.google.firebase.Timestamp.now
@@ -174,6 +175,12 @@ class ContentRepository(application: Application) {
                                     "Error retrieving logged out, non-realtime content_en_collection: ${it.localizedMessage}"))
                         }
             }
+
+    fun getContent(contentId: String) = MutableLiveData<Event<Content>>().apply {
+        contentEnCollection.document(contentId).get().addOnCompleteListener { result ->
+            this.value = Event((result.result?.toObject(Content::class.java)!!))
+        }
+    }
 
     fun getRoomMainList(timestamp: Timestamp) =
             liveDataBuilder(database.contentDao().getMainContentList(timestamp, MAIN))

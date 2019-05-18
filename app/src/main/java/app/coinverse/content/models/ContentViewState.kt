@@ -35,7 +35,7 @@ sealed class ContentViewEffect {
     data class SwipeToRefresh(val isEnabled: Boolean): ContentViewEffect()
     data class ContentSwiped(val feedType: FeedType, val actionType: UserActionType, val position: Int) : ContentViewEffect()
     data class SnackBar(val text: String) : ContentViewEffect()
-    data class ShareContentIntent(val content: Content) : ContentViewEffect()
+    data class ShareContentIntent(val contentRequest: LiveData<Event<Content>>) : ContentViewEffect()
     data class OpenContentSourceIntent(val url: String) : ContentViewEffect()
     data class ScreenEmpty(val isEmpty: Boolean) : ContentViewEffect()
     class UpdateAds: ContentViewEffect()

@@ -220,15 +220,15 @@
     </entry>
     <entry>
         <key>audiocast_share_message</key>
-        <value>| audiocast:</value>
+        <value> | audiocast: </value>
     </entry>
     <entry>
         <key>video_share_message</key>
-        <value>| video:</value>
+        <value> | video: </value>
     </entry>
     <entry>
         <key>source_share_message</key>
-        <value>| source:</value>
+        <value> | source: </value>
     </entry>
     <entry>
         <key>youtube_id_regex</key>
