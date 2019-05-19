@@ -23,7 +23,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val isRefreshing: LiveData<Boolean> get() = _isRefreshing
     //TODO: Add to ViewState.
     val bottomSheetState: LiveData<Int> get() = _bottomSheetState
-    val savedContentSelected: LiveData<Event<ContentResult.ContentSelected>> get() = _savedContentSelected
+    val savedContentToPlay: LiveData<Event<ContentResult.ContentToPlay>> get() = _savedContentToPlay
 
     private val homeRepository: HomeRepository
     private val _user = MutableLiveData<FirebaseUser>()
@@ -35,7 +35,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _isRefreshing = MutableLiveData<Boolean>()
     //TODO: Add to ViewState.
     private val _bottomSheetState = MutableLiveData<Int>()
-    private val _savedContentSelected = MutableLiveData<Event<ContentResult.ContentSelected>>()
+    private val _savedContentToPlay = MutableLiveData<Event<ContentResult.ContentToPlay>>()
 
     init {
         //TODO: Set ability to toggle based on user configuration.
@@ -70,8 +70,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         _bottomSheetState.value = state
     }
 
-    fun setSavedContentSelected(contentSelected: ContentResult.ContentSelected) {
-        _savedContentSelected.value = Event(contentSelected)
+    fun setSavedContentToPlay(contentToPlay: ContentResult.ContentToPlay) {
+        _savedContentToPlay.value = Event(contentToPlay)
     }
 
 }

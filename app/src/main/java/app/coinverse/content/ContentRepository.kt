@@ -14,6 +14,7 @@ import app.coinverse.analytics.models.ContentAction
 import app.coinverse.analytics.models.UserAction
 import app.coinverse.content.models.Content
 import app.coinverse.content.models.ContentResult
+import app.coinverse.content.models.ContentViewEvent
 import app.coinverse.content.room.CoinverseDatabase
 import app.coinverse.firebase.*
 import app.coinverse.utils.*
@@ -33,6 +34,7 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.*
 import com.google.firebase.firestore.Query.Direction.DESCENDING
 import com.google.firebase.functions.FirebaseFunctions
+import com.google.firebase.functions.FirebaseFunctionsException
 
 class ContentRepository(application: Application) {
     private val LOG_TAG = ContentRepository::class.java.simpleName
@@ -196,6 +198,48 @@ class ContentRepository(application: Application) {
                             .build())
                     .build()
 
+    fun getAudiocast(contentSelected: ContentViewEvent.ContentSelected) =
+            MutableLiveData<Lce<ContentResult.ContentToPlay>>().apply {
+                this.value = Lce.Loading()
+                val content = contentSelected.content
+                functions.getHttpsCallable(GET_AUDIOCAST_FUNCTION).call(
+                        hashMapOf(
+                                DEBUG_ENABLED_PARAM to DEBUG,
+                                CONTENT_ID_PARAM to content.id,
+                                CONTENT_TITLE_PARAM to content.title,
+                                CONTENT_PREVIEW_IMAGE_PARAM to content.previewImage))
+                        .continueWith { task -> (task.result?.data as HashMap<String, String>) }
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful)
+                                task.result.also { response ->
+                                    if (response?.get(ERROR_PATH_PARAM).isNullOrEmpty())
+                                        this.value = Lce.Content(
+                                                ContentResult.ContentToPlay(
+                                                        contentSelected.position,
+                                                        contentSelected.content,
+                                                        response?.get(FILE_PATH_PARAM),
+                                                        ""))
+                                    else this.value =
+                                            Lce.Error(ContentResult.ContentToPlay(
+                                                    contentSelected.position,
+                                                    contentSelected.content,
+                                                    "",
+                                                    response?.get(ERROR_PATH_PARAM)!!))
+                                } else {
+                                val e = task.exception
+                                this.value = Lce.Error(ContentResult.ContentToPlay(
+                                        contentSelected.position,
+                                        contentSelected.content,
+                                        "",
+                                        if (e is FirebaseFunctionsException)
+                                            "$GET_AUDIOCAST_FUNCTION exception: " +
+                                                    "${e.code.name} details: ${e.details.toString()}"
+                                        else "$GET_AUDIOCAST_FUNCTION exception: ${e?.localizedMessage}"
+                                ))
+                            }
+                        }
+            }
+
     fun editContentLabels(feedType: FeedType, actionType: UserActionType, content: Content?,
                           user: FirebaseUser, position: Int) =
             usersDocument.collection(user.uid).let { userReference ->
@@ -272,7 +316,7 @@ class ContentRepository(application: Application) {
                     .update(AUDIO_URL, Regex(AUDIO_URL_TOKEN_REGEX).replace(url.toString(), ""))
 
     //TODO: LCE
-    //TODO: Custom response object 1) updateContentActionCounter 2) updateUserActions 3) updateQualityScore
+//TODO: Custom response object 1) updateContentActionCounter 2) updateUserActions 3) updateQualityScore
     fun updateActionAnalytics(actionType: UserActionType, content: Content, user: FirebaseUser) {
         var actionCollection = ""
         var score = INVALID_SCORE
@@ -362,8 +406,7 @@ class ContentRepository(application: Application) {
                     val snapshot = transaction.get(it)
                     val newQualityScore = snapshot.getDouble(QUALITY_SCORE)!! + score
                     transaction.update(it, QUALITY_SCORE, newQualityScore)
-                    // Success
-                    return null
+                    /* Success */ return null
                 }
             }).addOnSuccessListener({ Log.d(LOG_TAG, "Transaction success!") })
                     .addOnFailureListener({ e ->
@@ -381,13 +424,4 @@ class ContentRepository(application: Application) {
                     if (content.feedType == SAVED) ORGANIZE_EVENT else DISMISS_EVENT, this)
         }
     }
-
-    fun getAudiocast(content: Content) =
-            functions.getHttpsCallable(GET_AUDIOCAST_FUNCTION).call(
-                    hashMapOf(
-                            DEBUG_ENABLED_PARAM to DEBUG,
-                            CONTENT_ID_PARAM to content.id,
-                            CONTENT_TITLE_PARAM to content.title,
-                            CONTENT_PREVIEW_IMAGE_PARAM to content.previewImage))
-                    .continueWith { task -> (task.result?.data as HashMap<String, String>) }
 }

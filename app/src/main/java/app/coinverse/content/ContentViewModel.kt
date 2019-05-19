@@ -30,7 +30,6 @@ import com.crashlytics.android.Crashlytics
 import com.google.firebase.Timestamp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.functions.FirebaseFunctionsException
 
 class ContentViewModel(application: Application) : AndroidViewModel(application) {
     val viewState: LiveData<ContentViewState> get() = _viewState
@@ -52,56 +51,48 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
                         event.timeframe,
                         setToolbar(event.feedType),
                         getContentList(event, event.feedType, event.isRealtime, getTimeframe(event.timeframe)),
-                        MutableLiveData<Event<ContentResult.ContentSelected>>(),
+                        MutableLiveData<Event<ContentResult.ContentToPlay>>(),
                         MutableLiveData<Event<ContentResult.ContentLabeled>>())
                 _viewEffect.value = Event(UpdateAds())
             }
             is ContentViewEvent.SwipeToRefresh -> _viewState.value = _viewState.value?.copy(
                     contentList = getContentList(event, event.feedType, event.isRealtime, getTimeframe(event.timeframe)))
             is ContentViewEvent.ContentSelected -> {
-                val contentSelected = ContentResult.ContentSelected(event.position, event.content, event.response)
-                setContentLoadingStatus(contentSelected.content.id, View.VISIBLE)
-                _viewEffect.value = Event(NotifyItemChanged(contentSelected.position))
+                val contentSelected = ContentViewEvent.ContentSelected(event.position, event.content)
                 when (contentSelected.content.contentType) {
-                    ARTICLE -> {
-                        // TODO: Move to repo. Handle LCE states. Return filePath String.
-                        contentRepository.getAudiocast(contentSelected.content).addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                task.result.also { response ->
-                                    if (response?.get(ERROR_PATH_PARAM).isNullOrEmpty()) {
-                                        _viewState.value = _viewState.value?.copy(
-                                                contentSelectedLoaded = MutableLiveData<Event<ContentResult.ContentSelected>>().apply {
-                                                    this.value = Event(contentSelected.apply {
-                                                        this.response = response?.get(FILE_PATH_PARAM)
-                                                    })
-                                                })
-                                    } else {
-                                        contentSelected.response = response?.get(ERROR_PATH_PARAM)!!
-                                        if (response.get(ERROR_PATH_PARAM).equals(TTS_CHAR_LIMIT_ERROR))
-                                            _viewEffect.value = Event(SnackBar(TTS_CHAR_LIMIT_MESSAGE))
-                                        Log.v(LOG_TAG, "getAudioCast Error: " + response.get(ERROR_PATH_PARAM))
-                                    }
+                    ARTICLE -> _viewState.value = _viewState.value?.copy(
+                            contentToPlay =
+                            Transformations.switchMap(contentRepository.getAudiocast(contentSelected)) { contentToPlay ->
+                                when (contentToPlay) {
+                                    is Lce.Loading ->
+                                        MutableLiveData<Event<ContentResult.ContentToPlay>>().apply {
+                                            setContentLoadingStatus(contentSelected.content.id, View.VISIBLE)
+                                            _viewEffect.value = Event(NotifyItemChanged(contentSelected.position))
+                                        }
+                                    is Lce.Content ->
+                                        MutableLiveData<Event<ContentResult.ContentToPlay>>().apply {
+                                            setContentLoadingStatus(contentSelected.content.id, View.GONE)
+                                            _viewEffect.value = Event(NotifyItemChanged(contentSelected.position))
+                                            this.value = Event(contentToPlay.packet)
+                                        }
+                                    is Lce.Error ->
+                                        MutableLiveData<Event<ContentResult.ContentToPlay>>().apply {
+                                            setContentLoadingStatus(contentSelected.content.id, View.GONE)
+                                            _viewEffect.value = Event(NotifyItemChanged(contentSelected.position))
+                                            if (!contentToPlay.packet.response.equals(TTS_CHAR_LIMIT_ERROR))
+                                                _viewEffect.value = Event(SnackBar(TTS_CHAR_LIMIT_ERROR_MESSAGE))
+                                            else _viewEffect.value = Event(SnackBar(CONTENT_PLAY_ERROR))
+                                        }
                                 }
-                                setContentLoadingStatus(contentSelected.content.id, View.GONE)
-                                _viewEffect.value = Event(NotifyItemChanged(contentSelected.position))
-                            } else {
-                                val e = task.exception
-                                if (e is FirebaseFunctionsException) {
-                                    val code = e.code
-                                    val details = e.details
-                                    Log.e(LOG_TAG, "$GET_AUDIOCAST_FUNCTION Exception: " +
-                                            "${code.name} Details: ${details.toString()}")
-                                }
-                            }
-                        }
-                    }
+                            })
                     YOUTUBE -> {
                         setContentLoadingStatus(contentSelected.content.id, View.GONE)
                         _viewEffect.value = Event(NotifyItemChanged(contentSelected.position))
-                        _viewState.value = _viewState.value?.copy(
-                                contentSelectedLoaded = MutableLiveData<Event<ContentResult.ContentSelected>>().apply {
-                                    this.value = Event(contentSelected)
-                                })
+                        _viewState.value = _viewState.value?.copy(contentToPlay =
+                        MutableLiveData<Event<ContentResult.ContentToPlay>>().apply {
+                            this.value = Event(ContentResult.ContentToPlay(
+                                    contentSelected.position, contentSelected.content, "", ""))
+                        })
                     }
                     NONE -> throw IllegalArgumentException("contentType expected, contentType is 'NONE'")
                 }
@@ -230,6 +221,7 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
     fun getContentLoadingStatus(contentId: String?) =
             if (contentLoadingSet.contains(contentId)) VISIBLE else GONE
 
+    //TODO: Set in ViewState.
     private fun setContentLoadingStatus(contentId: String, visibility: Int) {
         if (visibility == VISIBLE) contentLoadingSet.add(contentId)
         else contentLoadingSet.remove(contentId)

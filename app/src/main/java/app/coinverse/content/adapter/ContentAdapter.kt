@@ -54,12 +54,10 @@ class ContentAdapter(val contentViewModel: ContentViewModel,
     private fun createOnClickListener(content: Content) = OnClickListener { view ->
         when (view.id) {
             preview, contentTypeLogo -> {
-                //TODO: Refactor click based on loading status.
+                //TODO: Refactor based on view state: if loading == false
                 if (elapsedRealtime() - lastClickTime > CLICK_SPAM_PREVENTION_THRESHOLD)
                     _contentSelected.value = Event(ContentSelected(
-                            view.getTag(ADAPTER_POSITION_KEY) as Int,
-                            content,
-                            null))
+                            view.getTag(ADAPTER_POSITION_KEY) as Int, content))
                 lastClickTime = elapsedRealtime()
             }
             share -> _contentViewEvent.value = Event(ContentShared(content))

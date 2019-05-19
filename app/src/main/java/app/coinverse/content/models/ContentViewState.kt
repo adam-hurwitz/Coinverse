@@ -13,13 +13,13 @@ data class ContentViewState(val feedType: FeedType,
                             val timeframe: Timeframe,
                             val toolbar: ToolbarState,
                             val contentList: LiveData<PagedList<Content>>,
-                            val contentSelectedLoaded: LiveData<Event<ContentResult.ContentSelected>>,
+                            val contentToPlay: LiveData<Event<ContentResult.ContentToPlay>>,
                             val contentLabeled: LiveData<Event<ContentResult.ContentLabeled>>)
 
 sealed class ContentViewEvent {
     data class ScreenLoad(val feedType: FeedType, val timeframe: Timeframe, val isRealtime: Boolean) : ContentViewEvent()
     data class SwipeToRefresh(val feedType: FeedType, val timeframe: Timeframe, val isRealtime: Boolean) : ContentViewEvent()
-    data class ContentSelected(val position: Int, val content: Content, val response: String?) : ContentViewEvent()
+    data class ContentSelected(val position: Int, val content: Content) : ContentViewEvent()
     data class ContentSwipeDrawed(val isDrawed: Boolean) : ContentViewEvent()
     data class ContentSwiped(val feedType: FeedType, val actionType: UserActionType, val position: Int) : ContentViewEvent()
     data class ContentLabeled(val feedType: FeedType, val actionType: UserActionType, val user: FirebaseUser?, val position: Int, val content: Content?, val isMainFeedEmptied: Boolean) : ContentViewEvent()

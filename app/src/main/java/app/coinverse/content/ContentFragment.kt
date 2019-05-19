@@ -26,7 +26,6 @@ import app.coinverse.R.layout.fb_native_ad_item
 import app.coinverse.R.layout.native_ad_item
 import app.coinverse.content.adapter.ContentAdapter
 import app.coinverse.content.adapter.ItemTouchHelper
-import app.coinverse.content.models.ContentResult
 import app.coinverse.content.models.ContentViewEffect
 import app.coinverse.content.models.ContentViewEvent
 import app.coinverse.content.models.ContentViewEvent.*
@@ -142,9 +141,7 @@ class ContentFragment : Fragment() {
         adapter = ContentAdapter(contentViewModel, _contentViewEvent).apply {
             this.contentSelected.observe(viewLifecycleOwner, EventObserver { contentSelected ->
                 _contentViewEvent.value = Event(ContentSelected(
-                        getAdapterPosition(contentSelected.position),
-                        contentSelected.content,
-                        contentSelected.response))
+                        getAdapterPosition(contentSelected.position), contentSelected.content))
             })
         }
         // FREE
@@ -203,20 +200,15 @@ class ContentFragment : Fragment() {
                     }
                 }
             })
-            viewState.contentSelectedLoaded.observe(viewLifecycleOwner, EventObserver { contentSelected ->
+            viewState.contentToPlay.observe(viewLifecycleOwner, EventObserver { contentToPlay ->
                 when (feedType) {
-                    MAIN, DISMISSED -> {
+                    MAIN, DISMISSED ->
                         if (childFragmentManager.findFragmentByTag(CONTENT_DIALOG_FRAGMENT_TAG) == null)
                             ContentDialogFragment().newInstance(Bundle().apply {
-                                putParcelable(CONTENT_SELECTED_KEY,
-                                        ContentResult.ContentToPlay(
-                                                contentSelected.position,
-                                                contentSelected.content,
-                                                contentSelected.response))
+                                putParcelable(CONTENT_SELECTED_KEY, contentToPlay)
                             }).show(childFragmentManager, CONTENT_DIALOG_FRAGMENT_TAG)
-                    }
-                    // Launch content from saved bottom sheet screen via HomeFragment.
-                    SAVED -> homeViewModel.setSavedContentSelected(contentSelected)
+                    // Launches content from saved bottom sheet screen via HomeFragment.
+                    SAVED -> homeViewModel.setSavedContentToPlay(contentToPlay)
                 }
             })
             viewState.contentLabeled.observe(viewLifecycleOwner, EventObserver { contentLabeled ->

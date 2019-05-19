@@ -139,6 +139,18 @@
         <value>Unable to update feed. Please try again later!</value>
     </entry>
     <entry>
+        <key>content_play_error</key>
+        <value>Unable to play content. Please try again later.</value>
+    </entry>
+    <entry>
+        <key>tts_char_limit_error</key>
+        <value>TTS_CHAR_LIMIT_ERROR</value>
+    </entry>
+    <entry>
+        <key>tts_char_limit_error_message</key>
+        <value>Audiocasts for longer content coming soon!</value>
+    </entry>
+    <entry>
         <key>content_label_error</key>
         <value>Unable to apply label. Please try again later.</value>
     </entry>
@@ -181,18 +193,6 @@
     <entry>
         <key>get_audiocast_function</key>
         <value>getAudiocast</value>
-    </entry>
-    <entry>
-        <key>tts_char_limit_error</key>
-        <value>TTS_CHAR_LIMIT_ERROR</value>
-    </entry>
-    <entry>
-        <key>tts_char_limit_message</key>
-        <value>Audiocasts for longer content coming soon!</value>
-    </entry>
-    <entry>
-        <key>bottom_sheet_collapse_delay</key>
-        <value>3000</value>
     </entry>
     <entry>
         <key>content_share_type</key>

@@ -32,7 +32,6 @@ import app.coinverse.R.string.*
 import app.coinverse.analytics.models.UserActionCount
 import app.coinverse.content.ContentDialogFragment
 import app.coinverse.content.ContentFragment
-import app.coinverse.content.models.ContentResult
 import app.coinverse.databinding.FragmentHomeBinding
 import app.coinverse.firebase.ACCOUNT_DOCUMENT
 import app.coinverse.firebase.ACTIONS_DOCUMENT
@@ -356,13 +355,10 @@ class HomeFragment : Fragment() {
     }
 
     private fun observeSavedContentSelected() {
-        homeViewModel.savedContentSelected.observe(viewLifecycleOwner, EventObserver { contentSelected ->
+        homeViewModel.savedContentToPlay.observe(viewLifecycleOwner, EventObserver { contentToPlay ->
             if (childFragmentManager.findFragmentByTag(CONTENT_DIALOG_FRAGMENT_TAG) == null)
                 ContentDialogFragment().newInstance(Bundle().apply {
-                    putParcelable(
-                            CONTENT_SELECTED_KEY,
-                            ContentResult.ContentToPlay(contentSelected.position, contentSelected.content,
-                                    contentSelected.response))
+                    putParcelable(CONTENT_SELECTED_KEY, contentToPlay)
                 }).show(childFragmentManager, CONTENT_DIALOG_FRAGMENT_TAG)
         })
     }
