@@ -36,25 +36,21 @@ import com.google.firebase.firestore.Query.Direction.DESCENDING
 import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.functions.FirebaseFunctionsException
 
-class ContentRepository(application: Application) {
+object ContentRepository {
     private val LOG_TAG = ContentRepository::class.java.simpleName
 
-    private var organizedSet = HashSet<String>()
-    private var analytics: FirebaseAnalytics
-    private var firestore: FirebaseFirestore
-    private var database: CoinverseDatabase
-    private var functions: FirebaseFunctions
+    private lateinit var analytics: FirebaseAnalytics
+    private lateinit var database: CoinverseDatabase
 
-    init {
+    operator fun invoke(application: Application) {
         analytics = getInstance(application)
-        firestore = FirebaseFirestore.getInstance()
         database = CoinverseDatabase.getAppDatabase(application)
-        functions = FirebaseFunctions.getInstance()
     }
 
     fun getMainFeedList(isRealtime: Boolean, timeframe: Timestamp) =
             MutableLiveData<Lce<ContentResult.PagedListResult>>().also { lce ->
                 lce.value = Lce.Loading()
+                val organizedSet = HashSet<String>()
                 var errorMessage = ""
                 if (getInstance().currentUser != null) {
                     usersDocument.collection(getInstance().currentUser!!.uid).also { user ->
@@ -202,7 +198,7 @@ class ContentRepository(application: Application) {
             MutableLiveData<Lce<ContentResult.ContentToPlay>>().apply {
                 this.value = Lce.Loading()
                 val content = contentSelected.content
-                functions.getHttpsCallable(GET_AUDIOCAST_FUNCTION).call(
+                FirebaseFunctions.getInstance().getHttpsCallable(GET_AUDIOCAST_FUNCTION).call(
                         hashMapOf(
                                 DEBUG_ENABLED_PARAM to DEBUG,
                                 CONTENT_ID_PARAM to content.id,
@@ -315,8 +311,7 @@ class ContentRepository(application: Application) {
             contentEnCollection.document(contentId)
                     .update(AUDIO_URL, Regex(AUDIO_URL_TOKEN_REGEX).replace(url.toString(), ""))
 
-    //TODO: LCE
-//TODO: Custom response object 1) updateContentActionCounter 2) updateUserActions 3) updateQualityScore
+    //TODO: Move to Cloud Function.
     fun updateActionAnalytics(actionType: UserActionType, content: Content, user: FirebaseUser) {
         var actionCollection = ""
         var score = INVALID_SCORE
@@ -360,10 +355,10 @@ class ContentRepository(application: Application) {
                 }
     }
 
-    //TODO: LCE
+    //TODO: Move to Cloud Function.
     fun updateContentActionCounter(contentId: String, counterType: String) {
         contentEnCollection.document(contentId).apply {
-            firestore.runTransaction(Transaction.Function<String> { counterTransaction ->
+            FirebaseFirestore.getInstance().runTransaction(Transaction.Function<String> { counterTransaction ->
                 val contentSnapshot = counterTransaction.get(this)
                 val newCounter = contentSnapshot.getDouble(counterType)!! + 1.0
                 counterTransaction.update(this, counterType, newCounter)
@@ -373,7 +368,7 @@ class ContentRepository(application: Application) {
         }
     }
 
-    //TODO: LCE
+    //TODO: Move to Cloud Function.
     fun updateUserActions(userId: String, actionCollection: String, content: Content, countType: String) {
         usersDocument.collection(userId).document(ACTIONS_DOCUMENT).collection(actionCollection)
                 .document(content.id).set(ContentAction(now(), content.id, content.title, content.creator,
@@ -384,10 +379,10 @@ class ContentRepository(application: Application) {
                 }
     }
 
-    //TODO: LCE
+    //TODO: Move to Cloud Function.
     fun updateUserActionCounter(userId: String, counterType: String) {
         usersDocument.collection(userId).document(ACTIONS_DOCUMENT).apply {
-            firestore.runTransaction(Transaction.Function<String> { counterTransaction ->
+            FirebaseFirestore.getInstance().runTransaction(Transaction.Function<String> { counterTransaction ->
                 counterTransaction.update(this, counterType,
                         counterTransaction.get(this).getDouble(counterType)!! + 1.0)
                 return@Function "User counter update SUCCESS."
@@ -396,11 +391,11 @@ class ContentRepository(application: Application) {
         }
     }
 
-    //TODO: LCE
+    //TODO: Move to Cloud Function.
     fun updateQualityScore(score: Double, contentId: String) {
         Log.d(LOG_TAG, "Transaction success: " + score)
         contentEnCollection.document(contentId).also {
-            firestore.runTransaction(object : Transaction.Function<Void> {
+            FirebaseFirestore.getInstance().runTransaction(object : Transaction.Function<Void> {
                 @Throws(FirebaseFirestoreException::class)
                 override fun apply(transaction: Transaction): Void? {
                     val snapshot = transaction.get(it)

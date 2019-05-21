@@ -1,6 +1,5 @@
 package app.coinverse.content.adapter
 
-import android.os.SystemClock.elapsedRealtime
 import android.view.LayoutInflater.from
 import android.view.View.OnClickListener
 import android.view.ViewGroup
@@ -18,7 +17,6 @@ import app.coinverse.content.models.ContentViewEvent
 import app.coinverse.content.models.ContentViewEvent.*
 import app.coinverse.databinding.CellContentBinding.inflate
 import app.coinverse.utils.ADAPTER_POSITION_KEY
-import app.coinverse.utils.CLICK_SPAM_PREVENTION_THRESHOLD
 import app.coinverse.utils.livedata.Event
 import kotlinx.android.synthetic.main.cell_content.view.*
 
@@ -33,12 +31,11 @@ private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Content>() {
 }
 
 class ContentAdapter(val contentViewModel: ContentViewModel,
-                     val _contentViewEvent: MutableLiveData<Event<ContentViewEvent>>) : PagedListAdapter<Content, ContentAdapter.ViewHolder>(DIFF_CALLBACK) {
+                     val _contentViewEvent: MutableLiveData<Event<ContentViewEvent>>)
+    : PagedListAdapter<Content, ContentAdapter.ViewHolder>(DIFF_CALLBACK) {
 
     val contentSelected: LiveData<Event<ContentSelected>> get() = _contentSelected
     private val _contentSelected = MutableLiveData<Event<ContentSelected>>()
-
-    private var lastClickTime = 0L
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
             ViewHolder(inflate(from(parent.context), parent, false).apply {
@@ -53,13 +50,8 @@ class ContentAdapter(val contentViewModel: ContentViewModel,
 
     private fun createOnClickListener(content: Content) = OnClickListener { view ->
         when (view.id) {
-            preview, contentTypeLogo -> {
-                //TODO: Refactor based on view state: if loading == false
-                if (elapsedRealtime() - lastClickTime > CLICK_SPAM_PREVENTION_THRESHOLD)
-                    _contentSelected.value = Event(ContentSelected(
-                            view.getTag(ADAPTER_POSITION_KEY) as Int, content))
-                lastClickTime = elapsedRealtime()
-            }
+            preview, contentTypeLogo -> _contentSelected.value =
+                    Event(ContentSelected(view.getTag(ADAPTER_POSITION_KEY) as Int, content))
             share -> _contentViewEvent.value = Event(ContentShared(content))
             openSource -> _contentViewEvent.value = Event(ContentSourceOpened(content.url))
         }

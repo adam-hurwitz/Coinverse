@@ -37,7 +37,7 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
     private val LOG_TAG = ContentViewModel::class.java.simpleName
     //TODO: Add isRealtime Boolean for paid feature.
     private val app = application
-    private val contentRepository = ContentRepository(application)
+    private val contentRepository = ContentRepository.also { it.invoke(application) }
     private var analytics = FirebaseAnalytics.getInstance(application)
     private val _viewState = MutableLiveData<ContentViewState>()
     private val _viewEffect = MutableLiveData<Event<ContentViewEffect>>()
@@ -112,6 +112,7 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
                                     is Lce.Content -> {
                                         if (event.feedType == MAIN) {
                                             contentRepository.labelContentFirebaseAnalytics(event.content!!)
+                                            //TODO: Move to Cloud Function. Use with WorkManager. Return error in ContentLabeled.
                                             updateActionAnalytics(event.actionType, event.content, event.user)
                                             if (event.isMainFeedEmptied)
                                                 analytics.logEvent(CLEAR_FEED_EVENT, Bundle().apply {
@@ -210,10 +211,11 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
                 }
             }
 
-    // TODO: Move to own ViewModel for AudioFragment.
+    //TODO: Move to own ViewModel for AudioFragment.
     fun updateContentAudioUrl(contentId: String, url: Uri) =
             contentRepository.updateContentAudioUrl(contentId, url)
 
+    //TODO: Move to Cloud Function.
     fun updateActionAnalytics(actionType: UserActionType, content: Content, user: FirebaseUser) {
         contentRepository.updateActionAnalytics(actionType, content, user)
     }
@@ -221,7 +223,6 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
     fun getContentLoadingStatus(contentId: String?) =
             if (contentLoadingSet.contains(contentId)) VISIBLE else GONE
 
-    //TODO: Set in ViewState.
     private fun setContentLoadingStatus(contentId: String, visibility: Int) {
         if (visibility == VISIBLE) contentLoadingSet.add(contentId)
         else contentLoadingSet.remove(contentId)
