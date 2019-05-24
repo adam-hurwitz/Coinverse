@@ -47,7 +47,8 @@ object ContentRepository {
         database = CoinverseDatabase.getAppDatabase(application)
     }
 
-    //TODO: Cloud Function to auto save labeledSet to Firestore.
+    //TODO: Save main feed to Firestore collection and Room.
+    //TODO: Create WorkManager task to update qualityScores.
     fun getMainFeedList(isRealtime: Boolean, timeframe: Timestamp) =
             MutableLiveData<Lce<ContentResult.PagedListResult>>().also { lce ->
                 lce.value = Lce.Loading()
