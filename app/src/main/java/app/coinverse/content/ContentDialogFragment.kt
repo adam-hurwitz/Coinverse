@@ -1,6 +1,6 @@
 package app.coinverse.content
 
-import android.content.res.Configuration.ORIENTATION_PORTRAIT
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,8 +10,10 @@ import app.coinverse.R
 import app.coinverse.content.models.ContentResult
 import app.coinverse.content.room.CoinverseDatabase
 import app.coinverse.databinding.FragmentContentDialogBinding
-import app.coinverse.utils.*
+import app.coinverse.utils.CONTENT_SELECTED_KEY
 import app.coinverse.utils.Enums.ContentType.*
+import app.coinverse.utils.getDialogDisplayHeight
+import app.coinverse.utils.getDialogDisplayWidth
 
 class ContentDialogFragment : DialogFragment() {
     private var LOG_TAG = ContentDialogFragment::class.java.simpleName
@@ -43,11 +45,11 @@ class ContentDialogFragment : DialogFragment() {
 
     override fun onResume() {
         super.onResume()
-        if (resources.configuration.orientation == ORIENTATION_PORTRAIT)
-            dialog.window!!.setLayout(getDisplayWidth(context!!),
-                    (getDisplayHeight(context!!) / CONTENT_DIALOG_PORTRAIT_HEIGHT_DIVISOR))
-        else
-            dialog.window!!.setLayout((getDisplayWidth(context!!) / CONTENT_DIALOG_LANDSCAPE_WIDTH_DIVISOR).toInt(),
-                    (getDisplayHeight(context!!) / CONTENT_DIALOG_LANDSCAPE_HEIGHT_DIVISOR).toInt())
+        dialog.window!!.setLayout(getDialogDisplayWidth(context!!), getDialogDisplayHeight(context!!))
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        dialog.window!!.setLayout(getDialogDisplayWidth(context!!), getDialogDisplayHeight(context!!))
     }
 }

@@ -47,14 +47,15 @@ object ContentRepository {
         database = CoinverseDatabase.getAppDatabase(application)
     }
 
+    //TODO: Cloud Function to auto save labeledSet to Firestore.
     fun getMainFeedList(isRealtime: Boolean, timeframe: Timestamp) =
             MutableLiveData<Lce<ContentResult.PagedListResult>>().also { lce ->
                 lce.value = Lce.Loading()
-                val organizedSet = HashSet<String>()
+                val labeledSet = HashSet<String>()
                 var errorMessage = ""
+                //TODO: Retrieve labeledSet from Firestore.
                 if (getInstance().currentUser != null) {
                     usersDocument.collection(getInstance().currentUser!!.uid).also { user ->
-                        organizedSet.clear()
                         // Get save_collection.
                         user.document(COLLECTIONS_DOCUMENT)
                                 .collection(SAVE_COLLECTION).orderBy(TIMESTAMP, DESCENDING)
@@ -66,7 +67,7 @@ object ContentRepository {
                                     }
                                     value!!.documentChanges.all { document ->
                                         document.document.toObject(Content::class.java).let { savedContent ->
-                                            organizedSet.add(savedContent.id)
+                                            labeledSet.add(savedContent.id)
                                             Thread(Runnable {
                                                 run { database.contentDao().updateContentItem(savedContent) }
                                             }).start()
@@ -86,7 +87,7 @@ object ContentRepository {
                                     }
                                     value!!.documentChanges.all { document ->
                                         document.document.toObject(Content::class.java).let { dismissedContent ->
-                                            organizedSet.add(dismissedContent.id)
+                                            labeledSet.add(dismissedContent.id)
                                             Thread(Runnable {
                                                 run { database.contentDao().updateContentItem(dismissedContent) }
                                             }).start()
@@ -99,7 +100,7 @@ object ContentRepository {
                                     ContentResult.PagedListResult(null, errorMessage))
                     }
                     // Logged in and realtime enabled.
-                    if (isRealtime)
+                    if (isRealtime) //TODO: Retrieve labeledSet from Firestore.
                         contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
                                 .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe)
                                 .addSnapshotListener(EventListener { value, error ->
@@ -113,7 +114,7 @@ object ContentRepository {
                                     arrayListOf<Content?>().also { contentList ->
                                         value!!.documentChanges.all { document ->
                                             document.document.toObject(Content::class.java).also { content ->
-                                                if (!organizedSet.contains(content.id))
+                                                if (!labeledSet.contains(content.id))
                                                     contentList.add(content)
                                             }
                                             true
@@ -133,7 +134,7 @@ object ContentRepository {
                                 arrayListOf<Content?>().also { contentList ->
                                     it.result!!.documentChanges.all { document ->
                                         document.document.toObject(Content::class.java).also { content ->
-                                            if (!organizedSet.contains(content.id))
+                                            if (!labeledSet.contains(content.id))
                                                 contentList.add(content)
                                         }
                                         true

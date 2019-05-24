@@ -27,7 +27,7 @@ import android.view.ViewGroup
 import android.view.WindowManager.LayoutParams
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
-import app.coinverse.R
+import app.coinverse.R.string
 import app.coinverse.analytics.getWatchPercent
 import app.coinverse.analytics.updateActionsAndAnalytics
 import app.coinverse.analytics.updateStartActionsAndAnalytics
@@ -42,16 +42,13 @@ import com.google.android.exoplayer2.audio.AudioRendererEventListener
 import com.google.android.exoplayer2.audio.MediaCodecAudioRenderer
 import com.google.android.exoplayer2.drm.DrmSessionManager
 import com.google.android.exoplayer2.drm.FrameworkMediaCrypto
-import com.google.android.exoplayer2.extractor.Extractor
-import com.google.android.exoplayer2.extractor.ExtractorsFactory
-import com.google.android.exoplayer2.extractor.mp3.Mp3Extractor
 import com.google.android.exoplayer2.mediacodec.MediaCodecRenderer
 import com.google.android.exoplayer2.mediacodec.MediaCodecSelector
 import com.google.android.exoplayer2.mediacodec.MediaCodecUtil
 import com.google.android.exoplayer2.metadata.MetadataOutput
 import com.google.android.exoplayer2.source.BehindLiveWindowException
-import com.google.android.exoplayer2.source.ExtractorMediaSource
 import com.google.android.exoplayer2.source.MediaSource
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.source.TrackGroupArray
 import com.google.android.exoplayer2.text.TextOutput
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection
@@ -208,6 +205,7 @@ class AudioFragment : Fragment() {
         }
     }
 
+    //TODO: Modularize for nested feed.
     private fun initializePlayer() {
         storage.reference.child(contentToPlay.response!!).downloadUrl.addOnSuccessListener { url ->
             contentViewModel.updateContentAudioUrl(contentToPlay.content.id, url)
@@ -225,11 +223,10 @@ class AudioFragment : Fragment() {
                 player?.addAnalyticsListener(EventLogger(trackSelector))
                 player?.playWhenReady = startAutoPlay
                 playerView.player = player
-                mediaSource = ExtractorMediaSource.Factory(
+                mediaSource = ProgressiveMediaSource.Factory(
                         DefaultDataSourceFactory(
                                 context,
-                                Util.getUserAgent(context, getString(R.string.app_name))))
-                        .setExtractorsFactory(Mp3ExtractorsFactory())
+                                Util.getUserAgent(context, getString(string.app_name))))
                         .createMediaSource(url)
             }
         }.addOnFailureListener { Log.e(LOG_TAG, "initializePlayer error: ${it.message}") }
@@ -312,18 +309,18 @@ class AudioFragment : Fragment() {
 
     private inner class PlayerErrorMessageProvider : ErrorMessageProvider<ExoPlaybackException> {
         override fun getErrorMessage(e: ExoPlaybackException): Pair<Int, String> {
-            var errorString = getString(R.string.error_generic)
+            var errorString = getString(string.error_generic)
             if (e.type == ExoPlaybackException.TYPE_RENDERER) {
                 val cause = e.rendererException
                 if (cause is MediaCodecRenderer.DecoderInitializationException)
                 // Special case for decoder initialization failures.
                     if (cause.decoderName == null)
                         if (cause.cause is MediaCodecUtil.DecoderQueryException)
-                            errorString = getString(R.string.error_querying_decoders)
+                            errorString = getString(string.error_querying_decoders)
                         else if (cause.secureDecoderRequired)
-                            errorString = getString(R.string.error_no_secure_decoder, cause.mimeType)
-                        else errorString = getString(R.string.error_no_decoder, cause.mimeType)
-                    else errorString = getString(R.string.error_instantiating_decoder, cause.decoderName)
+                            errorString = getString(string.error_no_secure_decoder, cause.mimeType)
+                        else errorString = getString(string.error_no_decoder, cause.mimeType)
+                    else errorString = getString(string.error_instantiating_decoder, cause.decoderName)
             }
             return Pair.create(0, errorString)
         }
@@ -342,9 +339,4 @@ class AudioFragment : Fragment() {
 
     }
 
-    private inner class Mp3ExtractorsFactory : ExtractorsFactory {
-        override fun createExtractors(): Array<Extractor> {
-            return arrayOf(Mp3Extractor())
-        }
-    }
 }

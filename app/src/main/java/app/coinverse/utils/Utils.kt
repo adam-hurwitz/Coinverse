@@ -1,6 +1,7 @@
 package app.coinverse.utils
 
 import android.content.Context
+import android.content.res.Configuration.ORIENTATION_PORTRAIT
 import android.content.res.Resources
 import android.util.DisplayMetrics
 import android.view.View
@@ -28,6 +29,16 @@ fun ImageView.setImageUrl(context: Context, url: String) {
             .fallback(R.drawable.ic_coinverse_24dp)
             .into(this)
 }
+
+fun getDialogDisplayWidth(context: Context) =
+        if (context.resources.configuration.orientation == ORIENTATION_PORTRAIT)
+            getDisplayWidth(context)
+        else (getDisplayWidth(context) / CONTENT_DIALOG_LANDSCAPE_WIDTH_DIVISOR).toInt()
+
+fun getDialogDisplayHeight(context: Context) =
+        if (context.resources.configuration.orientation == ORIENTATION_PORTRAIT)
+            getDisplayHeight(context) / CONTENT_DIALOG_PORTRAIT_HEIGHT_DIVISOR
+        else (getDisplayHeight(context) / CONTENT_DIALOG_LANDSCAPE_HEIGHT_DIVISOR).toInt()
 
 fun snackbarWithText(res: String, rootView: View) {
     Snackbar.make(rootView, res, Snackbar.LENGTH_LONG).apply {
