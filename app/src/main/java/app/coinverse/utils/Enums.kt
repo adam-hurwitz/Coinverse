@@ -32,6 +32,10 @@ object Enums {
         START, CONSUME, FINISH, SAVE, DISMISS
     }
 
+    enum class PlayerActionType {
+        PLAY, PAUSE, STOP
+    }
+
     enum class FeedType(val code: Int) {
         MAIN(1), SAVED(2), DISMISSED(3)
     }

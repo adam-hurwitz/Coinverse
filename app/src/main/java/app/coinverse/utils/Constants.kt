@@ -72,23 +72,31 @@ val SOURCE_SHARE_MESSAGE = getInstance().getString("source_share_message")
 val SHARE_CONTENT_IMAGE_TYPE = getInstance().getString("share_content_image_type")
 val YOUTUBE_ID_REGEX = getInstance().getString("youtube_id_regex")
 val AUDIO_URL_TOKEN_REGEX = "&token.+"
+val BITMAP_COMPRESSION_QUALITY = getInstance().getDouble("bitmap_compression_quality").toInt()
 const val RIGHT_SWIPE = 8
 const val LEFT_SWIPE = 4
 const val CONTENT_FEED_FRAGMENT_TAG = "contentFeedFragmentTag"
 const val CONTENT_DIALOG_FRAGMENT_TAG = "contentDialogFragmentTag"
 const val SAVED_CONTENT_TAG = "savedContentTag"
 const val FEED_TYPE_KEY = "feedType"
+const val CONTENT_SELECTED_ACTION = "contentSelectedAction"
 const val CONTENT_SELECTED_KEY = "contentSelectedKey"
+const val CONTENT_TO_PLAY_KEY = "contentToPlayKey"
+const val CONTENT_SELECTED_BITMAP_KEY = "bitmapKey"
+const val PLAYER_ACTION = "playerAction"
+const val PLAYER_KEY = "playerKey"
+const val PLAY_OR_PAUSE_PRESSED_KEY = "playOrPausePressedKey"
 const val ADAPTER_POSITION_KEY = 122218133
 const val CONTENT_RECYCLER_VIEW_POSITION = "contentRecyclerViewPosition"
 const val MEDIA_IS_PLAYING_KEY = "mediaIsPlayingKey"
 const val MEDIA_CURRENT_TIME_KEY = "mediaCurrentTimeKey"
+const val OPEN_FROM_NOTIFICATION_ACTION = "openFromNotificationAction"
+const val OPEN_CONTENT_FROM_NOTIFICATION_KEY = "openContentFromNotificationKey"
 const val KEY_TRACK_SELECTOR_PARAMETERS = "track_selector_parameters"
 const val KEY_WINDOW = "window"
 const val KEY_POSITION = "position"
 const val KEY_AUTO_PLAY = "auto_play"
 const val KEY_SEEK_TO_POSITION_MILLIS = "seek_to_position_millis"
-const val CLICK_SPAM_PREVENTION_THRESHOLD = 1250
 
 // Analytics
 
@@ -114,6 +122,7 @@ val FEED_TYPE_PARAM = getInstance().getString("feed_type_param")
 
 // Utils
 const val REQUEST_CODE_LOC_PERMISSION = 1909
+const val BITMAP_OFFSET = 0
 
 // Ads
 val AD_UNIT_ID = getInstance().getString("ad_unit_id")

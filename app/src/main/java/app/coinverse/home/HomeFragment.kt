@@ -32,6 +32,7 @@ import app.coinverse.R.string.*
 import app.coinverse.analytics.models.UserActionCount
 import app.coinverse.content.ContentDialogFragment
 import app.coinverse.content.ContentFragment
+import app.coinverse.content.models.ContentResult.ContentToPlay
 import app.coinverse.databinding.FragmentHomeBinding
 import app.coinverse.firebase.ACCOUNT_DOCUMENT
 import app.coinverse.firebase.ACTIONS_DOCUMENT
@@ -43,6 +44,7 @@ import app.coinverse.user.SignInDialogFragment
 import app.coinverse.user.models.User
 import app.coinverse.utils.*
 import app.coinverse.utils.Enums.AccountType.READ
+import app.coinverse.utils.Enums.FeedType.MAIN
 import app.coinverse.utils.Enums.FeedType.SAVED
 import app.coinverse.utils.Enums.PaymentStatus.FREE
 import app.coinverse.utils.Enums.SignInType.DIALOG
@@ -68,6 +70,7 @@ class HomeFragment : Fragment() {
     private var user: FirebaseUser? = null
     private var isAppBarExpanded = false
     private var isSavedContentExpanded = false
+    private var openFromNotificaitonFeedType: Enums.FeedType? = null
 
     private lateinit var binding: FragmentHomeBinding
     private lateinit var homeViewModel: HomeViewModel
@@ -106,6 +109,9 @@ class HomeFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        arguments?.getParcelable<ContentToPlay>(OPEN_CONTENT_FROM_NOTIFICATION_KEY)?.let {
+            openFromNotificaitonFeedType = it.content.feedType
+        }
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
     }
 
@@ -200,7 +206,6 @@ class HomeFragment : Fragment() {
     private fun setBottomSheetExpanded() {
         isSavedContentExpanded = true
         appBar.visibility = GONE
-
         bottom_handle_logo.visibility = GONE
         bottom_handle.visibility = GONE
         bottom_handle_elevation.visibility = GONE
@@ -309,7 +314,8 @@ class HomeFragment : Fragment() {
         if (homeViewModel.accountType.value == FREE) getLocationPermissionCheck()
         childFragmentManager.beginTransaction().replace(contentContainer.id,
                 ContentFragment.newInstance(Bundle().apply {
-                    putString(FEED_TYPE_KEY, Enums.FeedType.MAIN.name)
+                    putString(FEED_TYPE_KEY, MAIN.name)
+                    openFromNotificaitonFeedType?.let { if (it == MAIN) putAll(arguments) }
                 }), CONTENT_FEED_FRAGMENT_TAG)
                 .commit()
     }
@@ -317,7 +323,15 @@ class HomeFragment : Fragment() {
     private fun initSavedContentFragment() {
         childFragmentManager.beginTransaction().replace(
                 savedContentContainer.id,
-                ContentFragment.newInstance(Bundle().apply { putString(FEED_TYPE_KEY, SAVED.name) }),
+                ContentFragment.newInstance(Bundle().apply {
+                    putString(FEED_TYPE_KEY, SAVED.name)
+                    if (openFromNotificaitonFeedType == SAVED) {
+                        bottomSheetBehavior.state = STATE_EXPANDED
+                        setBottomSheetExpanded()
+                        swipeToRefresh.isEnabled = false
+                        putAll(arguments)
+                    }
+                }),
                 SAVED_CONTENT_TAG).commit()
     }
 
@@ -358,7 +372,7 @@ class HomeFragment : Fragment() {
         homeViewModel.savedContentToPlay.observe(viewLifecycleOwner, EventObserver { contentToPlay ->
             if (childFragmentManager.findFragmentByTag(CONTENT_DIALOG_FRAGMENT_TAG) == null)
                 ContentDialogFragment().newInstance(Bundle().apply {
-                    putParcelable(CONTENT_SELECTED_KEY, contentToPlay)
+                    putParcelable(CONTENT_TO_PLAY_KEY, contentToPlay)
                 }).show(childFragmentManager, CONTENT_DIALOG_FRAGMENT_TAG)
         })
     }

@@ -69,6 +69,8 @@
     <string name="content_type">Content Type</string>
 
     <!--Audio-->
+    <string name="wake_lock_media">wake lock media</string>
+    <string name="wifi_lock_media">wifi lock media</string>
     <string name="error_generic">Playback failed</string>
     <string name="error_querying_decoders">Unable to query device decoders</string>
     <string name="error_no_secure_decoder">This device does not provide a secure decoder for <xliff:g id="mime_type">%1$s</xliff:g></string>

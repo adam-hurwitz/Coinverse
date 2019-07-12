@@ -3,12 +3,16 @@ package app.coinverse.utils
 import android.content.Context
 import android.content.res.Configuration.ORIENTATION_PORTRAIT
 import android.content.res.Resources
+import android.graphics.BitmapFactory
 import android.util.DisplayMetrics
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.graphics.drawable.toBitmap
 import androidx.navigation.ui.R.id.snackbar_text
-import app.coinverse.R
+import app.coinverse.R.color
+import app.coinverse.R.drawable.*
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.google.android.material.snackbar.Snackbar
 
@@ -24,9 +28,9 @@ fun ImageView.setImageUrl(context: Context, url: String) {
     GlideApp.with(context)
             .load(url)
             .transform(RoundedCorners(CONTENT_IMAGE_CORNER_RADIUS))
-            .placeholder(R.drawable.ic_content_placeholder)
-            .error(R.drawable.ic_coinverse_24dp)
-            .fallback(R.drawable.ic_coinverse_24dp)
+            .placeholder(ic_content_placeholder)
+            .error(ic_coinverse_24dp)
+            .fallback(ic_coinverse_24dp)
             .into(this)
 }
 
@@ -44,6 +48,14 @@ fun snackbarWithText(res: String, rootView: View) {
     Snackbar.make(rootView, res, Snackbar.LENGTH_LONG).apply {
         this.view.fitsSystemWindows = true
         (this.view.findViewById(snackbar_text) as TextView)
-                .setTextColor(resourcesUtil.getColor(R.color.colorPrimary, null))
+                .setTextColor(resourcesUtil.getColor(color.colorPrimary, null))
     }.show()
 }
+
+fun ByteArray.byteArrayToBitmap(context: Context) =
+        run {
+            BitmapFactory.decodeByteArray(this, BITMAP_OFFSET, size).run {
+                if (this != null) this
+                else AppCompatResources.getDrawable(context, ic_coinverse_48dp)?.toBitmap()
+            }
+        }

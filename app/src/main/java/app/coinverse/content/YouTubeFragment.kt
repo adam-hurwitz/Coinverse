@@ -38,6 +38,7 @@ class YouTubeFragment : Fragment() {
 
     fun newInstance(bundle: Bundle) = YouTubeFragment().apply { arguments = bundle }
 
+    //TODO: Remove savedInstanceState
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean(MEDIA_IS_PLAYING_KEY, youtubePlayer.isPlaying)
         outState.putInt(MEDIA_CURRENT_TIME_KEY, youtubePlayer.currentTimeMillis)
@@ -47,7 +48,7 @@ class YouTubeFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         analytics = FirebaseAnalytics.getInstance(FirebaseApp.getInstance().applicationContext)
-        contentToPlay = arguments!!.getParcelable(CONTENT_SELECTED_KEY)!!
+        contentToPlay = arguments!!.getParcelable(CONTENT_TO_PLAY_KEY)!!
         contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
         coinverseDatabase = CoinverseDatabase.getAppDatabase(context!!)
     }
@@ -86,7 +87,7 @@ class YouTubeFragment : Fragment() {
 
         override fun onAdStarted() {}
         override fun onVideoStarted() {
-            updateStartActionsAndAnalytics(savedInstanceState, contentToPlay.content, contentViewModel, analytics)
+            updateStartActionsAndAnalytics(savedInstanceState, contentToPlay.content, analytics)
         }
 
         override fun onVideoEnded() {}
@@ -105,7 +106,8 @@ class YouTubeFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        if (youtubePlayer != null) updateActionsAndAnalytics(contentToPlay.content, contentViewModel, coinverseDatabase.contentDao(),
+        if (youtubePlayer != null) updateActionsAndAnalytics(contentToPlay.content,
+                coinverseDatabase.contentDao(),
                 analytics, (youtubePlayer.currentTimeMillis.toDouble() - seekToPositionMillis) / youtubePlayer.durationMillis)
     }
 }

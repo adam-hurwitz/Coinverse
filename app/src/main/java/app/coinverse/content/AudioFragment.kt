@@ -16,327 +16,177 @@
 
 package app.coinverse.content
 
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.os.Build.VERSION
+import android.os.Build.VERSION_CODES
 import android.os.Bundle
-import android.os.Handler
-import android.util.Log
+import android.os.IBinder
 import android.util.Pair
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager.LayoutParams
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import app.coinverse.R.string
-import app.coinverse.analytics.getWatchPercent
-import app.coinverse.analytics.updateActionsAndAnalytics
-import app.coinverse.analytics.updateStartActionsAndAnalytics
+import app.coinverse.R.string.*
 import app.coinverse.content.models.ContentResult
-import app.coinverse.content.room.CoinverseDatabase
+import app.coinverse.content.models.ContentViewEvent
 import app.coinverse.databinding.FragmentAudioDialogBinding
 import app.coinverse.utils.*
-import com.google.android.exoplayer2.*
-import com.google.android.exoplayer2.Player.STATE_BUFFERING
-import com.google.android.exoplayer2.Player.STATE_READY
-import com.google.android.exoplayer2.audio.AudioRendererEventListener
-import com.google.android.exoplayer2.audio.MediaCodecAudioRenderer
-import com.google.android.exoplayer2.drm.DrmSessionManager
-import com.google.android.exoplayer2.drm.FrameworkMediaCrypto
+import app.coinverse.utils.Enums.PlayerActionType.*
+import app.coinverse.utils.livedata.Event
+import app.coinverse.utils.livedata.EventObserver
+import com.google.android.exoplayer2.ExoPlaybackException
+import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.mediacodec.MediaCodecRenderer
-import com.google.android.exoplayer2.mediacodec.MediaCodecSelector
 import com.google.android.exoplayer2.mediacodec.MediaCodecUtil
-import com.google.android.exoplayer2.metadata.MetadataOutput
-import com.google.android.exoplayer2.source.BehindLiveWindowException
-import com.google.android.exoplayer2.source.MediaSource
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.source.TrackGroupArray
-import com.google.android.exoplayer2.text.TextOutput
-import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
-import com.google.android.exoplayer2.trackselection.TrackSelectionArray
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.ErrorMessageProvider
-import com.google.android.exoplayer2.util.EventLogger
-import com.google.android.exoplayer2.util.Util
-import com.google.android.exoplayer2.video.VideoRendererEventListener
 import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.FirebaseAnalytics.getInstance
-import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.exo_playback_control_view.*
 import kotlinx.android.synthetic.main.exo_playback_control_view.view.*
 import kotlinx.android.synthetic.main.fragment_audio_dialog.*
-import java.net.CookieHandler
-import java.net.CookieManager
-import java.net.CookiePolicy
+
+private val LOG_TAG = AudioFragment::class.java.simpleName
 
 class AudioFragment : Fragment() {
-    private var LOG_TAG = AudioFragment::class.java.simpleName
-
+    private val viewEvent: LiveData<Event<ContentViewEvent>> get() = _viewEvent
+    private val _viewEvent = MutableLiveData<Event<ContentViewEvent>>()
+    private var player: SimpleExoPlayer? = null
     private lateinit var analytics: FirebaseAnalytics
     private lateinit var contentToPlay: ContentResult.ContentToPlay
-    private lateinit var binding: FragmentAudioDialogBinding
     private lateinit var contentViewModel: ContentViewModel
-    private lateinit var coinverseDatabase: CoinverseDatabase
-
-    private var savedInstanceState: Bundle? = Bundle()
-    private var storage = FirebaseStorage.getInstance()
-    private var player: SimpleExoPlayer? = null
-    private var mediaSource: MediaSource? = null
-    private var trackSelector: DefaultTrackSelector? = null
-    private var trackSelectorParameters: DefaultTrackSelector.Parameters? = null
-    private var startAutoPlay: Boolean = false
-    private var startWindow: Int = 0
-    private var startPosition: Long = 0
-    private var oldSeekToPositionMillis = 0
-    private var seekToPositionMillis = 0L
-    private var playOrPausePressed = false
-    private var updateSeekTo = false
-
-    private val DEFAULT_COOKIE_MANAGER: CookieManager
-
-    init {
-        DEFAULT_COOKIE_MANAGER = CookieManager()
-        DEFAULT_COOKIE_MANAGER.setCookiePolicy(CookiePolicy.ACCEPT_ORIGINAL_SERVER)
-    }
 
     fun newInstance(bundle: Bundle) = AudioFragment().apply { arguments = bundle }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        updateTrackSelectorParameters()
-        updateStartPosition()
-        outState.putParcelable(KEY_TRACK_SELECTOR_PARAMETERS, trackSelectorParameters)
-        outState.putBoolean(KEY_AUTO_PLAY, startAutoPlay)
-        outState.putInt(KEY_WINDOW, startWindow)
-        outState.putLong(KEY_POSITION, startPosition)
-        outState.putLong(KEY_SEEK_TO_POSITION_MILLIS, seekToPositionMillis)
+    private val serviceConnection: ServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
+            if (service is AudioService.AudioServiceBinder)
+                playerView.player = service.getExoPlayerInstance().apply {
+                    player = this
+                }
+        }
+
+        override fun onServiceDisconnected(componentName: ComponentName) {}
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        this.savedInstanceState = savedInstanceState
         analytics = getInstance(FirebaseApp.getInstance().applicationContext)
-        contentToPlay = arguments!!.getParcelable(CONTENT_SELECTED_KEY)!!
-        contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
-        coinverseDatabase = CoinverseDatabase.getAppDatabase(context!!)
+        contentToPlay = arguments!!.getParcelable(CONTENT_TO_PLAY_KEY)!!
+        contentViewModel = ViewModelProviders.of(activity!!).get(ContentViewModel::class.java)
+        if (savedInstanceState == null)
+            _viewEvent.value = Event(ContentViewEvent.PlayerLoad(
+                    contentToPlay.content.id, contentToPlay.filePath!!,
+                    contentToPlay.content.previewImage))
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         analytics.setCurrentScreen(activity!!, AUDIOCAST_VIEW, null)
-        binding = FragmentAudioDialogBinding.inflate(inflater, container, false)
-        return binding.root
+        return FragmentAudioDialogBinding.inflate(inflater, container, false).root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setPlayerView()
         setClickAndTouchListeners()
-        setSavedInstanceState(savedInstanceState)
+        observeViewState()
     }
 
     override fun onStart() {
         super.onStart()
-        initializePlayer()
         if (playerView != null) playerView.onResume()
     }
 
     override fun onResume() {
         super.onResume()
-        if (player == null) {
-            initializePlayer()
-            if (playerView != null) playerView.onResume()
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        if (playerView != null && player != null) {
-            playerView.onPause()
-            updateActionsAndAnalytics(contentToPlay.content, contentViewModel, coinverseDatabase.contentDao(),
-                    analytics, getWatchPercent(player?.currentPosition!!.toDouble(),
-                    seekToPositionMillis.toDouble(), player?.duration!!.toDouble()))
-        }
-        releasePlayer()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        activity!!.window.clearFlags(LayoutParams.FLAG_KEEP_SCREEN_ON)
-        if (playerView != null) playerView.onPause()
-        releasePlayer()
+        if (player == null && playerView != null) playerView.onResume()
+        viewEvent.observe(viewLifecycleOwner, EventObserver { event ->
+            contentViewModel.processEvent(event)
+        })
     }
 
     private fun setPlayerView() {
-        if (CookieHandler.getDefault() !== DEFAULT_COOKIE_MANAGER)
-            CookieHandler.setDefault(DEFAULT_COOKIE_MANAGER)
         playerView.setErrorMessageProvider(PlayerErrorMessageProvider())
         playerView.requestFocus()
         playerView.preview.setImageUrl(context!!, contentToPlay.content.previewImage)
         playerView.title.text = contentToPlay.content.title
-        activity!!.window.addFlags(LayoutParams.FLAG_KEEP_SCREEN_ON)
+        playerView.showController()
     }
 
     private fun setClickAndTouchListeners() {
         exo_play.setOnClickListener {
-            playOrPausePressed = true
-            player?.playWhenReady = true
+            context?.startService(Intent(context, AudioService::class.java).apply {
+                action = PLAYER_ACTION
+                putExtra(PLAYER_KEY, PLAY.name)
+                putExtra(PLAY_OR_PAUSE_PRESSED_KEY, true)
+            })
         }
         exo_pause.setOnClickListener {
-            playOrPausePressed = true
-            player?.playWhenReady = false
-        }
-        exo_progress.setOnTouchListener { v, event ->
-            oldSeekToPositionMillis = player?.currentPosition!!.toInt()
-            playOrPausePressed = false
-            false
+            context?.startService(Intent(context, AudioService::class.java).apply {
+                action = PLAYER_ACTION
+                putExtra(PLAYER_KEY, PAUSE.name)
+                putExtra(PLAY_OR_PAUSE_PRESSED_KEY, true)
+            })
         }
     }
 
-    private fun setSavedInstanceState(savedInstanceState: Bundle?) {
-        if (savedInstanceState != null) {
-            trackSelectorParameters = savedInstanceState.getParcelable(KEY_TRACK_SELECTOR_PARAMETERS)
-            startAutoPlay = savedInstanceState.getBoolean(KEY_AUTO_PLAY)
-            startWindow = savedInstanceState.getInt(KEY_WINDOW)
-            startPosition = savedInstanceState.getLong(KEY_POSITION)
-            seekToPositionMillis = savedInstanceState.getLong(KEY_SEEK_TO_POSITION_MILLIS)
-        } else {
-            trackSelectorParameters = DefaultTrackSelector.ParametersBuilder().build()
-            clearStartPosition()
-        }
-    }
-
-    //TODO: Modularize for nested feed.
-    private fun initializePlayer() {
-        storage.reference.child(contentToPlay.response!!).downloadUrl.addOnSuccessListener { url ->
-            contentViewModel.updateContentAudioUrl(contentToPlay.content.id, url)
-            val haveStartPosition = startWindow != C.INDEX_UNSET
-            if (haveStartPosition) player?.seekTo(startWindow, startPosition)
-            player?.prepare(mediaSource, !haveStartPosition, false)
-            if (player == null && context != null) {
-                trackSelector = DefaultTrackSelector(AdaptiveTrackSelection.Factory())
-                trackSelector?.parameters = trackSelectorParameters
-                player = ExoPlayerFactory.newSimpleInstance(
-                        context,
-                        AudioOnlyRenderersFactory(context!!),
-                        trackSelector)
-                player?.addListener(PlayerEventListener())
-                player?.addAnalyticsListener(EventLogger(trackSelector))
-                player?.playWhenReady = startAutoPlay
-                playerView.player = player
-                mediaSource = ProgressiveMediaSource.Factory(
-                        DefaultDataSourceFactory(
-                                context,
-                                Util.getUserAgent(context, getString(string.app_name))))
-                        .createMediaSource(url)
-            }
-        }.addOnFailureListener { Log.e(LOG_TAG, "initializePlayer error: ${it.message}") }
-    }
-
-    private fun updateTrackSelectorParameters() {
-        if (trackSelector != null) trackSelectorParameters = trackSelector?.parameters
-    }
-
-    private fun updateStartPosition() {
-        if (player != null) {
-            startAutoPlay = player?.playWhenReady!!
-            startWindow = player?.currentWindowIndex!!
-            startPosition = Math.max(0, player?.contentPosition!!)
-        }
-    }
-
-    private fun isBehindLiveWindow(e: ExoPlaybackException): Boolean {
-        if (e.type != ExoPlaybackException.TYPE_SOURCE) return false
-        val cause: Throwable? = e.sourceException
-        while (cause != null) if (cause is BehindLiveWindowException) return true
-        Log.e(LOG_TAG, "Audio error: ${cause?.cause.toString()}")
-        return false
-    }
-
-    private fun clearStartPosition() {
-        startAutoPlay = true
-        startWindow = C.INDEX_UNSET
-        startPosition = C.TIME_UNSET
-    }
-
-    private fun releasePlayer() {
-        if (player != null) {
-            updateTrackSelectorParameters()
-            updateStartPosition()
-            player?.release()
-            player = null
-            mediaSource = null
-            trackSelector = null
-        }
-    }
-
-    private inner class PlayerEventListener : Player.EventListener {
-
-        override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-            // Audiocast 'start' event.
-            if (playbackState == STATE_READY && savedInstanceState == null
-                    && player?.currentPosition == 0L && oldSeekToPositionMillis == 0)
-                updateStartActionsAndAnalytics(savedInstanceState, contentToPlay.content, contentViewModel, analytics)
-            // Audiocast seekTo.
-            val newSeekPositionMillis = player?.currentPosition!!
-            if (player?.currentPosition!! > 0L && newSeekPositionMillis > seekToPositionMillis
-                    && playOrPausePressed == false) {
-                // Check if user adjusted seekTo.
-                var updateSeekToInstanceState = true
-                if (savedInstanceState != null) updateSeekToInstanceState = false
-                if (playbackState == STATE_BUFFERING && (updateSeekToInstanceState || updateSeekTo))
-                    seekToPositionMillis = newSeekPositionMillis
-                if (savedInstanceState != null) updateSeekTo = true
-            }
-        }
-
-        override fun onPositionDiscontinuity(@Player.DiscontinuityReason reason: Int) {
-            // The user has performed a seek whilst in the error state. Update the resume position so
-            // that if the user then retries, playback resumes from the position to which they seeked.
-            if (player?.playbackError != null) updateStartPosition()
-        }
-
-        override fun onPlayerError(e: ExoPlaybackException?) {
-            if (isBehindLiveWindow(e!!)) {
-                clearStartPosition()
-                initializePlayer()
-            } else updateStartPosition()
-        }
-
-        override fun onTracksChanged(trackGroups: TrackGroupArray?, trackSelections: TrackSelectionArray?) {
-            // Not implemented.
-        }
+    private fun observeViewState() {
+        contentViewModel.playerViewState.observe(viewLifecycleOwner, Observer { viewState ->
+            viewState?.contentPlayer?.observe(viewLifecycleOwner, EventObserver { contentPlayer ->
+                if (contentToPlay.content.id != contentViewModel.contentPlaying.id)
+                    if (VERSION.SDK_INT >= VERSION_CODES.O)
+                        context?.startService(Intent(context, AudioService::class.java).apply {
+                            action = PLAYER_ACTION
+                            if (!contentViewModel.contentPlaying.id.isNullOrEmpty())
+                                putExtra(PLAYER_KEY, STOP.name)
+                        })
+                    else context?.stopService(Intent(context, AudioService::class.java))
+                contentViewModel.contentPlaying = contentToPlay.content
+                context?.bindService(
+                        Intent(context, AudioService::class.java).apply {
+                            action = CONTENT_SELECTED_ACTION
+                            putExtra(CONTENT_TO_PLAY_KEY, contentToPlay.apply {
+                                content.audioUrl = contentPlayer.uri.toString()
+                            })
+                            putExtra(CONTENT_SELECTED_BITMAP_KEY, contentPlayer.image)
+                        }, serviceConnection, Context.BIND_AUTO_CREATE)
+                ContextCompat.startForegroundService(
+                        context!!,
+                        Intent(context, AudioService::class.java).apply {
+                            action = CONTENT_SELECTED_ACTION
+                            putExtra(CONTENT_TO_PLAY_KEY, contentToPlay.apply {
+                                content.audioUrl = contentPlayer.uri.toString()
+                            })
+                            putExtra(CONTENT_SELECTED_BITMAP_KEY, contentPlayer.image)
+                        })
+            })
+        })
     }
 
     private inner class PlayerErrorMessageProvider : ErrorMessageProvider<ExoPlaybackException> {
         override fun getErrorMessage(e: ExoPlaybackException): Pair<Int, String> {
-            var errorString = getString(string.error_generic)
+            var errorString = getString(error_generic)
             if (e.type == ExoPlaybackException.TYPE_RENDERER) {
                 val cause = e.rendererException
                 if (cause is MediaCodecRenderer.DecoderInitializationException)
                 // Special case for decoder initialization failures.
                     if (cause.decoderName == null)
                         if (cause.cause is MediaCodecUtil.DecoderQueryException)
-                            errorString = getString(string.error_querying_decoders)
+                            errorString = getString(error_querying_decoders)
                         else if (cause.secureDecoderRequired)
-                            errorString = getString(string.error_no_secure_decoder, cause.mimeType)
-                        else errorString = getString(string.error_no_decoder, cause.mimeType)
-                    else errorString = getString(string.error_instantiating_decoder, cause.decoderName)
+                            errorString = getString(error_no_secure_decoder, cause.mimeType)
+                        else errorString = getString(error_no_decoder, cause.mimeType)
+                    else errorString = getString(error_instantiating_decoder, cause.decoderName)
             }
             return Pair.create(0, errorString)
         }
     }
-
-    private inner class AudioOnlyRenderersFactory(var context: Context) : RenderersFactory {
-        override fun createRenderers(eventHandler: Handler?,
-                                     videoRendererEventListener: VideoRendererEventListener?,
-                                     audioRendererEventListener: AudioRendererEventListener?,
-                                     textRendererOutput: TextOutput?,
-                                     metadataRendererOutput: MetadataOutput?,
-                                     drmSessionManager: DrmSessionManager<FrameworkMediaCrypto>?): Array<Renderer> {
-            return arrayOf(MediaCodecAudioRenderer(context,
-                    MediaCodecSelector.DEFAULT, eventHandler, audioRendererEventListener))
-        }
-
-    }
-
 }

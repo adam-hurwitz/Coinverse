@@ -234,6 +234,10 @@
         <key>youtube_id_regex</key>
         <value>yt-\\b</value>
     </entry>
+    <entry>
+        <key>bitmap_compression_quality</key>
+        <value>33</value>
+    </entry>
 
     <!--Price-->
     <entry>

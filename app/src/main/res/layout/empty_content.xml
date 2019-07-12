@@ -37,7 +37,7 @@
             android:layout_marginBottom="@dimen/margin_large"
             android:contentDescription="@string/empty_content_feed_content_description"
             android:src="@drawable/ic_shooting_star"
-            android:visibility="@{viewmodel.viewState.feedType == FeedType.MAIN ? View.VISIBLE : View.GONE}"
+            android:visibility="@{viewmodel.feedViewState.feedType == FeedType.MAIN ? View.VISIBLE : View.GONE}"
             app:layout_constraintBottom_toTopOf="@id/title"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
@@ -49,7 +49,7 @@
             android:layout_height="@dimen/empty_content_image_dimen"
             android:contentDescription="@string/empty_content_feed_content_description"
             android:src="@drawable/ic_earth"
-            android:visibility="@{viewmodel.viewState.feedType == FeedType.MAIN ? View.VISIBLE : View.GONE}"
+            android:visibility="@{viewmodel.feedViewState.feedType == FeedType.MAIN ? View.VISIBLE : View.GONE}"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@id/emptyInstructions" />
