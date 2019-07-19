@@ -5,9 +5,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.databinding.library.BuildConfig.DEBUG
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
-import app.coinverse.BuildConfig.DEBUG
 import app.coinverse.R
 import app.coinverse.analytics.updateActionsAndAnalytics
 import app.coinverse.analytics.updateStartActionsAndAnalytics
@@ -71,7 +71,7 @@ class YouTubeFragment : Fragment() {
                     }
 
                     override fun onInitializationFailure(provider: YouTubePlayer.Provider, result: YouTubeInitializationResult) {
-                        Log.v(LOG_TAG, String.format("YouTube intialization failed: %s", result.name))
+                        Log.e(LOG_TAG, "onInitializationFailure ${result.name}")
                     }
                 })
         childFragmentManager.beginTransaction().replace(R.id.dialog_content, youTubePlayerFragment as Fragment).commit()

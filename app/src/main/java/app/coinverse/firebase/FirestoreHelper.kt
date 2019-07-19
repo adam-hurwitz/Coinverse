@@ -2,7 +2,7 @@ package app.coinverse.firebase
 
 import android.content.Context
 import android.util.Log
-import app.coinverse.BuildConfig.DEBUG
+import androidx.databinding.library.BuildConfig.DEBUG
 import app.coinverse.R
 import app.coinverse.utils.auth.*
 import com.firebase.client.Firebase
@@ -50,7 +50,7 @@ object FirestoreHelper {
         firebaseRemoteConfig.setDefaults(R.xml.remote_config_defaults)
 
         var cacheExpiration = 3600L
-        if (firebaseRemoteConfig.getInfo().getConfigSettings().isDeveloperModeEnabled) {
+        if (firebaseRemoteConfig.info.configSettings.isDeveloperModeEnabled) {
             cacheExpiration = 0
         }
 
