@@ -20,8 +20,8 @@ android {
         applicationId "app.coinverse"
         minSdkVersion 24
         targetSdkVersion 28
-        versionCode 35
-        versionName "0.35"
+        versionCode 39
+        versionName "0.39"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
             annotationProcessorOptions {
@@ -32,8 +32,6 @@ android {
     sourceSets { androidTest.assets.srcDirs += files("$projectDir/schemas".toString()) }
     buildTypes {
         release {
-            debuggable true
-
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro',
                     'proguard.cfg'
             //TODO - Test release build.
