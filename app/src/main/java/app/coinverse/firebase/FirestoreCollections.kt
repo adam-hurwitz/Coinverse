@@ -1,13 +1,22 @@
 package app.coinverse.firebase
 
+import app.coinverse.BuildConfig
+import app.coinverse.utils.Enums.BuildType.open
+import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig.getInstance
 
+fun firebaseApp(isOpenShared: Boolean) =
+        if (BuildConfig.BUILD_TYPE == open.name && isOpenShared) FirebaseApp.getInstance(open.name)
+        else FirebaseApp.getInstance()
+
 // Price
-val contentEthBtcCollection = FirebaseFirestore.getInstance().collection(getInstance().getString("price_eth_btc_collection"))
+val contentEthBtcCollection = FirebaseFirestore.getInstance(firebaseApp(true))
+        .collection(FirebaseRemoteConfig.getInstance().getString("price_eth_btc_collection"))
 // Content
-val contentEnCollection = FirebaseFirestore.getInstance().collection(
-        "${getInstance().getString("content_en_collection")}")
+val contentEnCollection = FirebaseFirestore.getInstance(firebaseApp(true))
+        .collection(FirebaseRemoteConfig.getInstance().getString("content_en_collection"))
 // User
 val USERS_DOCUMENT = getInstance().getString("users_document")
 val usersDocument = FirebaseFirestore.getInstance().document(USERS_DOCUMENT)

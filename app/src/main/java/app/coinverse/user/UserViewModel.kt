@@ -9,18 +9,14 @@ import app.coinverse.utils.Enums.Status.SUCCESS
 import app.coinverse.utils.livedata.Event
 import com.google.firebase.auth.FirebaseUser
 
+private val LOG_TAG = UserViewModel::class.java.simpleName
+
 class UserViewModel : ViewModel() {
-    private val LOG_TAG = UserViewModel::class.java.simpleName
-
-    private val userRepository: UserRepository
-
-    init {
-        userRepository = UserRepository()
-    }
-
+    //TODO - Create view state and view events.
+    //TODO - Handle LCE.
     fun deleteUser(user: FirebaseUser) =
             MutableLiveData<Event<Enums.Status>>().apply {
-                userRepository.deleteUser(user).addOnCompleteListener { task ->
+                deleteUserCall(user).addOnCompleteListener { task ->
                     if (task.isSuccessful) this.value = Event(SUCCESS)
                     else {
                         Log.e(LOG_TAG, "Failed to delete user error: ${task.exception?.localizedMessage}")

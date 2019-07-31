@@ -11,7 +11,6 @@
 .mtj.tmp/
 
 # Package Files #
-*.jar
 *.war
 *.nar
 *.ear
@@ -73,8 +72,8 @@ fastlane/readme.md
 
 .DS_Store
 .idea/
-app/libs/
-app/src/main/java/app/coinverse/utils/auth/
+app/src/debug/java/app/coinverse/utils/auth/Auth.kt
+app/src/release/java/app/coinverse/utils/auth/Auth.kt
 gradle/
 gradlew
 gradlew.bat

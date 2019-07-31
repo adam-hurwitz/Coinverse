@@ -16,6 +16,7 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity.MODE_PRIVATE
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
@@ -36,6 +37,7 @@ import app.coinverse.content.models.ContentResult.ContentToPlay
 import app.coinverse.databinding.FragmentHomeBinding
 import app.coinverse.firebase.ACCOUNT_DOCUMENT
 import app.coinverse.firebase.ACTIONS_DOCUMENT
+import app.coinverse.firebase.firebaseApp
 import app.coinverse.firebase.usersDocument
 import app.coinverse.home.HomeFragmentDirections.actionHomeFragmentToUserFragment
 import app.coinverse.priceGraph.PriceFragment
@@ -58,6 +60,7 @@ import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.*
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.android.synthetic.main.toolbar_home.*
@@ -102,7 +105,7 @@ class HomeFragment : Fragment() {
             val response = IdpResponse.fromResultIntent(data)
             if (resultCode == RESULT_OK) {
                 user = homeViewModel.getCurrentUser()
-                initProfileButton(user != null)
+                initProfileButton(user != null && !user!!.isAnonymous)
             } else println(String.format("sign_in fail:%s", response?.error?.errorCode))
         }
     }
@@ -126,7 +129,7 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         user = homeViewModel.getCurrentUser()
-        initProfileButton(user != null)
+        initProfileButton(user != null && !user!!.isAnonymous)
         initCollapsingToolbarStates()
         observeSignIn(savedInstanceState)
         initSavedBottomSheetContainer(savedInstanceState)
@@ -226,7 +229,7 @@ class HomeFragment : Fragment() {
             startActivity(Intent(ACTION_VIEW).setData(Uri.parse(ABOUT_LINK)))
         }
         profileButton.setOnClickListener { view: View ->
-            if (user != null)
+            if (user != null && !user!!.isAnonymous)
                 view.findNavController().navigate(R.id.action_homeFragment_to_userFragment,
                         actionHomeFragmentToUserFragment(user!!).apply { user = user }.arguments)
             else
@@ -244,7 +247,9 @@ class HomeFragment : Fragment() {
                                 "${SUPPORT_VERSION} $VERSION_NAME" +
                                 "${SUPPORT_ANDROID_API} $SDK_INT" +
                                 "${SUPPORT_DEVICE} ${BRAND.substring(0, 1).toUpperCase() + BRAND.substring(1)}, $MODEL" +
-                                "${SUPPORT_USER + if (user != null) user!!.uid else getString(logged_out)}")
+                                "${SUPPORT_USER +
+                                        if (user != null && !user!!.isAnonymous) user!!.uid
+                                        else getString(logged_out)}")
                 if (intent.resolveActivity(activity?.packageManager) != null) startActivity(intent)
             }
         }
@@ -268,10 +273,11 @@ class HomeFragment : Fragment() {
     private fun observeSignIn(savedInstanceState: Bundle?) {
         homeViewModel.user.observe(this, Observer { user: FirebaseUser? ->
             this.user = user
-            initProfileButton(user != null)
-            if (user != null) { // Signed in.
+            initProfileButton(user != null && !user.isAnonymous)
+            // Signed in.
+            if (user != null && !user.isAnonymous) {
                 Crashlytics.setUserIdentifier(user.uid)
-                //TODO: Replace with Cloud Function.
+                //TODO - Replace with Cloud Function.
                 usersDocument.collection(user.uid).document(ACCOUNT_DOCUMENT).get()
                         .addOnCompleteListener { userQuery ->
                             // Create user if user does not exist.
@@ -305,8 +311,23 @@ class HomeFragment : Fragment() {
                     initMainFeedFragment()
                     initSavedContentFragment()
                 }
+                // Signed out.
             } else if (childFragmentManager.findFragmentByTag(CONTENT_FEED_FRAGMENT_TAG) == null &&
-                    savedInstanceState == null) initMainFeedFragment() // Signed out.
+                    savedInstanceState == null) {
+                //TODO - Create view event, add to Repo, handle result with LCE
+                FirebaseAuth.getInstance(firebaseApp(true)).signInAnonymously()
+                        .addOnCompleteListener(activity!!) { task ->
+                            if (task.isSuccessful)
+                                Crashlytics.log(Log.VERBOSE, LOG_TAG, "observeSignIn anonymous success")
+                            else {
+                                Crashlytics.log(Log.ERROR, LOG_TAG, "observeSignIn ${task.exception}")
+                                snackbarWithText(getString(error_sign_in_anonymously), contentContainer)
+                                Toast.makeText(context, "Authentication failed.",
+                                        Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                initMainFeedFragment()
+            }
         })
     }
 

@@ -167,10 +167,6 @@
         <value>0.95</value>
     </entry>
     <entry>
-        <key>debug_enabled_param</key>
-        <value>debugEnabled</value>
-    </entry>
-    <entry>
         <key>content_id_param</key>
         <value>id</value>
     </entry>

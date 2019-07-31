@@ -103,7 +103,7 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
                     Event(ContentViewEffect.ContentSwiped(event.feedType, event.actionType,
                             event.position))
             is ContentViewEvent.ContentLabeled ->
-                if (event.user != null)
+                if (event.user != null && !event.user.isAnonymous)
                     _feedViewState.value = _feedViewState.value?.copy(contentLabeled =
                     switchMap(repository.editContentLabels(
                             event.feedType, event.actionType, event.content, event.user,

@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import app.coinverse.priceGraph.models.PercentDifference
 import app.coinverse.priceGraph.models.PriceGraphData
 import app.coinverse.priceGraph.models.PricePair
+import app.coinverse.utils.DateAndTime
 import app.coinverse.utils.Enums.Currency.BTC
 import app.coinverse.utils.Enums.Currency.ETH
 import app.coinverse.utils.Enums.Exchange
@@ -15,7 +16,6 @@ import app.coinverse.utils.Enums.Exchange.*
 import app.coinverse.utils.Enums.OrderType
 import app.coinverse.utils.Enums.OrderType.BID
 import app.coinverse.utils.Enums.Timeframe
-import app.coinverse.utils.Enums.Timeframe.DAY
 import com.jjoe64.graphview.series.LineGraphSeries
 
 class PriceViewModel : ViewModel() {
@@ -42,7 +42,7 @@ class PriceViewModel : ViewModel() {
     private val _priceSelected = MutableLiveData<Pair<Exchange, String>>()
 
     init {
-        _timeframe.value = DAY
+        _timeframe.value = DateAndTime.buildTypeTimescale
         _enabledOrderTypes.value = arrayListOf(BID)
         _enabledExchanges.value = arrayListOf(COINBASE)
         val _priceDifferenceLiveData = PriceRepository.priceDifferenceDetailsLiveData

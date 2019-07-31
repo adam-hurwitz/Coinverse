@@ -5,10 +5,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import app.coinverse.content.models.ContentResult
+import app.coinverse.utils.DateAndTime
 import app.coinverse.utils.Enums.PaymentStatus
 import app.coinverse.utils.Enums.PaymentStatus.FREE
 import app.coinverse.utils.Enums.Timeframe
-import app.coinverse.utils.Enums.Timeframe.DAY
 import app.coinverse.utils.livedata.Event
 import com.google.firebase.auth.FirebaseAuth.getInstance
 import com.google.firebase.auth.FirebaseUser
@@ -44,7 +44,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         homeRepository = HomeRepository(application)
         _isRealtime.value = false
         _accountType.value = FREE
-        _timeframe.value = DAY
+        _timeframe.value = DateAndTime.buildTypeTimescale
         _user.value = getCurrentUser()
     }
 

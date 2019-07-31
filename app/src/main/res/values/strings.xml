@@ -16,6 +16,7 @@
     <string name="submit_bug">Submit Bug</string>
     <string name="logged_out">logged out</string>
     <string name="mail_to">mailto:</string>
+    <string name="error_sign_in_anonymously">Error loading data, please reload the app.</string>
 
     <!--Price graphs-->
     <string name="asks">asks</string>

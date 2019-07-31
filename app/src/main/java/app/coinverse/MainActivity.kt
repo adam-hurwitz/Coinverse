@@ -11,7 +11,7 @@ import app.coinverse.R.id.homeFragment
 import app.coinverse.R.layout.activity_main
 import app.coinverse.content.models.ContentResult.ContentToPlay
 import app.coinverse.databinding.ActivityMainBinding
-import app.coinverse.firebase.FirestoreHelper
+import app.coinverse.firebase.FirebaseHelper
 import app.coinverse.home.HomeViewModel
 import app.coinverse.utils.AD_UNIT_ID
 import app.coinverse.utils.Enums.FeedType.*
@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        FirestoreHelper.initialize(this)
+        FirebaseHelper.initialize(this)
         homeViewModel = ViewModelProviders.of(this).get(HomeViewModel::class.java)
         resourcesUtil = resources
         MoPub.initializeSdk(this, SdkConfiguration.Builder(AD_UNIT_ID).build(), initSdkListener())

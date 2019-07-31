@@ -1,19 +1,28 @@
 package app.coinverse.utils
 
 import android.content.Context
+import app.coinverse.BuildConfig
 import app.coinverse.R
+import app.coinverse.utils.Enums.BuildType.*
 import app.coinverse.utils.Enums.Timeframe
-import app.coinverse.utils.Enums.Timeframe.DAY
-import app.coinverse.utils.Enums.Timeframe.WEEK
+import app.coinverse.utils.Enums.Timeframe.*
 import com.google.firebase.Timestamp
 import java.util.*
 
 object DateAndTime {
+
+    val buildTypeTimescale = when (BuildConfig.BUILD_TYPE) {
+        debug.name, release.name -> DAY
+        open.name -> ALL
+        else -> DAY
+    }
+
     fun getTimeframe(timeframe: Timeframe?): Timestamp {
         val timeframeToQuery: Int
         when (timeframe) {
             DAY -> timeframeToQuery = -1
             WEEK -> timeframeToQuery = -7
+            ALL -> timeframeToQuery = -3650
             else -> timeframeToQuery = -1
         }
         val calendar = Calendar.getInstance()

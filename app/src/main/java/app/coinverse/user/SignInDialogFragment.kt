@@ -60,6 +60,6 @@ class SignInDialogFragment : DialogFragment() {
             if (resultCode == Activity.RESULT_OK) {
                 homeViewModel.setUser(getInstance().currentUser)
                 dismiss()
-            } else Log.e(LOG_TAG, "Sign in fail ${IdpResponse.fromResultIntent(data)?.error?.errorCode}")
+            } else Log.e(LOG_TAG, "Sign in fail ${IdpResponse.fromResultIntent(data)?.error}")
     }
 }

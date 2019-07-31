@@ -5,9 +5,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.databinding.library.BuildConfig.DEBUG
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
+import app.coinverse.BuildConfig
 import app.coinverse.R
 import app.coinverse.analytics.updateActionsAndAnalytics
 import app.coinverse.analytics.updateStartActionsAndAnalytics
@@ -15,8 +15,10 @@ import app.coinverse.content.models.ContentResult
 import app.coinverse.content.room.CoinverseDatabase
 import app.coinverse.databinding.FragmentContentDialogBinding
 import app.coinverse.utils.*
-import app.coinverse.utils.auth.APP_API_ID_PRODUCTION
-import app.coinverse.utils.auth.APP_API_ID_STAGING
+import app.coinverse.utils.Enums.BuildType.*
+import app.coinverse.utils.auth.APP_API_KEY_OPEN_SHARED
+import app.coinverse.utils.auth.APP_API_KEY_PRODUCTION
+import app.coinverse.utils.auth.APP_API_KEY_STAGING
 import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
 import com.google.android.youtube.player.YouTubePlayerSupportFragment
@@ -57,7 +59,13 @@ class YouTubeFragment : Fragment() {
         analytics.setCurrentScreen(activity!!, YOUTUBE_VIEW, null)
         binding = FragmentContentDialogBinding.inflate(inflater, container, false)
         val youTubePlayerFragment = YouTubePlayerSupportFragment.newInstance()
-        youTubePlayerFragment.initialize(if (DEBUG) APP_API_ID_STAGING else APP_API_ID_PRODUCTION,
+        youTubePlayerFragment.initialize(
+                when (BuildConfig.BUILD_TYPE) {
+                    debug.name -> APP_API_KEY_STAGING
+                    release.name -> APP_API_KEY_PRODUCTION
+                    open.name -> APP_API_KEY_OPEN_SHARED
+                    else -> APP_API_KEY_STAGING
+                },
                 object : YouTubePlayer.OnInitializedListener {
                     override fun onInitializationSuccess(provider: YouTubePlayer.Provider, player: YouTubePlayer, wasRestored: Boolean) {
                         if (!wasRestored) {

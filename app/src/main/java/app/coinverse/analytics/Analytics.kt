@@ -9,11 +9,14 @@ import app.coinverse.content.room.ContentDao
 import app.coinverse.firebase.*
 import app.coinverse.utils.*
 import app.coinverse.utils.Enums.UserActionType.*
+import com.google.android.gms.measurement.module.Analytics
 import com.google.firebase.Timestamp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.FirebaseAnalytics.Param
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+
+private val LOG_TAG = Analytics::class.java.simpleName
 
 //TODO - Use coroutine
 fun updateActionsAndAnalytics(content: Content, contentDao: ContentDao, analytics: FirebaseAnalytics,
@@ -23,7 +26,7 @@ fun updateActionsAndAnalytics(content: Content, contentDao: ContentDao, analytic
         Bundle().also { bundle ->
             FirebaseAuth.getInstance().currentUser.also { user ->
                 bundle.putString(Param.ITEM_NAME, content.title)
-                if (user != null) {
+                if (user != null && !user.isAnonymous) {
                     updateActionAnalytics(FINISH, content, user)
                     bundle.putString(USER_ID_PARAM, user.uid)
                 }
@@ -35,7 +38,7 @@ fun updateActionsAndAnalytics(content: Content, contentDao: ContentDao, analytic
         Bundle().also { bundle ->
             FirebaseAuth.getInstance().currentUser.also { user ->
                 bundle.putString(Param.ITEM_NAME, content.title)
-                if (user != null) {
+                if (user != null && !user.isAnonymous) {
                     updateActionAnalytics(CONSUME, content, user)
                     bundle.putString(USER_ID_PARAM, user.uid)
                 }
@@ -50,7 +53,7 @@ fun updateStartActionsAndAnalytics(content: Content, analytics: FirebaseAnalytic
         this.putString(Param.ITEM_NAME, content.title)
         this.putString(CREATOR_PARAM, content.creator)
         FirebaseAuth.getInstance().currentUser.let { user ->
-            if (user != null) {
+            if (user != null && !user.isAnonymous) {
                 updateActionAnalytics(START, content, user)
                 this.putString(USER_ID_PARAM, user.uid)
             }
@@ -66,7 +69,7 @@ fun updateStartActionsAndAnalytics(savedInstanceState: Bundle?, content: Content
             this.putString(Param.ITEM_NAME, content.title)
             this.putString(CREATOR_PARAM, content.creator)
             FirebaseAuth.getInstance().currentUser.let { user ->
-                if (user != null) {
+                if (user != null && !user.isAnonymous) {
                     updateActionAnalytics(START, content, user)
                     this.putString(USER_ID_PARAM, user.uid)
                 }

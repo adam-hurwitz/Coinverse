@@ -11,7 +11,7 @@ import androidx.lifecycle.Transformations
 import androidx.paging.DataSource
 import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
-import app.coinverse.BuildConfig.DEBUG
+import app.coinverse.BuildConfig.*
 import app.coinverse.analytics.models.ContentAction
 import app.coinverse.content.models.Content
 import app.coinverse.content.models.ContentResult
@@ -47,7 +47,6 @@ import java.net.URL
 object ContentRepository {
     private val LOG_TAG = ContentRepository::class.java.simpleName
 
-    private var storage = FirebaseStorage.getInstance()
     private lateinit var analytics: FirebaseAnalytics
     private lateinit var database: CoinverseDatabase
 
@@ -63,7 +62,7 @@ object ContentRepository {
                 val labeledSet = HashSet<String>()
                 var errorMessage = ""
                 //TODO - Retrieve labeledSet from Firestore.
-                if (getInstance().currentUser != null) {
+                if (getInstance().currentUser != null && !getInstance().currentUser!!.isAnonymous) {
                     usersDocument.collection(getInstance().currentUser!!.uid).also { user ->
                         // Get save_collection.
                         user.document(COLLECTIONS_DOCUMENT)
@@ -215,9 +214,9 @@ object ContentRepository {
             MutableLiveData<Lce<ContentResult.ContentToPlay>>().apply {
                 value = Lce.Loading()
                 val content = contentSelected.content
-                FirebaseFunctions.getInstance().getHttpsCallable(GET_AUDIOCAST_FUNCTION).call(
+                FirebaseFunctions.getInstance(firebaseApp(true)).getHttpsCallable(GET_AUDIOCAST_FUNCTION).call(
                         hashMapOf(
-                                DEBUG_ENABLED_PARAM to DEBUG,
+                                BUILD_TYPE_PARAM to BUILD_TYPE,
                                 CONTENT_ID_PARAM to content.id,
                                 CONTENT_TITLE_PARAM to content.title,
                                 CONTENT_PREVIEW_IMAGE_PARAM to content.previewImage))
@@ -256,23 +255,24 @@ object ContentRepository {
     fun getContentUri(contentId: String, filePath: String) =
             MutableLiveData<Lce<ContentResult.ContentPlayer>>().apply {
                 value = Lce.Loading()
-                storage.reference.child(filePath).downloadUrl.addOnSuccessListener { uri ->
-                    contentEnCollection.document(contentId) // Update content Audio Uri.
-                            .update(AUDIO_URL, Regex(AUDIO_URL_TOKEN_REGEX).replace(
-                                    uri.toString(), ""))
-                            .addOnSuccessListener {
-                                value = Lce.Content(ContentResult.ContentPlayer(
-                                        uri, ByteArray(0), ""))
-                            }.addOnFailureListener {
-                                value = Lce.Error(ContentResult.ContentPlayer(
-                                        Uri.EMPTY, ByteArray(0), it.localizedMessage))
-                            }
-                }.addOnFailureListener {
-                    value = Lce.Error(ContentResult.ContentPlayer(
-                            Uri.parse(""),
-                            ByteArray(0),
-                            "getContentUri error - ${it.localizedMessage}"))
-                }
+                FirebaseStorage.getInstance(firebaseApp(true)).reference.child(filePath).downloadUrl
+                        .addOnSuccessListener { uri ->
+                            contentEnCollection.document(contentId) // Update content Audio Uri.
+                                    .update(AUDIO_URL, Regex(AUDIO_URL_TOKEN_REGEX).replace(
+                                            uri.toString(), ""))
+                                    .addOnSuccessListener {
+                                        value = Lce.Content(ContentResult.ContentPlayer(
+                                                uri, ByteArray(0), ""))
+                                    }.addOnFailureListener {
+                                        value = Lce.Error(ContentResult.ContentPlayer(
+                                                Uri.EMPTY, ByteArray(0), it.localizedMessage))
+                                    }
+                        }.addOnFailureListener {
+                            value = Lce.Error(ContentResult.ContentPlayer(
+                                    Uri.parse(""),
+                                    ByteArray(0),
+                                    "getContentUri error - ${it.localizedMessage}"))
+                        }
             }
 
     suspend fun bitmapToByteArray(url: String) = withContext(Dispatchers.IO) {

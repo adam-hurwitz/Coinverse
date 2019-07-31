@@ -2,8 +2,12 @@ package app.coinverse.utils
 
 object Enums {
 
+    enum class BuildType {
+        debug, release, open
+    }
+
     enum class Timeframe {
-        HOUR, DAY, WEEK, MONTH, YEAR
+        HOUR, DAY, WEEK, MONTH, YEAR, ALL
     }
 
     // Price graph.
