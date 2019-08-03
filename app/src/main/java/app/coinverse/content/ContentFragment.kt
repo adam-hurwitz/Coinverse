@@ -194,14 +194,13 @@ class ContentFragment : Fragment() {
             setToolbar(viewState)
             viewState.contentList.observe(viewLifecycleOwner, Observer { contentList ->
                 adapter.submitList(contentList)
-                if (contentList.isNotEmpty()) {
+                if (contentList.isNotEmpty())
                     if (savedRecyclerPosition != 0) {
                         contentRecyclerView.layoutManager?.scrollToPosition(
                                 if (savedRecyclerPosition >= adapter.itemCount) adapter.itemCount - 1
                                 else savedRecyclerPosition)
                         savedRecyclerPosition = 0
                     }
-                }
                 openContentFromNotification()
             })
             viewState.contentToPlay.observe(viewLifecycleOwner, EventObserver { contentToPlay ->

@@ -16,8 +16,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:padding="@dimen/padding_medium"
-        android:visibility="gone">
+        android:padding="@dimen/padding_medium">
 
         <ImageView
             android:id="@+id/emptyImage"

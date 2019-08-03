@@ -171,20 +171,16 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
                             if (event is ContentViewEvent.SwipeToRefresh)
                                 _viewEffect.value = Event(SwipeToRefresh(true))
                             switchMap(repository.getRoomMainList(timeframe)) { pagedList ->
-                                MutableLiveData<PagedList<Content>>().apply {
-                                    _viewEffect.value = Event(ScreenEmpty(pagedList.isEmpty()))
-                                    this.value = pagedList
-                                }
+                                MutableLiveData<PagedList<Content>>().apply { this.value = pagedList }
                             }
                         }
                         is Lce.Content -> {
                             if (event is ContentViewEvent.SwipeToRefresh)
                                 _viewEffect.value = Event(SwipeToRefresh(false))
                             switchMap(lce.packet.pagedList!!) { pagedList ->
-                                MutableLiveData<PagedList<Content>>().apply {
-                                    _viewEffect.value = Event(ScreenEmpty(pagedList.isEmpty()))
-                                    this.value = pagedList
-                                }
+                                if (pagedList.isNotEmpty())
+                                    _viewEffect.value = Event(ScreenEmpty(false))
+                                MutableLiveData<PagedList<Content>>().apply { this.value = pagedList }
                             }
                         }
                         is Lce.Error -> {
@@ -198,7 +194,6 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
                                     }
                             ))
                             switchMap(repository.getRoomMainList(timeframe)) { pagedList ->
-                                _viewEffect.value = Event(ScreenEmpty(pagedList.isEmpty()))
                                 MutableLiveData<PagedList<Content>>().apply { this.value = pagedList }
                             }
                         }
