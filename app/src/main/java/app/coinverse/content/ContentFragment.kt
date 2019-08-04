@@ -194,6 +194,7 @@ class ContentFragment : Fragment() {
             setToolbar(viewState)
             viewState.contentList.observe(viewLifecycleOwner, Observer { contentList ->
                 adapter.submitList(contentList)
+                _viewEvent.value = Event(FeedLoadComplete(contentList.isNotEmpty()))
                 if (contentList.isNotEmpty())
                     if (savedRecyclerPosition != 0) {
                         contentRecyclerView.layoutManager?.scrollToPosition(

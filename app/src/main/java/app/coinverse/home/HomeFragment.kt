@@ -180,7 +180,8 @@ class HomeFragment : Fragment() {
         bottomSheetBehavior.isHideable = false
         bottomSheetBehavior.peekHeight = SAVED_BOTTOM_SHEET_PEEK_HEIGHT
         bottomSheet.layoutParams.height = getDisplayHeight(context!!)
-        if (savedInstanceState == null && homeViewModel.user.value!!.isAnonymous)
+        if (savedInstanceState == null
+                && (homeViewModel.user.value == null || homeViewModel.user.value!!.isAnonymous))
             childFragmentManager.beginTransaction().replace(
                     R.id.savedContentContainer,
                     SignInDialogFragment.newInstance(Bundle().apply {

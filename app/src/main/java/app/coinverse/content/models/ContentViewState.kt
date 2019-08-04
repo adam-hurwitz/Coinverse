@@ -22,6 +22,7 @@ data class PlayerViewState(val contentPlayer: LiveData<Event<ContentResult.Conte
 
 sealed class ContentViewEvent {
     data class FeedLoad(val feedType: FeedType, val timeframe: Timeframe, val isRealtime: Boolean) : ContentViewEvent()
+    data class FeedLoadComplete(val hasContent: Boolean) : ContentViewEvent()
     data class PlayerLoad(val contentId: String, val filePath: String, val previewImageUrl: String) : ContentViewEvent()
     data class SwipeToRefresh(val feedType: FeedType, val timeframe: Timeframe, val isRealtime: Boolean) : ContentViewEvent()
     data class ContentSelected(val position: Int, val content: Content) : ContentViewEvent()

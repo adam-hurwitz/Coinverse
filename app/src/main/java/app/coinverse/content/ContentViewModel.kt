@@ -51,6 +51,8 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
                         MutableLiveData(), MutableLiveData(), MutableLiveData())
                 _viewEffect.value = Event(UpdateAds())
             }
+            is ContentViewEvent.FeedLoadComplete ->
+                _viewEffect.value = Event(ScreenEmpty(!event.hasContent))
             is ContentViewEvent.PlayerLoad ->
                 _playerViewState.value = PlayerViewState(getContentPlayer(
                         event.contentId, event.filePath, event.previewImageUrl))
@@ -178,8 +180,6 @@ class ContentViewModel(application: Application) : AndroidViewModel(application)
                             if (event is ContentViewEvent.SwipeToRefresh)
                                 _viewEffect.value = Event(SwipeToRefresh(false))
                             switchMap(lce.packet.pagedList!!) { pagedList ->
-                                if (pagedList.isNotEmpty())
-                                    _viewEffect.value = Event(ScreenEmpty(false))
                                 MutableLiveData<PagedList<Content>>().apply { this.value = pagedList }
                             }
                         }
