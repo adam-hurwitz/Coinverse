@@ -77,5 +77,5 @@ app/src/release/java/app/coinverse/utils/auth/Auth.kt
 gradle/
 gradlew
 gradlew.bat
-/app/release/release/app.aab
+app.aab
 /app/schemas/app.coinverse.content.room.CoinverseDatabase/
