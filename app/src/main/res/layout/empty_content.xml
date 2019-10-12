@@ -10,7 +10,7 @@
 
         <import type="android.view.View" />
 
-        <import type="app.coinverse.utils.Enums.FeedType" />
+        <import type="app.coinverse.utils.FeedType" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

@@ -5,7 +5,7 @@ import android.util.Log
 import androidx.databinding.library.BuildConfig.DEBUG
 import app.coinverse.BuildConfig
 import app.coinverse.R
-import app.coinverse.utils.Enums.BuildType.open
+import app.coinverse.utils.BuildType.open
 import app.coinverse.utils.auth.*
 import com.crashlytics.android.Crashlytics
 import com.firebase.client.Firebase
@@ -17,7 +17,7 @@ import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 private val LOG_TAG = FirebaseHelper.javaClass.simpleName
 
 object FirebaseHelper {
-    fun initialize(context: Context) {
+    fun init(context: Context) {
         if (BuildConfig.BUILD_TYPE == open.name) {
             var openSharedStatus = false
             FirebaseApp.getApps(context).all { app ->

@@ -1,7 +1,7 @@
 package app.coinverse.firebase
 
 import app.coinverse.BuildConfig
-import app.coinverse.utils.Enums.BuildType.open
+import app.coinverse.utils.BuildType.open
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig

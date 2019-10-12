@@ -1,36 +1,30 @@
 package app.coinverse.content
 
-import android.app.Application
 import android.graphics.Bitmap.CompressFormat
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.paging.DataSource
 import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
-import app.coinverse.BuildConfig.*
+import app.coinverse.BuildConfig.BUILD_TYPE
 import app.coinverse.analytics.models.ContentAction
-import app.coinverse.content.models.Content
-import app.coinverse.content.models.ContentResult
-import app.coinverse.content.models.ContentViewEvent
-import app.coinverse.content.room.CoinverseDatabase
+import app.coinverse.content.models.*
+import app.coinverse.content.models.ContentViewEvent.ContentSelected
+import app.coinverse.content.room.CoinverseDatabase.database
 import app.coinverse.firebase.*
 import app.coinverse.utils.*
-import app.coinverse.utils.Enums.FeedType
-import app.coinverse.utils.Enums.FeedType.*
-import app.coinverse.utils.Enums.UserActionType
-import app.coinverse.utils.Enums.UserActionType.DISMISS
-import app.coinverse.utils.Enums.UserActionType.SAVE
+import app.coinverse.utils.FeedType.*
+import app.coinverse.utils.UserActionType.DISMISS
+import app.coinverse.utils.UserActionType.SAVE
 import app.coinverse.utils.livedata.Event
 import app.coinverse.utils.models.Lce
+import app.coinverse.utils.models.Lce.Error
+import app.coinverse.utils.models.Lce.Loading
 import com.google.firebase.Timestamp
 import com.google.firebase.Timestamp.now
-import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.FirebaseAnalytics.Param.ITEM_ID
-import com.google.firebase.analytics.FirebaseAnalytics.getInstance
 import com.google.firebase.auth.FirebaseAuth.getInstance
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.*
@@ -46,19 +40,10 @@ import java.net.URL
 
 object ContentRepository {
     private val LOG_TAG = ContentRepository::class.java.simpleName
-
-    private lateinit var analytics: FirebaseAnalytics
-    private lateinit var database: CoinverseDatabase
-
-    operator fun invoke(application: Application) {
-        analytics = getInstance(application)
-        database = CoinverseDatabase.getAppDatabase(application)
-    }
-
     //TODO - Create Cloud Function to update user's mainFeedCollection.
     fun getMainFeedList(isRealtime: Boolean, timeframe: Timestamp) =
-            MutableLiveData<Lce<ContentResult.PagedListResult>>().also { lce ->
-                lce.value = Lce.Loading()
+            MutableLiveData<Lce<PagedListResult>>().also { lce ->
+                lce.value = Loading()
                 val labeledSet = HashSet<String>()
                 var errorMessage = ""
                 //TODO - Retrieve labeledSet from Firestore.
@@ -78,7 +63,7 @@ object ContentRepository {
                                         document.document.toObject(Content::class.java).let { savedContent ->
                                             labeledSet.add(savedContent.id)
                                             Thread(Runnable {
-                                                run { database.contentDao().updateContentItem(savedContent) }
+                                                run { database.contentDao().updateContent(savedContent) }
                                             }).start()
                                         }
                                         true
@@ -98,15 +83,14 @@ object ContentRepository {
                                         document.document.toObject(Content::class.java).let { dismissedContent ->
                                             labeledSet.add(dismissedContent.id)
                                             Thread(Runnable {
-                                                run { database.contentDao().updateContentItem(dismissedContent) }
+                                                run { database.contentDao().updateContent(dismissedContent) }
                                             }).start()
                                         }
                                         true
                                     }
                                 })
                         if (errorMessage.isNotEmpty())
-                            lce.value = Lce.Error(
-                                    ContentResult.PagedListResult(null, errorMessage))
+                            lce.value = Error(PagedListResult(null, errorMessage))
                     }
                     // Logged in and realtime enabled.
                     if (isRealtime) //TODO - Retrieve labeledSet from Firestore.
@@ -114,12 +98,11 @@ object ContentRepository {
                                 .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe)
                                 .addSnapshotListener(EventListener { value, error ->
                                     error?.run {
-                                        lce.value = Lce.Error(
-                                                ContentResult.PagedListResult(
-                                                        null,
-                                                        "Error retrieving logged in," +
-                                                                " realtime content_en_collection: " +
-                                                                "${error.localizedMessage}"))
+                                        lce.value = Error(PagedListResult(
+                                                null,
+                                                "Error retrieving logged in," +
+                                                        " realtime content_en_collection: " +
+                                                        "${error.localizedMessage}"))
                                         return@EventListener
                                     }
                                     arrayListOf<Content?>().also { contentList ->
@@ -133,8 +116,8 @@ object ContentRepository {
                                         Thread(Runnable {
                                             run { database.contentDao().insertContentList(contentList) }
                                         }).start()
-                                        lce.value = Lce.Content(ContentResult.PagedListResult(
-                                                getRoomMainList(timeframe),
+                                        lce.value = Lce.Content(PagedListResult(
+                                                queryMainContentList(timeframe),
                                                 ""))
                                     }
                                 })
@@ -154,14 +137,13 @@ object ContentRepository {
                                         run { database.contentDao().insertContentList(contentList) }
                                     }).start()
                                 }
-                                lce.value = Lce.Content(ContentResult.PagedListResult(
-                                        getRoomMainList(timeframe),
+                                lce.value = Lce.Content(PagedListResult(
+                                        queryMainContentList(timeframe),
                                         ""))
                             }.addOnFailureListener {
-                                lce.value = Lce.Error(ContentResult.PagedListResult(
-                                        null,
-                                        "Error retrieving logged in, " +
-                                                "non-realtime content_en_collection: ${it.localizedMessage}"))
+                                lce.value = Error(PagedListResult(
+                                        null, "Error retrieving logged in, " +
+                                        "non-realtime content_en_collection: ${it.localizedMessage}"))
                             }
                     // Logged out, non-realtime.
                 } else contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
@@ -177,15 +159,13 @@ object ContentRepository {
                                     run { database.contentDao().insertContentList(contentList) }
                                 }).start()
                             }
-                            lce.value = Lce.Content(ContentResult.PagedListResult(
-                                    getRoomMainList(timeframe),
+                            lce.value = Lce.Content(PagedListResult(
+                                    queryMainContentList(timeframe),
                                     ""))
                         }.addOnFailureListener {
-                            lce.value = Lce.Error(ContentResult.PagedListResult(
-                                    null,
-                                    "Error retrieving logged out, " +
-                                            "non-realtime content_en_collection: " +
-                                            "${it.localizedMessage}"))
+                            lce.value = Error(PagedListResult(
+                                    null, "Error retrieving logged out, " +
+                                    "non-realtime content_en_collection: " + "${it.localizedMessage}"))
                         }
             }
 
@@ -196,11 +176,11 @@ object ContentRepository {
                 }
             }
 
-    fun getRoomMainList(timestamp: Timestamp) =
-            liveDataBuilder(database.contentDao().getMainContentList(timestamp, MAIN))
+    fun queryMainContentList(timestamp: Timestamp) =
+            liveDataBuilder(database.contentDao().queryMainContentList(timestamp, MAIN))
 
-    fun getRoomCategoryList(feedType: FeedType) =
-            liveDataBuilder(database.contentDao().getCategorizedContentList(feedType))
+    fun queryLabeledContentList(feedType: FeedType) =
+            liveDataBuilder(database.contentDao().queryLabeledContentList(feedType))
 
     fun liveDataBuilder(dataSource: DataSource.Factory<Int, Content>) =
             LivePagedListBuilder(dataSource,
@@ -210,9 +190,9 @@ object ContentRepository {
                             .build())
                     .build()
 
-    fun getAudiocast(contentSelected: ContentViewEvent.ContentSelected) =
-            MutableLiveData<Lce<ContentResult.ContentToPlay>>().apply {
-                value = Lce.Loading()
+    fun getAudiocast(contentSelected: ContentSelected) =
+            MutableLiveData<Lce<ContentToPlay>>().apply {
+                value = Loading()
                 val content = contentSelected.content
                 FirebaseFunctions.getInstance(firebaseApp(true)).getHttpsCallable(GET_AUDIOCAST_FUNCTION).call(
                         hashMapOf(
@@ -226,24 +206,23 @@ object ContentRepository {
                                 task.result.also { response ->
                                     if (response?.get(ERROR_PATH_PARAM).isNullOrEmpty())
                                         value = Lce.Content(
-                                                ContentResult.ContentToPlay(
-                                                        contentSelected.position,
-                                                        contentSelected.content,
-                                                        response?.get(FILE_PATH_PARAM),
-                                                        ""))
-                                    else value =
-                                            Lce.Error(ContentResult.ContentToPlay(
-                                                    contentSelected.position,
-                                                    contentSelected.content,
-                                                    "",
-                                                    response?.get(ERROR_PATH_PARAM)!!))
+                                                ContentToPlay(
+                                                        position = contentSelected.position,
+                                                        content = contentSelected.content,
+                                                        filePath = response?.get(FILE_PATH_PARAM),
+                                                        errorMessage = ""))
+                                    else value = Error(ContentToPlay(
+                                            position = contentSelected.position,
+                                            content = contentSelected.content,
+                                            filePath = "",
+                                            errorMessage = response?.get(ERROR_PATH_PARAM)!!))
                                 } else {
                                 val e = task.exception
-                                value = Lce.Error(ContentResult.ContentToPlay(
-                                        contentSelected.position,
-                                        contentSelected.content,
-                                        "",
-                                        if (e is FirebaseFunctionsException)
+                                value = Error(ContentToPlay(
+                                        position = contentSelected.position,
+                                        content = contentSelected.content,
+                                        filePath = "",
+                                        errorMessage = if (e is FirebaseFunctionsException)
                                             "$GET_AUDIOCAST_FUNCTION exception: " +
                                                     "${e.code.name} details: ${e.details.toString()}"
                                         else "$GET_AUDIOCAST_FUNCTION exception: ${e?.localizedMessage}"
@@ -253,22 +232,26 @@ object ContentRepository {
             }
 
     fun getContentUri(contentId: String, filePath: String) =
-            MutableLiveData<Lce<ContentResult.ContentPlayer>>().apply {
-                value = Lce.Loading()
+            MutableLiveData<Lce<ContentPlayer>>().apply {
+                value = Loading()
                 FirebaseStorage.getInstance(firebaseApp(true)).reference.child(filePath).downloadUrl
                         .addOnSuccessListener { uri ->
                             contentEnCollection.document(contentId) // Update content Audio Uri.
                                     .update(AUDIO_URL, Regex(AUDIO_URL_TOKEN_REGEX).replace(
                                             uri.toString(), ""))
                                     .addOnSuccessListener {
-                                        value = Lce.Content(ContentResult.ContentPlayer(
-                                                uri, ByteArray(0), ""))
+                                        value = Lce.Content(ContentPlayer(
+                                                uri = uri,
+                                                image = ByteArray(0),
+                                                errorMessage = ""))
                                     }.addOnFailureListener {
-                                        value = Lce.Error(ContentResult.ContentPlayer(
-                                                Uri.EMPTY, ByteArray(0), it.localizedMessage))
+                                        value = Error(ContentPlayer(
+                                                uri = Uri.EMPTY,
+                                                image = ByteArray(0),
+                                                errorMessage = it.localizedMessage))
                                     }
                         }.addOnFailureListener {
-                            value = Lce.Error(ContentResult.ContentPlayer(
+                            value = Error(ContentPlayer(
                                     Uri.parse(""),
                                     ByteArray(0),
                                     "getContentUri error - ${it.localizedMessage}"))
@@ -276,21 +259,20 @@ object ContentRepository {
             }
 
     suspend fun bitmapToByteArray(url: String) = withContext(Dispatchers.IO) {
-        MutableLiveData<Lce<ContentResult.ContentBitmap>>().apply {
-            postValue(Lce.Loading())
-            postValue(Lce.Content(ContentResult.ContentBitmap(
-                    ByteArrayOutputStream().apply {
-                        try {
-                            BitmapFactory.decodeStream(URL(url).openConnection().apply {
-                                doInput = true
-                                connect()
-                            }.getInputStream())
-                        } catch (e: IOException) {
-                            postValue(Lce.Error(ContentResult.ContentBitmap(ByteArray(0),
-                                    "bitmapToByteArray error or null - ${e.localizedMessage}")))
-                            null
-                        }?.compress(CompressFormat.JPEG, BITMAP_COMPRESSION_QUALITY, this)
-                    }.toByteArray(), "")))
+        MutableLiveData<Lce<ContentBitmap>>().apply {
+            postValue(Loading())
+            postValue(Lce.Content(ContentBitmap(ByteArrayOutputStream().apply {
+                try {
+                    BitmapFactory.decodeStream(URL(url).openConnection().apply {
+                        doInput = true
+                        connect()
+                    }.getInputStream())
+                } catch (e: IOException) {
+                    postValue(Error(ContentBitmap(ByteArray(0),
+                            "bitmapToByteArray error or null - ${e.localizedMessage}")))
+                    null
+                }?.compress(CompressFormat.JPEG, BITMAP_COMPRESSION_QUALITY, this)
+            }.toByteArray(), "")))
         }
     }
 
@@ -302,7 +284,7 @@ object ContentRepository {
                         else if (actionType == DISMISS) DISMISSED
                         else MAIN
                 if (actionType == SAVE || actionType == DISMISS) {
-                    if (feedType == SAVED || feedType == DISMISSED)
+                    if (feedType == SAVED || feedType == DISMISSED) {
                         Transformations.switchMap(removeContentLabel(
                                 userReference,
                                 if (actionType == SAVE && feedType == DISMISSED) DISMISS_COLLECTION
@@ -311,15 +293,15 @@ object ContentRepository {
                                 content,
                                 position)) { lce ->
                             when (lce) {
-                                is Lce.Loading -> MutableLiveData()
+                                is Loading -> MutableLiveData()
                                 is Lce.Content -> addContentLabelSwitchMap(actionType, userReference,
                                         content!!, position)
-                                is Lce.Error -> MutableLiveData<Lce<ContentResult.ContentLabeled>>().apply {
+                                is Error -> MutableLiveData<Lce<ContentLabeled>>().apply {
                                     value = lce
                                 }
                             }
                         }
-                    else addContentLabelSwitchMap(actionType, userReference, content!!, position)
+                    } else addContentLabelSwitchMap(actionType, userReference, content!!, position)
                 } else MutableLiveData()
             }
 
@@ -327,25 +309,25 @@ object ContentRepository {
                                  content: Content, position: Int) =
             Transformations.switchMap(addContentLabel(actionType, userReference,
                     content, position)) { lce ->
-                MutableLiveData<Lce<ContentResult.ContentLabeled>>().apply {
+                MutableLiveData<Lce<ContentLabeled>>().apply {
                     value = lce
                 }
             }
 
     fun addContentLabel(actionType: UserActionType, userCollection: CollectionReference,
                         content: Content?, position: Int) =
-            MutableLiveData<Lce<ContentResult.ContentLabeled>>().apply {
-                value = Lce.Loading()
+            MutableLiveData<Lce<ContentLabeled>>().apply {
+                value = Loading()
                 val collection =
                         if (actionType == SAVE) SAVE_COLLECTION
                         else if (actionType == DISMISS) DISMISS_COLLECTION
                         else ""
                 userCollection.document(COLLECTIONS_DOCUMENT).collection(collection).document(content!!.id)
                         .set(content).addOnSuccessListener {
-                            Thread(Runnable { run { database.contentDao().updateContentItem(content) } }).start()
-                            value = Lce.Content(ContentResult.ContentLabeled(position, ""))
+                            Thread(Runnable { run { database.contentDao().updateContent(content) } }).start()
+                            value = Lce.Content(ContentLabeled(position, ""))
                         }.addOnFailureListener {
-                            value = Lce.Error(ContentResult.ContentLabeled(
+                            value = Error(ContentLabeled(
                                     position,
                                     "'${content.title}' failed to be added to collection $collection"))
                         }
@@ -353,13 +335,13 @@ object ContentRepository {
 
     fun removeContentLabel(userReference: CollectionReference, collection: String, content: Content?,
                            position: Int) =
-            MutableLiveData<Lce<ContentResult.ContentLabeled>>().apply {
-                value = Lce.Loading()
+            MutableLiveData<Lce<ContentLabeled>>().apply {
+                value = Loading()
                 userReference.document(COLLECTIONS_DOCUMENT).collection(collection).document(content!!.id)
                         .delete().addOnSuccessListener {
-                            value = Lce.Content(ContentResult.ContentLabeled(position, ""))
+                            value = Lce.Content(ContentLabeled(position, ""))
                         }.addOnFailureListener {
-                            value = Lce.Error(ContentResult.ContentLabeled(
+                            value = Error(ContentLabeled(
                                     position,
                                     "Content failed to be deleted from ${collection}: ${it.localizedMessage}"))
                         }
@@ -417,17 +399,6 @@ object ContentRepository {
                     .addOnFailureListener({ e ->
                         Log.e(LOG_TAG, "Transaction failure updateQualityScore.", e)
                     })
-        }
-    }
-
-    //TODO - Move to Cloud Function
-    fun labelContentFirebaseAnalytics(content: Content) {
-        Bundle().apply {
-            this.putString(ITEM_ID, content.id)
-            this.putString(USER_ID_PARAM, getInstance().currentUser?.uid)
-            this.putString(CREATOR_PARAM, content.creator)
-            analytics.logEvent(
-                    if (content.feedType == SAVED) ORGANIZE_EVENT else DISMISS_EVENT, this)
         }
     }
 }

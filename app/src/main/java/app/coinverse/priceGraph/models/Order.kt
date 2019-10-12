@@ -1,6 +1,6 @@
 package app.coinverse.priceGraph.models
 
-import app.coinverse.utils.Enums.Exchange
+import app.coinverse.utils.Exchange
 
 data class Order(var exchange: Exchange, var price: Double) : Comparable<Order> {
     override fun compareTo(otherOrder: Order): Int {

@@ -25,19 +25,18 @@ import app.coinverse.databinding.FragmentPriceBinding
 import app.coinverse.home.HomeViewModel
 import app.coinverse.priceGraph.models.PriceGraphData
 import app.coinverse.priceGraph.models.PriceGraphXAndYConstraints
-import app.coinverse.utils.Enums.Exchange
-import app.coinverse.utils.Enums.Exchange.*
-import app.coinverse.utils.Enums.OrderType
-import app.coinverse.utils.Enums.OrderType.ASK
-import app.coinverse.utils.Enums.OrderType.BID
-import app.coinverse.utils.Enums.Timeframe
-import app.coinverse.utils.Enums.Timeframe.DAY
+import app.coinverse.utils.Exchange
+import app.coinverse.utils.Exchange.*
+import app.coinverse.utils.OrderType
+import app.coinverse.utils.OrderType.ASK
+import app.coinverse.utils.OrderType.BID
+import app.coinverse.utils.Timeframe
+import app.coinverse.utils.Timeframe.DAY
 import app.coinverse.utils.getExchangeColor
 import com.jjoe64.graphview.GridLabelRenderer
 import com.jjoe64.graphview.series.DataPoint
 import com.jjoe64.graphview.series.LineGraphSeries
 import kotlinx.android.synthetic.main.fragment_price.*
-
 
 private val dataPointRadiusValue = TypedValue()
 

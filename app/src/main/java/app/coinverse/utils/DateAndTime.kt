@@ -3,9 +3,8 @@ package app.coinverse.utils
 import android.content.Context
 import app.coinverse.BuildConfig
 import app.coinverse.R
-import app.coinverse.utils.Enums.BuildType.*
-import app.coinverse.utils.Enums.Timeframe
-import app.coinverse.utils.Enums.Timeframe.*
+import app.coinverse.utils.BuildType.*
+import app.coinverse.utils.Timeframe.*
 import com.google.firebase.Timestamp
 import java.util.*
 

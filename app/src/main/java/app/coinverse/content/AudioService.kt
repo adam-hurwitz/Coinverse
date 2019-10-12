@@ -16,15 +16,13 @@ import android.view.WindowManager
 import app.coinverse.MainActivity
 import app.coinverse.R.drawable.ic_coinverse_notification_24dp
 import app.coinverse.R.string.*
-import app.coinverse.analytics.getWatchPercent
-import app.coinverse.analytics.updateActionsAndAnalytics
-import app.coinverse.analytics.updateStartActionsAndAnalytics
+import app.coinverse.analytics.Analytics.getWatchPercent
+import app.coinverse.analytics.Analytics.updateActionsAndAnalytics
+import app.coinverse.analytics.Analytics.updateStartActionsAndAnalytics
 import app.coinverse.content.models.Content
-import app.coinverse.content.models.ContentResult.ContentToPlay
-import app.coinverse.content.room.CoinverseDatabase
-import app.coinverse.content.room.ContentDao
+import app.coinverse.content.models.ContentToPlay
 import app.coinverse.utils.*
-import app.coinverse.utils.Enums.PlayerActionType.*
+import app.coinverse.utils.PlayerActionType.*
 import com.crashlytics.android.Crashlytics
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.audio.AudioRendererEventListener
@@ -43,8 +41,6 @@ import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 import com.google.android.exoplayer2.video.VideoRendererEventListener
-import com.google.firebase.FirebaseApp
-import com.google.firebase.analytics.FirebaseAnalytics
 
 private val LOG_TAG = AudioService::class.java.simpleName
 
@@ -57,17 +53,12 @@ class AudioService : Service() {
     private var startPosition: Long = 0
     private var wakeLock: PowerManager.WakeLock? = null
     private var wifiLock: WifiManager.WifiLock? = null
-    // Analytics
-    private lateinit var analytics: FirebaseAnalytics
-    private lateinit var contentDao: ContentDao
     private var seekToPositionMillis = 0
     private var playOrPausePressed = false
 
     // Called first time audiocast is loaded.
     override fun onBind(intent: Intent?) =
             AudioServiceBinder().apply {
-                analytics = FirebaseAnalytics.getInstance(FirebaseApp.getInstance().applicationContext)
-                contentDao = CoinverseDatabase.getAppDatabase(applicationContext).contentDao()
                 player = ExoPlayerFactory.newSimpleInstance(
                         applicationContext,
                         AudioOnlyRenderersFactory(applicationContext),
@@ -94,7 +85,7 @@ class AudioService : Service() {
                             if (!contentToPlay.content.equals(content)) { // New content playing
                                 content = contentToPlay.content
                                 seekToPositionMillis = 0
-                                updateStartActionsAndAnalytics(content, analytics)
+                                updateStartActionsAndAnalytics(content)
                                 player?.prepare(ProgressiveMediaSource.Factory(
                                         DefaultDataSourceFactory(
                                                 applicationContext,
@@ -203,8 +194,7 @@ class AudioService : Service() {
             if (player?.currentPosition!! > 0L && newSeekPositionMillis > seekToPositionMillis
                     && playOrPausePressed == false && playbackState == Player.STATE_BUFFERING)
                 seekToPositionMillis = newSeekPositionMillis.toInt()
-            updateActionsAndAnalytics(content, contentDao, analytics,
-                    getWatchPercent(player?.currentPosition!!.toDouble(),
+            updateActionsAndAnalytics(content, getWatchPercent(player?.currentPosition!!.toDouble(),
                             seekToPositionMillis.toDouble(), player?.duration!!.toDouble()))
         }
 

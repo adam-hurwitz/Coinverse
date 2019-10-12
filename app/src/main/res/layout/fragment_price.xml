@@ -10,11 +10,11 @@
 
         <variable
             name="exchange"
-            type="app.coinverse.utils.Enums.Exchange" />
+            type="app.coinverse.utils.Exchange" />
 
         <variable
             name="orderType"
-            type="app.coinverse.utils.Enums.OrderType" />
+            type="app.coinverse.utils.OrderType" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"

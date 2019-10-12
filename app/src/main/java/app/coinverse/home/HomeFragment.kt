@@ -33,7 +33,7 @@ import app.coinverse.R.string.*
 import app.coinverse.analytics.models.UserActionCount
 import app.coinverse.content.ContentDialogFragment
 import app.coinverse.content.ContentFragment
-import app.coinverse.content.models.ContentResult.ContentToPlay
+import app.coinverse.content.models.ContentToPlay
 import app.coinverse.databinding.FragmentHomeBinding
 import app.coinverse.firebase.ACCOUNT_DOCUMENT
 import app.coinverse.firebase.ACTIONS_DOCUMENT
@@ -45,12 +45,12 @@ import app.coinverse.user.PermissionsDialogFragment
 import app.coinverse.user.SignInDialogFragment
 import app.coinverse.user.models.User
 import app.coinverse.utils.*
-import app.coinverse.utils.Enums.AccountType.READ
-import app.coinverse.utils.Enums.FeedType.MAIN
-import app.coinverse.utils.Enums.FeedType.SAVED
-import app.coinverse.utils.Enums.PaymentStatus.FREE
-import app.coinverse.utils.Enums.SignInType.DIALOG
-import app.coinverse.utils.Enums.SignInType.FULLSCREEN
+import app.coinverse.utils.AccountType.READ
+import app.coinverse.utils.FeedType.MAIN
+import app.coinverse.utils.FeedType.SAVED
+import app.coinverse.utils.PaymentStatus.FREE
+import app.coinverse.utils.SignInType.DIALOG
+import app.coinverse.utils.SignInType.FULLSCREEN
 import app.coinverse.utils.livedata.EventObserver
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions.circleCropTransform
@@ -73,7 +73,7 @@ class HomeFragment : Fragment() {
     private var user: FirebaseUser? = null
     private var isAppBarExpanded = false
     private var isSavedContentExpanded = false
-    private var openFromNotificaitonFeedType: Enums.FeedType? = null
+    private var openFromNotificaitonFeedType: FeedType? = null
 
     private lateinit var binding: FragmentHomeBinding
     private lateinit var homeViewModel: HomeViewModel
@@ -247,11 +247,12 @@ class HomeFragment : Fragment() {
                                 "${SUPPORT_ISSUE}" +
                                 "${SUPPORT_VERSION} $VERSION_NAME" +
                                 "${SUPPORT_ANDROID_API} $SDK_INT" +
-                                "${SUPPORT_DEVICE} ${BRAND.substring(0, 1).toUpperCase() + BRAND.substring(1)}, $MODEL" +
+                                "${SUPPORT_DEVICE} ${BRAND.substring(0, 1).toUpperCase()
+                                        + BRAND.substring(1)}, $MODEL" +
                                 "${SUPPORT_USER +
                                         if (user != null && !user!!.isAnonymous) user!!.uid
                                         else getString(logged_out)}")
-                if (intent.resolveActivity(activity?.packageManager) != null) startActivity(intent)
+                if (intent.resolveActivity(activity!!.packageManager) != null) startActivity(intent)
             }
         }
         menuHomeButton.setOnClickListener { view: View ->
@@ -290,9 +291,11 @@ class HomeFragment : Fragment() {
                                                 Timestamp(Date(user.metadata!!.lastSignInTimestamp)),
                                                 user.providerId, FREE, READ))
                                         .addOnSuccessListener {
-                                            Log.v(LOG_TAG, String.format("New user account data success:%s", it))
+                                            Log.v(LOG_TAG, String.format(
+                                                    "New user account data success:%s", it))
                                         }.addOnFailureListener {
-                                            Log.v(LOG_TAG, String.format("New user account data failure:%s", it))
+                                            Log.v(LOG_TAG, String.format(
+                                                    "New user account data failure:%s", it))
                                         }
                                 usersDocument.collection(user.uid).document(ACTIONS_DOCUMENT).set(
                                         UserActionCount(0.0, 0.0, 0.0,
@@ -300,9 +303,11 @@ class HomeFragment : Fragment() {
                                                 0.0, 0.0)
                                 ).addOnSuccessListener {
                                     Crashlytics.setUserIdentifier(user.uid)
-                                    Log.v(LOG_TAG, String.format("New user action data success:%s", it))
+                                    Log.v(LOG_TAG, String.format(
+                                            "New user action data success:%s", it))
                                 }.addOnFailureListener {
-                                    Log.v(LOG_TAG, String.format("New user action data failure:%s", it))
+                                    Log.v(LOG_TAG, String.format(
+                                            "New user action data failure:%s", it))
                                 }
                             }
                         }

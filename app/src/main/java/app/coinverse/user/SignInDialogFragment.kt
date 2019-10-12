@@ -12,11 +12,11 @@ import androidx.lifecycle.ViewModelProviders
 import app.coinverse.databinding.FragmentSignInBinding
 import app.coinverse.databinding.FragmentSignInDialogBinding
 import app.coinverse.home.HomeViewModel
-import app.coinverse.utils.Enums.SignInType
-import app.coinverse.utils.Enums.SignInType.DIALOG
-import app.coinverse.utils.Enums.SignInType.FULLSCREEN
 import app.coinverse.utils.RC_SIGN_IN
 import app.coinverse.utils.SIGNIN_TYPE_KEY
+import app.coinverse.utils.SignInType
+import app.coinverse.utils.SignInType.DIALOG
+import app.coinverse.utils.SignInType.FULLSCREEN
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.auth.FirebaseAuth.getInstance

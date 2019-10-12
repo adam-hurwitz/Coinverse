@@ -8,22 +8,22 @@ import androidx.lifecycle.ViewModel
 import app.coinverse.priceGraph.models.PercentDifference
 import app.coinverse.priceGraph.models.PriceGraphData
 import app.coinverse.priceGraph.models.PricePair
-import app.coinverse.utils.DateAndTime
-import app.coinverse.utils.Enums.Currency.BTC
-import app.coinverse.utils.Enums.Currency.ETH
-import app.coinverse.utils.Enums.Exchange
-import app.coinverse.utils.Enums.Exchange.*
-import app.coinverse.utils.Enums.OrderType
-import app.coinverse.utils.Enums.OrderType.BID
-import app.coinverse.utils.Enums.Timeframe
+import app.coinverse.utils.*
+import app.coinverse.utils.Exchange.*
+import app.coinverse.utils.OrderType.BID
 import com.jjoe64.graphview.series.LineGraphSeries
 
+/**
+ * TODO - Refactor with Unidirectional Data Flow.
+ *  See [ContentViewModel]
+ *  https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
+ **/
 class PriceViewModel : ViewModel() {
 
     //TODO: Set timeframe from UI.
 
     //TODO: Query Firebase by pricePair.
-    val pricePair = PricePair(ETH, BTC)
+    val pricePair = PricePair(Currency.ETH, Currency.BTC)
     val timeframe: LiveData<Timeframe> get() = _timeframe
     val enabledExchanges: LiveData<ArrayList<Exchange?>> get() = _enabledExchanges
     val enabledOrderTypes: LiveData<ArrayList<OrderType?>> get() = _enabledOrderTypes

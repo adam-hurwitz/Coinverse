@@ -3,19 +3,22 @@ package app.coinverse.user
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import app.coinverse.utils.Enums
-import app.coinverse.utils.Enums.Status.ERROR
-import app.coinverse.utils.Enums.Status.SUCCESS
+import app.coinverse.utils.Status
+import app.coinverse.utils.Status.ERROR
+import app.coinverse.utils.Status.SUCCESS
 import app.coinverse.utils.livedata.Event
 import com.google.firebase.auth.FirebaseUser
 
 private val LOG_TAG = UserViewModel::class.java.simpleName
 
+/**
+ * TODO - Refactor with Unidirectional Data Flow.
+ *  See [ContentViewModel]
+ *  https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
+ **/
 class UserViewModel : ViewModel() {
-    //TODO - Create view state and view events.
-    //TODO - Handle LCE.
     fun deleteUser(user: FirebaseUser) =
-            MutableLiveData<Event<Enums.Status>>().apply {
+            MutableLiveData<Event<Status>>().apply {
                 deleteUserCall(user).addOnCompleteListener { task ->
                     if (task.isSuccessful) this.value = Event(SUCCESS)
                     else {

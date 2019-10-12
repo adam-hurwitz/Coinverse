@@ -15,7 +15,7 @@
 
         <variable
             name="contentType"
-            type="app.coinverse.utils.Enums.ContentType" />
+            type="app.coinverse.utils.ContentType" />
 
         <variable
             name="view"

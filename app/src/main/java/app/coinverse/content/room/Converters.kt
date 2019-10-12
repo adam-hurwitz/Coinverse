@@ -1,11 +1,11 @@
 package app.coinverse.content.room
 
 import androidx.room.TypeConverter
-import app.coinverse.utils.Enums.ContentType
-import app.coinverse.utils.Enums.ContentType.ARTICLE
-import app.coinverse.utils.Enums.ContentType.YOUTUBE
-import app.coinverse.utils.Enums.FeedType
-import app.coinverse.utils.Enums.FeedType.*
+import app.coinverse.utils.ContentType
+import app.coinverse.utils.ContentType.ARTICLE
+import app.coinverse.utils.ContentType.YOUTUBE
+import app.coinverse.utils.FeedType
+import app.coinverse.utils.FeedType.*
 import com.google.firebase.Timestamp
 import java.util.*
 

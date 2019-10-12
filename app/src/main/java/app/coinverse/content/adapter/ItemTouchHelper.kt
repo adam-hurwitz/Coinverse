@@ -19,17 +19,12 @@ import app.coinverse.R.string.save
 import app.coinverse.content.models.ContentViewEvent
 import app.coinverse.content.models.ContentViewEvent.ContentSwipeDrawed
 import app.coinverse.content.models.ContentViewEvent.ContentSwiped
-import app.coinverse.utils.CELL_CONTENT_MARGIN
-import app.coinverse.utils.Enums.FeedType
-import app.coinverse.utils.Enums.FeedType.*
-import app.coinverse.utils.Enums.PaymentStatus
-import app.coinverse.utils.Enums.PaymentStatus.FREE
-import app.coinverse.utils.Enums.PaymentStatus.PAID
-import app.coinverse.utils.Enums.UserActionType.DISMISS
-import app.coinverse.utils.Enums.UserActionType.SAVE
-import app.coinverse.utils.RIGHT_SWIPE
-import app.coinverse.utils.SWIPE_CONTENT_Y_MARGIN_DP
-import app.coinverse.utils.convertDpToPx
+import app.coinverse.utils.*
+import app.coinverse.utils.FeedType.*
+import app.coinverse.utils.PaymentStatus.FREE
+import app.coinverse.utils.PaymentStatus.PAID
+import app.coinverse.utils.UserActionType.DISMISS
+import app.coinverse.utils.UserActionType.SAVE
 import app.coinverse.utils.livedata.Event
 import com.mopub.nativeads.MoPubRecyclerAdapter
 

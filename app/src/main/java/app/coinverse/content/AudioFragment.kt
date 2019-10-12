@@ -35,11 +35,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import app.coinverse.R.string.*
-import app.coinverse.content.models.ContentResult
+import app.coinverse.analytics.Analytics.setCurrentScreen
+import app.coinverse.content.models.ContentToPlay
 import app.coinverse.content.models.ContentViewEvent
+import app.coinverse.content.models.ContentViewEvent.AudioPlayerLoad
 import app.coinverse.databinding.FragmentAudioDialogBinding
 import app.coinverse.utils.*
-import app.coinverse.utils.Enums.PlayerActionType.*
+import app.coinverse.utils.PlayerActionType.*
 import app.coinverse.utils.livedata.Event
 import app.coinverse.utils.livedata.EventObserver
 import com.google.android.exoplayer2.ExoPlaybackException
@@ -47,9 +49,6 @@ import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.mediacodec.MediaCodecRenderer
 import com.google.android.exoplayer2.mediacodec.MediaCodecUtil
 import com.google.android.exoplayer2.util.ErrorMessageProvider
-import com.google.firebase.FirebaseApp
-import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.FirebaseAnalytics.getInstance
 import kotlinx.android.synthetic.main.exo_playback_control_view.*
 import kotlinx.android.synthetic.main.exo_playback_control_view.view.*
 import kotlinx.android.synthetic.main.fragment_audio_dialog.*
@@ -60,8 +59,7 @@ class AudioFragment : Fragment() {
     private val viewEvent: LiveData<Event<ContentViewEvent>> get() = _viewEvent
     private val _viewEvent = MutableLiveData<Event<ContentViewEvent>>()
     private var player: SimpleExoPlayer? = null
-    private lateinit var analytics: FirebaseAnalytics
-    private lateinit var contentToPlay: ContentResult.ContentToPlay
+    private lateinit var contentToPlay: ContentToPlay
     private lateinit var contentViewModel: ContentViewModel
 
     fun newInstance(bundle: Bundle) = AudioFragment().apply { arguments = bundle }
@@ -79,17 +77,16 @@ class AudioFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        analytics = getInstance(FirebaseApp.getInstance().applicationContext)
         contentToPlay = arguments!!.getParcelable(CONTENT_TO_PLAY_KEY)!!
-        contentViewModel = ViewModelProviders.of(activity!!).get(ContentViewModel::class.java)
+        contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
         if (savedInstanceState == null)
-            _viewEvent.value = Event(ContentViewEvent.PlayerLoad(
+            _viewEvent.value = Event(AudioPlayerLoad(
                     contentToPlay.content.id, contentToPlay.filePath!!,
                     contentToPlay.content.previewImage))
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        analytics.setCurrentScreen(activity!!, AUDIOCAST_VIEW, null)
+        setCurrentScreen(activity!!, AUDIOCAST_VIEW)
         return FragmentAudioDialogBinding.inflate(inflater, container, false).root
     }
 
