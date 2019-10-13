@@ -42,7 +42,6 @@ import app.coinverse.utils.ContentType.YOUTUBE
 import app.coinverse.utils.FeedType.*
 import app.coinverse.utils.PaymentStatus.FREE
 import app.coinverse.utils.SignInType.DIALOG
-import app.coinverse.utils.Timeframe.DAY
 import app.coinverse.utils.livedata.Event
 import app.coinverse.utils.livedata.EventObserver
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
@@ -98,8 +97,9 @@ class ContentFragment : Fragment() {
         getFeedType()
         contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
-        if (savedInstanceState == null) _viewEvent.value =
-                Event(FeedLoad(feedType, DAY, homeViewModel.isRealtime.value!!))
+        if (savedInstanceState == null)
+            _viewEvent.value = Event(FeedLoad(feedType, homeViewModel.timeframe.value!!,
+                    homeViewModel.isRealtime.value!!))
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
