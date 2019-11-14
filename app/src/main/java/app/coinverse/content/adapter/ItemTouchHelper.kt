@@ -16,9 +16,9 @@ import app.coinverse.R.dimen
 import app.coinverse.R.drawable.*
 import app.coinverse.R.string.dismiss
 import app.coinverse.R.string.save
-import app.coinverse.content.models.ContentViewEvent
-import app.coinverse.content.models.ContentViewEvent.ContentSwipeDrawed
-import app.coinverse.content.models.ContentViewEvent.ContentSwiped
+import app.coinverse.content.models.ContentViewEvents
+import app.coinverse.content.models.ContentViewEvents.ContentSwipeDrawed
+import app.coinverse.content.models.ContentViewEvents.ContentSwiped
 import app.coinverse.utils.*
 import app.coinverse.utils.FeedType.*
 import app.coinverse.utils.PaymentStatus.FREE
@@ -30,7 +30,7 @@ import com.mopub.nativeads.MoPubRecyclerAdapter
 
 private val LOG_TAG = ItemTouchHelper::class.java.simpleName
 
-class ItemTouchHelper(val _contentViewEvent: MutableLiveData<Event<ContentViewEvent>>) {
+class ItemTouchHelper(val _contentViewEvent: MutableLiveData<Event<ContentViewEvents>>) {
 
     fun build(context: Context, paymentStatus: PaymentStatus, feedType: FeedType,
               moPubAdapter: MoPubRecyclerAdapter?) = ItemTouchHelper(object : Callback() {

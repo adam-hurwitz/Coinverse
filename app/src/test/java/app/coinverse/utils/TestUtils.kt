@@ -15,9 +15,15 @@ import app.coinverse.utils.livedata.Event
 import com.google.firebase.auth.FirebaseAuth
 import io.mockk.every
 import io.mockk.mockk
+import org.junit.jupiter.api.extension.ExtensionContext
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+
+val TEST_COROUTINE_DISPATCHER_NAMESPACE =
+        ExtensionContext.Namespace.create(TEST_COROUTINE_DISPATCHER_NAMESPACE_STRING)
+val VIEWMODEL_NAMESPACE =
+        ExtensionContext.Namespace.create(VIEWMODEL_NAMESPACE_STRING)
 
 fun LabelContentTest.mockUser() =
         if (this.isUserSignedIn) FirebaseAuth.getInstance().currentUser else null
@@ -72,6 +78,7 @@ fun <T> LiveData<T>.observeForTesting(block: () -> Unit) {
 }
 
 // Mock PagedList.
+// TODO - Refactor
 fun <T> List<T>.asPagedList(config: PagedList.Config? = null) =
         LivePagedListBuilder<Int, T>(createMockDataSourceFactory(this),
                 config ?: PagedList.Config.Builder()

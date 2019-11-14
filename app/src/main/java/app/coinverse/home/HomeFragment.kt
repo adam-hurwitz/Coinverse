@@ -68,6 +68,14 @@ import java.util.*
 
 private val LOG_TAG = HomeFragment::class.java.simpleName
 
+/**
+ * TODO - Refactor with Unidirectional Data Flow.
+ *  See [ContentFragment]
+ *  https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
+ *
+ * TODO - Refactor addOnCompleteListeners to await() coroutine.
+ * See [ContentRepository]
+ */
 class HomeFragment : Fragment() {
 
     private var user: FirebaseUser? = null
@@ -279,7 +287,7 @@ class HomeFragment : Fragment() {
             // Signed in.
             if (user != null && !user.isAnonymous) {
                 Crashlytics.setUserIdentifier(user.uid)
-                //TODO - Replace with Cloud Function.
+                // TODO - Replace with Cloud Function.
                 usersDocument.collection(user.uid).document(ACCOUNT_DOCUMENT).get()
                         .addOnCompleteListener { userQuery ->
                             // Create user if user does not exist.
@@ -320,7 +328,7 @@ class HomeFragment : Fragment() {
                 // Signed out.
             } else if (childFragmentManager.findFragmentByTag(CONTENT_FEED_FRAGMENT_TAG) == null &&
                     savedInstanceState == null) {
-                //TODO - Create view event, add to Repo, handle result with LCE
+                // TODO - Create view event, add to Repo, handle result with LCE
                 FirebaseAuth.getInstance(firebaseApp(true)).signInAnonymously()
                         .addOnCompleteListener(activity!!) { task ->
                             if (task.isSuccessful)

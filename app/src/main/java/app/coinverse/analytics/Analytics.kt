@@ -31,9 +31,8 @@ object Analytics {
         analytics.setCurrentScreen(activity, viewName, null)
     }
 
-    // TODO - Use Coroutine
-    fun updateActionsAndAnalytics(content: Content, watchPercent: Double) {
-        Thread(Runnable { run { database.contentDao().updateContent(content) } }).start()
+    suspend fun updateActionsAndAnalytics(content: Content, watchPercent: Double) {
+        database.contentDao().updateContent(content)
         if (watchPercent >= FINISH_THRESHOLD)
             Bundle().also { bundle ->
                 FirebaseAuth.getInstance().currentUser.also { user ->

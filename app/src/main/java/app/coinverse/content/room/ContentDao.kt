@@ -5,7 +5,6 @@ import androidx.room.*
 import app.coinverse.content.models.Content
 import app.coinverse.utils.FeedType
 import com.google.firebase.Timestamp
-import java.util.*
 
 @Dao
 interface ContentDao {
@@ -17,8 +16,8 @@ interface ContentDao {
     fun queryLabeledContentList(feedType: FeedType): DataSource.Factory<Int, Content>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertContentList(users: ArrayList<Content?>)
+    suspend fun insertContentList(users: List<Content>?)
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
-    fun updateContent(content: Content)
+    suspend fun updateContent(content: Content)
 }

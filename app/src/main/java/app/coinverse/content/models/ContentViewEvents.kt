@@ -5,27 +5,27 @@ import app.coinverse.utils.Timeframe
 import app.coinverse.utils.UserActionType
 import com.google.firebase.auth.FirebaseUser
 
-sealed class ContentViewEvent {
+sealed class ContentViewEvents {
     data class FeedLoad(val feedType: FeedType, val timeframe: Timeframe, val isRealtime: Boolean)
-        : ContentViewEvent()
+        : ContentViewEvents()
 
-    data class FeedLoadComplete(val hasContent: Boolean) : ContentViewEvent()
+    data class FeedLoadComplete(val hasContent: Boolean) : ContentViewEvents()
     data class AudioPlayerLoad(val contentId: String, val filePath: String, val previewImageUrl: String)
-        : ContentViewEvent()
+        : ContentViewEvents()
 
     data class SwipeToRefresh(val feedType: FeedType, val timeframe: Timeframe,
-                              val isRealtime: Boolean) : ContentViewEvent()
+                              val isRealtime: Boolean) : ContentViewEvents()
 
-    data class ContentSelected(val position: Int, val content: Content) : ContentViewEvent()
-    data class ContentSwipeDrawed(val isDrawed: Boolean) : ContentViewEvent()
+    data class ContentSelected(val position: Int, val content: Content) : ContentViewEvents()
+    data class ContentSwipeDrawed(val isDrawed: Boolean) : ContentViewEvents()
     data class ContentSwiped(val feedType: FeedType, val actionType: UserActionType, val position: Int)
-        : ContentViewEvent()
+        : ContentViewEvents()
 
     data class ContentLabeled(val feedType: FeedType, val actionType: UserActionType,
                               val user: FirebaseUser?, val position: Int, val content: Content?,
-                              val isMainFeedEmptied: Boolean) : ContentViewEvent()
+                              val isMainFeedEmptied: Boolean) : ContentViewEvents()
 
-    data class ContentShared(val content: Content) : ContentViewEvent()
-    data class ContentSourceOpened(val url: String) : ContentViewEvent()
-    class UpdateAds : ContentViewEvent()
+    data class ContentShared(val content: Content) : ContentViewEvents()
+    data class ContentSourceOpened(val url: String) : ContentViewEvents()
+    class UpdateAds : ContentViewEvents()
 }

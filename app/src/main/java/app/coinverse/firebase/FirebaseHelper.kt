@@ -20,9 +20,8 @@ object FirebaseHelper {
     fun init(context: Context) {
         if (BuildConfig.BUILD_TYPE == open.name) {
             var openSharedStatus = false
-            FirebaseApp.getApps(context).all { app ->
+            FirebaseApp.getApps(context).map { app ->
                 if (app.name.equals(open.name)) openSharedStatus = true
-                true
             }
             if (!openSharedStatus)
                 FirebaseApp.initializeApp(
@@ -40,7 +39,7 @@ object FirebaseHelper {
         initializeRemoteConfig()
     }
 
-    //TODO - Refactor
+    // FIXME - Update deprecated code.
     private fun initializeRemoteConfig() {
         val firebaseRemoteConfig = FirebaseRemoteConfig.getInstance()
         firebaseRemoteConfig.setConfigSettings(FirebaseRemoteConfigSettings.Builder()
@@ -49,6 +48,7 @@ object FirebaseHelper {
         firebaseRemoteConfig.setDefaults(R.xml.remote_config_defaults)
         var cacheExpiration = 3600L
         if (firebaseRemoteConfig.info.configSettings.isDeveloperModeEnabled) cacheExpiration = 0
+        // TODO - Refactor addOnCompleteListeners to await() coroutine. See [ContentRepository]
         firebaseRemoteConfig.fetch(cacheExpiration).addOnCompleteListener { task ->
             // After config data is successfully fetched, it must be activated before newly fetched
             // values are returned.

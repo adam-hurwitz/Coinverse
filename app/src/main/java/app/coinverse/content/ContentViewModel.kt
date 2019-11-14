@@ -5,11 +5,11 @@ import android.view.View
 import android.widget.ProgressBar.GONE
 import android.widget.ProgressBar.VISIBLE
 import androidx.lifecycle.*
-import androidx.lifecycle.Transformations.switchMap
 import app.coinverse.R.string.*
 import app.coinverse.analytics.Analytics.labelContentFirebaseAnalytics
 import app.coinverse.analytics.Analytics.updateActionAnalytics
 import app.coinverse.analytics.Analytics.updateFeedEmptiedActionsAndAnalytics
+import app.coinverse.content.ContentRepository.bitmapToByteArray
 import app.coinverse.content.ContentRepository.editContentLabels
 import app.coinverse.content.ContentRepository.getAudiocast
 import app.coinverse.content.ContentRepository.getContent
@@ -17,8 +17,9 @@ import app.coinverse.content.ContentRepository.getMainFeedList
 import app.coinverse.content.ContentRepository.queryLabeledContentList
 import app.coinverse.content.ContentRepository.queryMainContentList
 import app.coinverse.content.models.*
-import app.coinverse.content.models.ContentLabeled
-import app.coinverse.content.models.ContentViewEvent.*
+import app.coinverse.content.models.ContentEffectType.*
+import app.coinverse.content.models.ContentViewEvents.*
+import app.coinverse.content.models.ContentViewEvents.ContentLabeled
 import app.coinverse.utils.*
 import app.coinverse.utils.ContentType.*
 import app.coinverse.utils.DateAndTime.getTimeframe
@@ -30,20 +31,21 @@ import app.coinverse.utils.models.Lce.Loading
 import app.coinverse.utils.models.ToolbarState
 import com.crashlytics.android.Crashlytics
 import com.google.firebase.Timestamp
+import kotlinx.coroutines.flow.collect
 
 class ContentViewModel : ViewModel() {
     //TODO: Add isRealtime Boolean for paid feature.
     var contentPlaying = Content()
     val feedViewState: LiveData<FeedViewState> get() = _feedViewState
     val playerViewState: LiveData<PlayerViewState> get() = _playerViewState
-    val viewEffect: LiveData<ContentViewEffects> get() = _viewEffect
+    val viewEffect: LiveData<ContentEffects> get() = _viewEffect
     private val LOG_TAG = ContentViewModel::class.java.simpleName
     private val _feedViewState = MutableLiveData<FeedViewState>()
     private val _playerViewState = MutableLiveData<PlayerViewState>()
-    private val _viewEffect = MutableLiveData<ContentViewEffects>()
+    private val _viewEffect = MutableLiveData<ContentEffects>()
     private val contentLoadingSet = hashSetOf<String>()
 
-    fun processEvent(event: ContentViewEvent) {
+    fun processEvent(event: ContentViewEvents) {
         when (event) {
             is FeedLoad -> {
                 _feedViewState.value = FeedViewState(
@@ -52,58 +54,43 @@ class ContentViewModel : ViewModel() {
                         toolbar = setToolbar(event.feedType),
                         contentList = getContentList(event, event.feedType, event.isRealtime,
                                 getTimeframe(event.timeframe)))
-                _viewEffect.value = ContentViewEffects(updateAds = liveData {
+                _viewEffect.value = ContentEffects(updateAds = liveData {
                     emit(Event(UpdateAdsEffect()))
                 })
             }
-            is FeedLoadComplete -> _viewEffect.value = _viewEffect.value?.copy(
-                    screenEmpty = liveData { emit(Event(ScreenEmptyEffect(!event.hasContent))) })
+            is FeedLoadComplete -> _viewEffect.send(ScreenEmptyEffect(!event.hasContent))
             is AudioPlayerLoad -> _playerViewState.value = PlayerViewState(
                     getAudioPlayer(event.contentId, event.filePath, event.previewImageUrl))
-            is SwipeToRefresh -> _feedViewState.value = _feedViewState.value?.copy(
-                    contentList = getContentList(
-                            event = event,
-                            feedType = event.feedType,
-                            isRealtime = event.isRealtime,
-                            timeframe = getTimeframe(event.timeframe)))
+            is SwipeToRefresh ->
+                _feedViewState.value = _feedViewState.value?.copy(contentList = getContentList(
+                        event = event,
+                        feedType = event.feedType,
+                        isRealtime = event.isRealtime,
+                        timeframe = getTimeframe(event.timeframe)))
             is ContentSelected -> {
                 val contentSelected = ContentSelected(event.position, event.content)
                 when (contentSelected.content.contentType) {
                     ARTICLE -> _feedViewState.value = _feedViewState.value?.copy(contentToPlay =
-                    switchMap(getAudiocast(contentSelected)) { lce ->
-                        liveData {
+                    liveData {
+                        getAudiocast(contentSelected).collect { lce ->
                             when (lce) {
                                 is Loading -> {
-                                    setContentLoadingStatus(contentSelected.content.id, View.VISIBLE)
-                                    _viewEffect.value = _viewEffect.value?.copy(
-                                            notifyItemChanged = liveData {
-                                                emit(Event(NotifyItemChangedEffect(contentSelected.position)))
-                                            })
+                                    setContentLoadingStatus(contentSelected.content.id, VISIBLE)
+                                    _viewEffect.send(NotifyItemChangedEffect(contentSelected.position))
                                     emit(Event(null))
                                 }
                                 is Lce.Content -> {
-                                    setContentLoadingStatus(contentSelected.content.id, View.GONE)
-                                    _viewEffect.value = _viewEffect.value?.copy(
-                                            notifyItemChanged = liveData {
-                                                emit(Event(NotifyItemChangedEffect(contentSelected.position)))
-                                            })
+                                    setContentLoadingStatus(contentSelected.content.id, GONE)
+                                    _viewEffect.send(NotifyItemChangedEffect(contentSelected.position))
                                     emit(Event(lce.packet))
                                 }
                                 is Error -> {
-                                    setContentLoadingStatus(contentSelected.content.id, View.GONE)
-                                    _viewEffect.value = _viewEffect.value?.copy(
-                                            notifyItemChanged = liveData {
-                                                emit(Event(NotifyItemChangedEffect(contentSelected.position)))
-                                            })
-                                    if (lce.packet.filePath.equals(TTS_CHAR_LIMIT_ERROR))
-                                        _viewEffect.value = _viewEffect.value?.copy(
-                                                snackBar = liveData {
-                                                    emit(Event(SnackBarEffect(TTS_CHAR_LIMIT_ERROR_MESSAGE)))
-                                                })
-                                    else _viewEffect.value = _viewEffect.value?.copy(
-                                            snackBar = liveData {
-                                                emit(Event(SnackBarEffect(CONTENT_PLAY_ERROR)))
-                                            })
+                                    setContentLoadingStatus(contentSelected.content.id, GONE)
+                                    _viewEffect.send(NotifyItemChangedEffect(contentSelected.position))
+                                    _viewEffect.send(SnackBarEffect(
+                                            if (lce.packet.filePath.equals(TTS_CHAR_LIMIT_ERROR))
+                                                TTS_CHAR_LIMIT_ERROR_MESSAGE
+                                            else CONTENT_PLAY_ERROR))
                                     emit(Event(null))
                                 }
                             }
@@ -111,9 +98,7 @@ class ContentViewModel : ViewModel() {
                     })
                     YOUTUBE -> {
                         setContentLoadingStatus(contentSelected.content.id, View.GONE)
-                        _viewEffect.value = _viewEffect.value?.copy(notifyItemChanged = liveData {
-                            emit(Event(NotifyItemChangedEffect(contentSelected.position)))
-                        })
+                        _viewEffect.send(NotifyItemChangedEffect(contentSelected.position))
                         _feedViewState.value = _feedViewState.value?.copy(
                                 contentToPlay = liveData<Event<ContentToPlay?>> {
                                     emit(Event(ContentToPlay(contentSelected.position,
@@ -123,67 +108,46 @@ class ContentViewModel : ViewModel() {
                     NONE -> throw IllegalArgumentException("contentType expected, contentType is 'NONE'")
                 }
             }
-            is ContentSwipeDrawed -> _viewEffect.value = _viewEffect.value?.copy(
-                    enableSwipeToRefresh = liveData {
-                        emit(Event(EnableSwipeToRefreshEffect(false)))
-                    })
-            is ContentSwiped -> _viewEffect.value = _viewEffect.value?.copy(contentSwiped = liveData {
-                emit(Event(ContentSwipedEffect(event.feedType, event.actionType, event.position)))
-            })
-            is ContentViewEvent.ContentLabeled -> _feedViewState.value = _feedViewState.value?.copy(
-                    contentLabeled =
-                    if (event.user != null && !event.user.isAnonymous) {
-                        switchMap(editContentLabels(event.feedType, event.actionType, event.content,
-                                event.user, event.position)) { lce ->
-                            liveData {
-                                when (lce) {
-                                    is Lce.Content -> {
-                                        if (event.feedType == MAIN) {
-                                            labelContentFirebaseAnalytics(event.content!!)
-                                            //TODO: Move to Cloud Function. Use with WorkManager.
-                                            // Return error in ContentLabeled.
-                                            updateActionAnalytics(
-                                                    event.actionType, event.content, event.user)
-                                            if (event.isMainFeedEmptied)
-                                                updateFeedEmptiedActionsAndAnalytics(event.user.uid)
-                                        }
-                                        _viewEffect.value = _viewEffect.value?.copy(
-                                                notifyItemChanged = liveData {
-                                                    emit(Event(NotifyItemChangedEffect(event.position)))
-                                                })
-                                        emit(Event(ContentLabeled(event.position, "")))
-                                    }
-                                    is Error -> {
-                                        _viewEffect.value = _viewEffect.value?.copy(
-                                                snackBar = liveData {
-                                                    emit(Event(SnackBarEffect(CONTENT_LABEL_ERROR)))
-                                                })
-                                        Crashlytics.log(Log.ERROR, LOG_TAG, lce.packet.errorMessage)
-                                        emit(Event(null))
-                                    }
+            is ContentSwipeDrawed -> _viewEffect.send(EnableSwipeToRefreshEffect(false))
+            is ContentSwiped -> _viewEffect.send(ContentSwipedEffect(
+                    event.feedType, event.actionType, event.position))
+            is ContentLabeled -> _feedViewState.value = _feedViewState.value?.copy(contentLabeled = liveData {
+                if (event.user != null && !event.user.isAnonymous) {
+                    editContentLabels(
+                            feedType = event.feedType,
+                            actionType = event.actionType,
+                            content = event.content,
+                            user = event.user,
+                            position = event.position).collect { lce ->
+                        when (lce) {
+                            is Lce.Content -> {
+                                if (event.feedType == MAIN) {
+                                    labelContentFirebaseAnalytics(event.content!!)
+                                    //TODO - Move to Cloud Function. Use with WorkManager.
+                                    // Return error in ContentLabeled.
+                                    updateActionAnalytics(event.actionType, event.content, event.user)
+                                    if (event.isMainFeedEmptied)
+                                        updateFeedEmptiedActionsAndAnalytics(event.user.uid)
                                 }
+                                _viewEffect.send(NotifyItemChangedEffect(event.position))
+                                emit(Event(app.coinverse.content.models.ContentLabeled(event.position, "")))
+                            }
+                            is Error -> {
+                                _viewEffect.send(SnackBarEffect(CONTENT_LABEL_ERROR))
+                                Crashlytics.log(Log.ERROR, LOG_TAG, lce.packet.errorMessage)
+                                emit(Event(null))
                             }
                         }
-                    } else {
-                        _viewEffect.value = _viewEffect.value?.copy(notifyItemChanged = liveData {
-                            emit(Event(NotifyItemChangedEffect(event.position)))
-                        })
-                        _viewEffect.value = _viewEffect.value?.copy(signIn = liveData {
-                            emit(Event(SignInEffect(true)))
-                        })
-                        liveData<Event<ContentLabeled?>> { emit(Event(null)) }
-                    })
-            is ContentShared -> _viewEffect.value = _viewEffect.value?.copy(
-                    shareContentIntent = liveData {
-                        emit(Event(ShareContentIntentEffect(getContent(event.content.id))))
-                    })
-            is ContentSourceOpened -> _viewEffect.value = _viewEffect.value?.copy(
-                    openContentSourceIntent = liveData {
-                        emit(Event(OpenContentSourceIntentEffect(event.url)))
-                    })
-            is UpdateAds -> _viewEffect.value = _viewEffect.value?.copy(updateAds = liveData {
-                emit(Event(UpdateAdsEffect()))
+                    }
+                } else {
+                    _viewEffect.send(NotifyItemChangedEffect(event.position))
+                    _viewEffect.send(SignInEffect(true))
+                    emit(Event(null))
+                }
             })
+            is ContentShared -> _viewEffect.send(ShareContentIntentEffect(getContent(event.content.id)))
+            is ContentSourceOpened -> _viewEffect.send(OpenContentSourceIntentEffect(event.url))
+            is UpdateAds -> _viewEffect.send(UpdateAdsEffect())
         }
     }
 
@@ -203,53 +167,37 @@ class ContentViewModel : ViewModel() {
             }
     )
 
-    private fun getContentList(event: ContentViewEvent, feedType: FeedType, isRealtime: Boolean,
-                               timeframe: Timestamp) =
-            if (feedType == MAIN)
-                switchMap(getMainFeedList(isRealtime, timeframe)) { lce ->
-                    when (lce) {
-                        is Loading -> {
-                            if (event is SwipeToRefresh)
-                                _viewEffect.value = _viewEffect.value?.copy(swipeToRefresh = liveData {
-                                    emit(Event(SwipeToRefreshEffect(true)))
-                                })
-                            switchMap(queryMainContentList(timeframe)) { pagedList ->
-                                liveData { emit(pagedList) }
-                            }
-                        }
-                        is Lce.Content -> {
-                            if (event is SwipeToRefresh)
-                                _viewEffect.value = _viewEffect.value?.copy(swipeToRefresh = liveData {
-                                    emit(Event(SwipeToRefreshEffect(false)))
-                                })
-                            switchMap(lce.packet.pagedList!!) { pagedList ->
-                                liveData { emit(pagedList) }
-                            }
-                        }
-                        is Error -> {
-                            Crashlytics.log(Log.ERROR, LOG_TAG, lce.packet.errorMessage)
-                            if (event is SwipeToRefresh)
-                                _viewEffect.value = _viewEffect.value?.copy(swipeToRefresh = liveData {
-                                    emit(Event(SwipeToRefreshEffect(false)))
-                                })
-                            _viewEffect.value = _viewEffect.value?.copy(snackBar = liveData {
-                                emit(Event(SnackBarEffect(
-                                        if (event is FeedLoad) CONTENT_REQUEST_NETWORK_ERROR
-                                        else CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR)))
-                            })
-                            switchMap(queryMainContentList(timeframe)) { pagedList ->
-                                liveData { emit(pagedList) }
-                            }
-                        }
-                    }
+    private fun getContentList(event: ContentViewEvents, feedType: FeedType,
+                               isRealtime: Boolean, timeframe: Timestamp) = liveData {
+        if (feedType == MAIN) getMainFeedList(isRealtime, timeframe).collect { lce ->
+            when (lce) {
+                is Loading -> {
+                    if (event is SwipeToRefresh)
+                        _viewEffect.send(SwipeToRefreshEffect(true))
+                    emitSource(queryMainContentList(timeframe))
                 }
-            else switchMap(queryLabeledContentList(feedType)) { pagedList ->
-                _viewEffect.value = _viewEffect.value?.copy(screenEmpty = liveData {
-                    emit(Event(ScreenEmptyEffect(pagedList.isEmpty())))
-                })
-                liveData { emit(pagedList) }
+                is Lce.Content -> {
+                    if (event is SwipeToRefresh)
+                        _viewEffect.send(SwipeToRefreshEffect(false))
+                    emitSource(lce.packet.pagedList!!)
+                }
+                is Error -> {
+                    Crashlytics.log(Log.ERROR, LOG_TAG, lce.packet.errorMessage)
+                    if (event is SwipeToRefresh)
+                        _viewEffect.send(SwipeToRefreshEffect(false))
+                    _viewEffect.send(SnackBarEffect(
+                            if (event is FeedLoad) CONTENT_REQUEST_NETWORK_ERROR
+                            else CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR))
+                    emitSource(queryMainContentList(timeframe))
+                }
             }
+        } else queryLabeledContentList(feedType).collect { pagedList ->
+            _viewEffect.send(ScreenEmptyEffect(pagedList.isEmpty()))
+            emit(pagedList)
+        }
+    }
 
+    // TODO - Refactor MediatorLiveData to Coroutine Flow - https://kotlinlang.org/docs/reference/coroutines/flow.html
     /**
      * Get audiocast player for PlayerNotificationManager in [AudioService].
      *
@@ -259,8 +207,7 @@ class ContentViewModel : ViewModel() {
      * @return MediatorLiveData<Event<ContentPlayer>> audio player
      */
     private fun getAudioPlayer(contentId: String, filePath: String, imageUrl: String) =
-            getContentUri(contentId, filePath).combinePlayerData(
-                    bitmapToByteArray(imageUrl)) { a, b ->
+            getContentUri(contentId, filePath).combinePlayerData(bitmapToByteArray(imageUrl)) { a, b ->
                 Event(ContentPlayer(
                         uri = a.peekEvent().uri,
                         image = b.peekEvent().image,
@@ -304,18 +251,17 @@ class ContentViewModel : ViewModel() {
      * @param filePath String Google Cloud Storage location
      * @return LiveData<(Event<ContentUri>?)> content mp3 file
      */
-    private fun getContentUri(contentId: String, filePath: String) =
-            switchMap(ContentRepository.getContentUri(contentId, filePath)) { lce ->
-                liveData {
-                    when (lce) {
-                        is Lce.Content -> emit(Event(ContentUri(lce.packet.uri, "")))
-                        is Error -> {
-                            Crashlytics.log(Log.ERROR, LOG_TAG, lce.packet.errorMessage)
-                            emit(Event(ContentUri(lce.packet.uri, lce.packet.errorMessage)))
-                        }
-                    }
+    private fun getContentUri(contentId: String, filePath: String) = liveData {
+        ContentRepository.getContentUri(contentId, filePath).collect { lce ->
+            when (lce) {
+                is Lce.Content -> emit(Event(ContentUri(lce.packet.uri, "")))
+                is Error -> {
+                    Crashlytics.log(Log.ERROR, LOG_TAG, lce.packet.errorMessage)
+                    emit(Event(ContentUri(lce.packet.uri, lce.packet.errorMessage)))
                 }
             }
+        }
+    }
 
     /**
      * Converts content image Bitmap preview to ByteArray
@@ -324,19 +270,16 @@ class ContentViewModel : ViewModel() {
      * @return LiveData<(Event<ContentBitmap>?)> content preview image as ByteArray
      */
     private fun bitmapToByteArray(url: String) = liveData {
-        emitSource(switchMap(ContentRepository.bitmapToByteArray(url)) { lce ->
-            liveData {
-                when (lce) {
-                    is Lce.Content -> emit(Event(ContentBitmap(
-                            lce.packet.image, lce.packet.errorMessage)))
-                    is Error -> {
-                        Crashlytics.log(Log.WARN, LOG_TAG,
-                                "bitmapToByteArray error or null - ${lce.packet.errorMessage}")
-                        emit(Event(ContentBitmap(lce.packet.image, lce.packet.errorMessage)))
-                    }
+        ContentRepository.bitmapToByteArray(url).collect { lce ->
+            when (lce) {
+                is Lce.Content -> emit(Event(ContentBitmap(lce.packet.image, lce.packet.errorMessage)))
+                is Error -> {
+                    Crashlytics.log(Log.WARN, LOG_TAG,
+                            "bitmapToByteArray error or null - ${lce.packet.errorMessage}")
+                    emit(Event(ContentBitmap(lce.packet.image, lce.packet.errorMessage)))
                 }
             }
-        })
+        }
     }
 
     /**
@@ -347,7 +290,7 @@ class ContentViewModel : ViewModel() {
      * @return String combined error message
      */
     private fun getAudioPlayerErrors(a: Event<ContentUri>, b: Event<ContentBitmap>) =
-            a.peekEvent()!!.errorMessage.apply { if (this.isNotEmpty()) this }.apply {
+            a.peekEvent().errorMessage.apply { if (this.isNotEmpty()) this }.apply {
                 b.peekEvent().errorMessage.also {
                     if (it.isNotEmpty()) this.plus(" " + it)
                 }

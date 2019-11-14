@@ -40,6 +40,9 @@ const val SIGNIN_TYPE_KEY = "signInTypeKey"
 // Content
 val CONTENT_REQUEST_NETWORK_ERROR = getInstance().getString("content_request_network_error")
 val CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR = getInstance().getString("content_swipe_to_refresh_network_error")
+val CONTENT_LOGGED_IN_REALTIME_ERROR = "Error retrieving logged in, realtime content_en_collection: "
+val CONTENT_LOGGED_IN_NON_REALTIME_ERROR = "Error retrieving logged in, non-realtime content_en_collection: "
+val CONTENT_LOGGED_OUT_NON_REALTIME_ERROR = "Error retrieving logged out, non-realtime content_en_collection: "
 val CONTENT_PLAY_ERROR = getInstance().getString("content_play_error")
 val TTS_CHAR_LIMIT_ERROR = getInstance().getString("tts_char_limit_error")
 val TTS_CHAR_LIMIT_ERROR_MESSAGE = getInstance().getString("tts_char_limit_error_message")

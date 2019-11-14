@@ -31,8 +31,8 @@ import app.coinverse.analytics.Analytics.setCurrentScreen
 import app.coinverse.content.adapter.ContentAdapter
 import app.coinverse.content.adapter.ItemTouchHelper
 import app.coinverse.content.models.ContentToPlay
-import app.coinverse.content.models.ContentViewEvent
-import app.coinverse.content.models.ContentViewEvent.*
+import app.coinverse.content.models.ContentViewEvents
+import app.coinverse.content.models.ContentViewEvents.*
 import app.coinverse.content.models.FeedViewState
 import app.coinverse.databinding.FragmentContentBinding
 import app.coinverse.home.HomeViewModel
@@ -57,8 +57,8 @@ import kotlinx.android.synthetic.main.fragment_content.*
 private val LOG_TAG = ContentFragment::class.java.simpleName
 
 class ContentFragment : Fragment() {
-    private val viewEvent: LiveData<Event<ContentViewEvent>> get() = _viewEvent
-    private val _viewEvent = MutableLiveData<Event<ContentViewEvent>>()
+    private val viewEvent: LiveData<Event<ContentViewEvents>> get() = _viewEvent
+    private val _viewEvent = MutableLiveData<Event<ContentViewEvents>>()
     private lateinit var feedType: FeedType
     private lateinit var binding: FragmentContentBinding
     private lateinit var contentViewModel: ContentViewModel

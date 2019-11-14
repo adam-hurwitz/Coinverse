@@ -36,6 +36,14 @@ import kotlinx.android.synthetic.main.toolbar.*
 
 private val LOG_TAG = UserFragment::class.java.simpleName
 
+/**
+ * TODO - Refactor with Unidirectional Data Flow.
+ *  See [ContentFragment]
+ *  https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
+ *
+ * TODO - Refactor addOnCompleteListeners to await() coroutine.
+ * See [ContentRepository]
+ */
 class UserFragment : Fragment() {
     private lateinit var binding: FragmentUserBinding
     private lateinit var userViewModel: UserViewModel

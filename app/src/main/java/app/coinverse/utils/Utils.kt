@@ -11,12 +11,30 @@ import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.toBitmap
 import androidx.navigation.ui.R.id.snackbar_text
+import androidx.paging.Config
 import app.coinverse.R.color
 import app.coinverse.R.drawable.*
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.QuerySnapshot
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 lateinit var resourcesUtil: Resources
+
+suspend fun Query.awaitRealtime() = suspendCancellableCoroutine<QuerySnapshot?> { continuation ->
+    addSnapshotListener({ value, error ->
+        if (error == null && continuation.isActive && !value!!.isEmpty) {
+            continuation.resume(value)
+        }
+    })
+}
+
+val pagedListConfig = Config(
+        enablePlaceholders = true,
+        prefetchDistance = PREFETCH_DISTANCE,
+        pageSize = PAGE_SIZE)
 
 fun convertDpToPx(dp: Int) = Math.round(dp * (resourcesUtil.displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT))
 

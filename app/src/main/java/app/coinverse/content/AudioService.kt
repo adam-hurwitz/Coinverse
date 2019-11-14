@@ -41,6 +41,10 @@ import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 import com.google.android.exoplayer2.video.VideoRendererEventListener
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 private val LOG_TAG = AudioService::class.java.simpleName
 
@@ -194,8 +198,17 @@ class AudioService : Service() {
             if (player?.currentPosition!! > 0L && newSeekPositionMillis > seekToPositionMillis
                     && playOrPausePressed == false && playbackState == Player.STATE_BUFFERING)
                 seekToPositionMillis = newSeekPositionMillis.toInt()
-            updateActionsAndAnalytics(content, getWatchPercent(player?.currentPosition!!.toDouble(),
-                            seekToPositionMillis.toDouble(), player?.duration!!.toDouble()))
+            val job = CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    updateActionsAndAnalytics(content,
+                            getWatchPercent(player?.currentPosition!!.toDouble(),
+                                    seekToPositionMillis.toDouble(), player?.duration!!.toDouble()))
+                } catch (error: Exception) {
+                    this.cancel()
+                    Crashlytics.log(Log.ERROR, LOG_TAG, "Audio error: ${error.localizedMessage}")
+                }
+            }
+            job.invokeOnCompletion { job.cancel() }
         }
 
         override fun onPositionDiscontinuity(@Player.DiscontinuityReason reason: Int) {

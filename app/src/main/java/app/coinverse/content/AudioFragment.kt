@@ -37,8 +37,8 @@ import androidx.lifecycle.ViewModelProviders
 import app.coinverse.R.string.*
 import app.coinverse.analytics.Analytics.setCurrentScreen
 import app.coinverse.content.models.ContentToPlay
-import app.coinverse.content.models.ContentViewEvent
-import app.coinverse.content.models.ContentViewEvent.AudioPlayerLoad
+import app.coinverse.content.models.ContentViewEvents
+import app.coinverse.content.models.ContentViewEvents.AudioPlayerLoad
 import app.coinverse.databinding.FragmentAudioDialogBinding
 import app.coinverse.utils.*
 import app.coinverse.utils.PlayerActionType.*
@@ -55,9 +55,14 @@ import kotlinx.android.synthetic.main.fragment_audio_dialog.*
 
 private val LOG_TAG = AudioFragment::class.java.simpleName
 
+/**
+ * TODO - Refactor with Unidirectional Data Flow.
+ *  See [ContentFragment]
+ *  https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
+ **/
 class AudioFragment : Fragment() {
-    private val viewEvent: LiveData<Event<ContentViewEvent>> get() = _viewEvent
-    private val _viewEvent = MutableLiveData<Event<ContentViewEvent>>()
+    private val viewEvent: LiveData<Event<ContentViewEvents>> get() = _viewEvent
+    private val _viewEvent = MutableLiveData<Event<ContentViewEvents>>()
     private var player: SimpleExoPlayer? = null
     private lateinit var contentToPlay: ContentToPlay
     private lateinit var contentViewModel: ContentViewModel

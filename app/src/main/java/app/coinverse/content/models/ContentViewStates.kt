@@ -123,8 +123,7 @@ data class ContentToPlay(var position: Int,
             parcel.readInt(),
             parcel.readParcelable(Content::class.java.classLoader)!!,
             parcel.readString(),
-            parcel.readString()!!) {
-    }
+            parcel.readString()!!)
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeInt(position)
@@ -149,9 +148,12 @@ data class ContentToPlay(var position: Int,
 }
 
 data class ContentLabeled(val position: Int, val errorMessage: String)
-data class PagedListResult(val pagedList: LiveData<PagedList<Content>>?, val errorMessage: String)
+data class PagedListResult(val pagedList: LiveData<PagedList<Content>>?,
+                           val errorMessage: String)
+
 data class ContentUri(val uri: Uri, val errorMessage: String)
-data class ContentBitmap(val image: ByteArray = ByteArray(0), val errorMessage: String = "")
+data class ContentBitmap(val image: ByteArray = ByteArray(0),
+                         val errorMessage: String = "")
 
 data class ContentPlayer(val uri: Uri, val image: ByteArray, val errorMessage: String) : Parcelable {
     constructor(parcel: Parcel) : this(

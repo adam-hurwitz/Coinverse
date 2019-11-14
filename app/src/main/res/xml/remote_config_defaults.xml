@@ -15,7 +15,9 @@
     </entry>
     <entry>
         <key>support_body</key>
-        <value>Thank you for helping to improve Coinverse! Please include a video using AZ Screen Recorder / your app of choice, or a screenshot. I will take a look at the issue as soon as possible. - Adam, Coinverse Founder
+        <value>Thank you for helping to improve Coinverse! Please include a video using AZ Screen
+            Recorder / your app of choice, or a screenshot. I will take a look at the issue as soon
+            as possible. - Adam, Coinverse Founder
         </value>
     </entry>
     <entry>
@@ -40,7 +42,8 @@
     </entry>
     <entry>
         <key>privacy_policy_link</key>
-        <value>https://www.freeprivacypolicy.com/privacy/view/8a8fefa768125d2ccea009d01569a613</value>
+        <value>https://www.freeprivacypolicy.com/privacy/view/8a8fefa768125d2ccea009d01569a613
+        </value>
     </entry>
     <entry>
         <key>saved_bottom_sheet_peek_height</key>
@@ -132,11 +135,11 @@
     </entry>
     <entry>
         <key>content_request_network_error</key>
-        <value>Unable to update feed. Swipe to refresh to try again!</value>
+        <value>Unable to update feed. Please try again later!</value>
     </entry>
     <entry>
         <key>content_swipe_to_refresh_network_error</key>
-        <value>Unable to update feed. Please try again later!</value>
+        <value>Unable to update feed. Swipe to refresh to try again!</value>
     </entry>
     <entry>
         <key>content_play_error</key>
@@ -216,15 +219,15 @@
     </entry>
     <entry>
         <key>audiocast_share_message</key>
-        <value> | audiocast: </value>
+        <value>| audiocast:</value>
     </entry>
     <entry>
         <key>video_share_message</key>
-        <value> | video: </value>
+        <value>| video:</value>
     </entry>
     <entry>
         <key>source_share_message</key>
-        <value> | source: </value>
+        <value>| source:</value>
     </entry>
     <entry>
         <key>youtube_id_regex</key>

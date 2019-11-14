@@ -8,11 +8,8 @@ import app.coinverse.content.ContentRepository.editContentLabels
 import app.coinverse.content.ContentRepository.getMainFeedList
 import app.coinverse.content.ContentRepository.queryLabeledContentList
 import app.coinverse.content.ContentViewModel
-import app.coinverse.content.models.ContentSwipedEffect
-import app.coinverse.content.models.ContentViewEvent.*
-import app.coinverse.content.models.NotifyItemChangedEffect
-import app.coinverse.content.models.SignInEffect
-import app.coinverse.content.models.SnackBarEffect
+import app.coinverse.content.models.ContentEffectType.*
+import app.coinverse.content.models.ContentViewEvents.*
 import app.coinverse.contentviewmodel.*
 import app.coinverse.home.HomeViewModel
 import app.coinverse.utils.*
@@ -23,24 +20,17 @@ import com.crashlytics.android.Crashlytics
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import io.mockk.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.newSingleThreadContext
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.runBlockingTest
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
-@ExtendWith(InstantExecutorExtension::class)
-class LabelContentTests {
-    private val mainThreadSurrogate = newSingleThreadContext(UI_THREAD)
-    private val contentViewModel = ContentViewModel()
+@ExtendWith(ContentTestExtension::class)
+class LabelContentTests(val testDispatcher: TestCoroutineDispatcher,
+                        val contentViewModel: ContentViewModel) {
 
     private fun LabelContent() = labelContentTestCases()
 
@@ -54,31 +44,15 @@ class LabelContentTests {
 
         // Coinverse
         mockkObject(Analytics)
-        mockkObject(ContentRepository)
-    }
-
-    @AfterAll
-    fun afterAll() {
-        unmockkAll() // Re-assigns transformation of object to original state prior to mock.
-    }
-
-    @BeforeEach
-    fun beforeEach() {
-        Dispatchers.setMain(mainThreadSurrogate)
-    }
-
-    @AfterEach
-    fun afterEach() {
-        Dispatchers.resetMain() // Reset main dispatcher to the original Main dispatcher.
-        mainThreadSurrogate.close()
     }
 
     @ParameterizedTest
     @MethodSource("LabelContent")
-    fun `Label Content`(test: LabelContentTest) = runBlocking {
+    fun `Label Content`(test: LabelContentTest) = testDispatcher.runBlockingTest {
         mockComponents(test)
         FeedLoad(test.feedType, test.timeframe, false).also { event ->
             contentViewModel.processEvent(event)
+            assertContentList(test)
         }
         ContentSwipeDrawed(test.isDrawed).also { event ->
             contentViewModel.processEvent(event)
@@ -89,6 +63,12 @@ class LabelContentTests {
             assertContentLabeled(test)
         }
         verifyTests(test)
+    }
+
+    private fun assertContentList(test: LabelContentTest) {
+        contentViewModel.feedViewState().contentList.getOrAwaitValue().also { pagedList ->
+            assertThat(pagedList).isEqualTo(test.mockFeedList)
+        }
     }
 
     private fun assertEnableSwipeToRefresh() {
@@ -116,23 +96,16 @@ class LabelContentTests {
                 if (test.isUserSignedIn) {
                     when (test.lceState) {
                         CONTENT -> {
-                            assertThat(contentViewModel.feedViewState().contentLabeled
-                                    .observe())
+                            assertThat(contentViewModel.feedViewState().contentLabeled.observe())
                                     .isEqualTo(app.coinverse.content.models.ContentLabeled(
-                                            position = test.adapterPosition,
-                                            errorMessage = ""))
-                            assertThat(contentViewModel.viewEffects().notifyItemChanged
-                                    .observe())
-                                    .isEqualTo(NotifyItemChangedEffect(
-                                            position = test.adapterPosition))
+                                            position = test.adapterPosition, errorMessage = ""))
+                            assertThat(contentViewModel.viewEffects().notifyItemChanged.observe())
+                                    .isEqualTo(NotifyItemChangedEffect(position = test.adapterPosition))
                         }
                         ERROR -> {
-                            assertThat(contentViewModel.feedViewState().contentLabeled
-                                    .observe()).isNull()
-                            assertThat(contentViewModel.viewEffects().snackBar
-                                    .observe())
-                                    .isEqualTo(SnackBarEffect(
-                                            text = MOCK_CONTENT_LABEL_ERROR))
+                            assertThat(contentViewModel.feedViewState().contentLabeled.observe()).isNull()
+                            assertThat(contentViewModel.viewEffects().snackBar.observe())
+                                    .isEqualTo(SnackBarEffect(text = MOCK_CONTENT_LABEL_ERROR))
                         }
                     }
                 } else {
@@ -157,11 +130,10 @@ class LabelContentTests {
         // Coinverse
 
         // ContentRepository
-        every { getMainFeedList(test.isRealtime, any()) } returns mockGetMainFeedList(
+        coEvery { getMainFeedList(test.isRealtime, any()) } returns mockGetMainFeedList(
                 test.mockFeedList, CONTENT)
         every {
-            editContentLabels(test.feedType, test.actionType, test.mockContent,
-                    any(), test.adapterPosition)
+            editContentLabels(test.feedType, test.actionType, test.mockContent, any(), test.adapterPosition)
         } returns mockEditContentLabels(test)
         every { labelContentFirebaseAnalytics(test.mockContent) } returns mockk(relaxed = true)
         every {
@@ -169,7 +141,7 @@ class LabelContentTests {
         } returns mockk(relaxed = true)
         every {
             queryLabeledContentList(test.feedType)
-        } returns mockQueryMainContentList(test.mockFeedList)
+        } returns mockQueryMainContentListFlow(test.mockFeedList)
 
         // FirebaseRemoteConfig - Constant values
         mockkStatic(CONSTANTS_CLASS_COMPILED_JAVA)
@@ -178,10 +150,8 @@ class LabelContentTests {
 
     private fun verifyTests(test: LabelContentTest) {
         coVerify {
-            if (test.isUserSignedIn) {
-                editContentLabels(test.feedType, test.actionType, test.mockContent,
-                        any(), test.adapterPosition)
-            }
+            if (test.isUserSignedIn)
+                editContentLabels(test.feedType, test.actionType, test.mockContent, any(), test.adapterPosition)
             when (test.feedType) {
                 MAIN -> getMainFeedList(test.isRealtime, any())
                 SAVED, DISMISSED -> queryLabeledContentList(test.feedType)

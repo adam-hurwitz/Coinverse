@@ -16,9 +16,11 @@ private val LOG_TAG = UserViewModel::class.java.simpleName
  *  See [ContentViewModel]
  *  https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
  **/
+
 class UserViewModel : ViewModel() {
     fun deleteUser(user: FirebaseUser) =
             MutableLiveData<Event<Status>>().apply {
+                // TODO - Refactor addOnCompleteListeners to await() coroutine. See [ContentRepository]
                 deleteUserCall(user).addOnCompleteListener { task ->
                     if (task.isSuccessful) this.value = Event(SUCCESS)
                     else {

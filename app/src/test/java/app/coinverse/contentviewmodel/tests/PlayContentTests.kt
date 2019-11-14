@@ -10,8 +10,12 @@ import app.coinverse.content.ContentRepository.getContentUri
 import app.coinverse.content.ContentRepository.getMainFeedList
 import app.coinverse.content.ContentRepository.queryLabeledContentList
 import app.coinverse.content.ContentViewModel
-import app.coinverse.content.models.*
-import app.coinverse.content.models.ContentViewEvent.*
+import app.coinverse.content.models.Content
+import app.coinverse.content.models.ContentEffectType.NotifyItemChangedEffect
+import app.coinverse.content.models.ContentEffectType.SnackBarEffect
+import app.coinverse.content.models.ContentPlayer
+import app.coinverse.content.models.ContentToPlay
+import app.coinverse.content.models.ContentViewEvents.*
 import app.coinverse.contentviewmodel.*
 import app.coinverse.home.HomeViewModel
 import app.coinverse.utils.*
@@ -23,62 +27,36 @@ import com.crashlytics.android.Crashlytics
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import io.mockk.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.newSingleThreadContext
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.runBlockingTest
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
-@ExtendWith(InstantExecutorExtension::class)
-class PlayContentTests {
-    private val mainThreadSurrogate = newSingleThreadContext(UI_THREAD)
-    private val contentViewModel = ContentViewModel()
+@ExtendWith(ContentTestExtension::class)
+class PlayContentTests(val testDispatcher: TestCoroutineDispatcher,
+                       val contentViewModel: ContentViewModel) {
 
     private fun PlayContent() = playContentTestCases()
 
     @BeforeAll
     fun beforeAll() {
-
         // Android libraries
         mockkStatic(FirebaseAuth::class)
         mockkStatic(FirebaseRemoteConfig::class)
         mockkStatic(Crashlytics::class)
         mockkStatic(Uri::class)
-
-        // Coinverse
-        mockkObject(ContentRepository)
-    }
-
-    @AfterAll
-    fun afterAll() {
-        unmockkAll() // Re-assigns transformation of object to original state prior to mock.
-    }
-
-    @BeforeEach
-    fun beforeEach() {
-        Dispatchers.setMain(mainThreadSurrogate)
-    }
-
-    @AfterEach
-    fun afterEach() {
-        Dispatchers.resetMain() // Reset main dispatcher to the original Main dispatcher.
-        mainThreadSurrogate.close()
     }
 
     @ParameterizedTest
     @MethodSource("PlayContent")
-    fun `Play Content`(test: PlayContentTest) = runBlocking {
+    fun `Play Content`(test: PlayContentTest) = testDispatcher.runBlockingTest {
         mockComponents(test)
         FeedLoad(test.feedType, test.timeframe, false).also { event ->
             contentViewModel.processEvent(event)
+            assertContentList(test)
         }
         ContentSelected(test.mockPosition, test.mockContent).also { event ->
             contentViewModel.processEvent(event)
@@ -104,11 +82,12 @@ class PlayContentTests {
         // Coinverse
 
         // ContentRepository
-        every { getMainFeedList(test.isRealtime, any()) } returns mockGetMainFeedList(
-                test.mockFeedList, CONTENT)
+        coEvery {
+            getMainFeedList(test.isRealtime, any())
+        } returns mockGetMainFeedList(test.mockFeedList, CONTENT)
         every {
             queryLabeledContentList(test.feedType)
-        } returns mockQueryMainContentList(test.mockFeedList)
+        } returns mockQueryMainContentListFlow(test.mockFeedList)
         every {
             getAudiocast(ContentSelected(test.mockPosition, test.mockContent))
         } returns mockGetAudiocast(test)
@@ -122,6 +101,12 @@ class PlayContentTests {
         every { TTS_CHAR_LIMIT_ERROR } returns MOCK_TTS_CHAR_LIMIT_ERROR
         every { TTS_CHAR_LIMIT_ERROR_MESSAGE } returns MOCK_TTS_CHAR_LIMIT_ERROR_MESSAGE
         every { CONTENT_PLAY_ERROR } returns MOCK_CONTENT_PLAY_ERROR
+    }
+
+    private fun assertContentList(test: PlayContentTest) {
+        contentViewModel.feedViewState().contentList.getOrAwaitValue().also { pagedList ->
+            assertThat(pagedList).isEqualTo(test.mockFeedList)
+        }
     }
 
     private fun assertContentSelected(test: PlayContentTest) {
@@ -240,8 +225,10 @@ class PlayContentTests {
             }
             if (test.mockContent.contentType == ARTICLE) {
                 getAudiocast(ContentSelected(test.mockPosition, test.mockContent))
-                getContentUri(test.mockContent.id, test.mockFilePath)
-                if (test.lceState != LOADING) bitmapToByteArray(test.mockPreviewImageUrl)
+                if (test.lceState != LOADING) {
+                    getContentUri(test.mockContent.id, test.mockFilePath)
+                    bitmapToByteArray(test.mockPreviewImageUrl)
+                }
             }
         }
         confirmVerified(ContentRepository)

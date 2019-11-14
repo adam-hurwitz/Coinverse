@@ -13,8 +13,8 @@ import androidx.recyclerview.widget.RecyclerView
 import app.coinverse.R.id.*
 import app.coinverse.content.ContentViewModel
 import app.coinverse.content.models.Content
-import app.coinverse.content.models.ContentViewEvent
-import app.coinverse.content.models.ContentViewEvent.*
+import app.coinverse.content.models.ContentViewEvents
+import app.coinverse.content.models.ContentViewEvents.*
 import app.coinverse.databinding.CellContentBinding.inflate
 import app.coinverse.utils.ADAPTER_POSITION_KEY
 import app.coinverse.utils.livedata.Event
@@ -31,7 +31,7 @@ private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Content>() {
 }
 
 class ContentAdapter(val contentViewModel: ContentViewModel,
-                     val _contentViewEvent: MutableLiveData<Event<ContentViewEvent>>)
+                     val _contentViewEvent: MutableLiveData<Event<ContentViewEvents>>)
     : PagedListAdapter<Content, ContentAdapter.ViewHolder>(DIFF_CALLBACK) {
 
     val contentSelected: LiveData<Event<ContentSelected>> get() = _contentSelected
