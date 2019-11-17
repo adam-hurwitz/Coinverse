@@ -16,6 +16,7 @@ import app.coinverse.R.color
 import app.coinverse.R.drawable.*
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -23,11 +24,14 @@ import kotlin.coroutines.resume
 
 lateinit var resourcesUtil: Resources
 
-suspend fun Query.awaitRealtime() = suspendCancellableCoroutine<QuerySnapshot?> { continuation ->
+data class QueryResponse(val packet: QuerySnapshot?, val error: FirebaseFirestoreException?)
+
+suspend fun Query.awaitRealtime() = suspendCancellableCoroutine<QueryResponse> { continuation ->
     addSnapshotListener({ value, error ->
-        if (error == null && continuation.isActive && !value!!.isEmpty) {
-            continuation.resume(value)
-        }
+        if (error == null && continuation.isActive && !value!!.isEmpty)
+            continuation.resume(QueryResponse(value, null))
+        else if (error != null && continuation.isActive)
+            continuation.resume(QueryResponse(null, error))
     })
 }
 
@@ -70,10 +74,9 @@ fun snackbarWithText(res: String, rootView: View) {
     }.show()
 }
 
-fun ByteArray.byteArrayToBitmap(context: Context) =
-        run {
-            BitmapFactory.decodeByteArray(this, BITMAP_OFFSET, size).run {
-                if (this != null) this
-                else AppCompatResources.getDrawable(context, ic_coinverse_48dp)?.toBitmap()
-            }
-        }
+fun ByteArray.byteArrayToBitmap(context: Context) = run {
+    BitmapFactory.decodeByteArray(this, BITMAP_OFFSET, size).run {
+        if (this != null) this
+        else AppCompatResources.getDrawable(context, ic_coinverse_48dp)?.toBitmap()
+    }
+}

@@ -3,9 +3,9 @@ package app.coinverse.utils
 import android.database.Cursor
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
+import androidx.paging.Config
 import androidx.paging.DataSource
 import androidx.paging.LivePagedListBuilder
-import androidx.paging.PagedList
 import androidx.room.RoomDatabase
 import androidx.room.RoomSQLiteQuery
 import androidx.room.paging.LimitOffsetDataSource
@@ -77,18 +77,11 @@ fun <T> LiveData<T>.observeForTesting(block: () -> Unit) {
     }
 }
 
-// Mock PagedList.
-// TODO - Refactor
-fun <T> List<T>.asPagedList(config: PagedList.Config? = null) =
-        LivePagedListBuilder<Int, T>(createMockDataSourceFactory(this),
-                config ?: PagedList.Config.Builder()
-                        .setEnablePlaceholders(false)
-                        .setPageSize(1)
-                        .setPageSize(if (this.isEmpty()) 1 else size)
-                        .setMaxSize((if (this.isEmpty()) 1 else size) + 2)
-                        .setPrefetchDistance(1)
-                        .build())
-                .build().getOrAwaitValue()
+fun <T> List<T>.asPagedList() = LivePagedListBuilder<Int, T>(createMockDataSourceFactory(this),
+        Config(enablePlaceholders = false,
+                prefetchDistance = 24,
+                pageSize = if (size == 0) 1 else size))
+        .build().getOrAwaitValue()
 
 private fun <T> createMockDataSourceFactory(itemList: List<T>): DataSource.Factory<Int, T> =
         object : DataSource.Factory<Int, T>() {
@@ -97,9 +90,8 @@ private fun <T> createMockDataSourceFactory(itemList: List<T>): DataSource.Facto
 
 private val mockQuery = mockk<RoomSQLiteQuery> { every { sql } returns "" }
 
-private val mockDb = mockk<RoomDatabase> {
-    every { invalidationTracker } returns mockk(relaxUnitFun = true)
-}
+private val mockDb =
+        mockk<RoomDatabase> { every { invalidationTracker } returns mockk(relaxUnitFun = true) }
 
 class MockLimitDataSource<T>(private val itemList: List<T>)
     : LimitOffsetDataSource<T>(mockDb, mockQuery, false, null) {

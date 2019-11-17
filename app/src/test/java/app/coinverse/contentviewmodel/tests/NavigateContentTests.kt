@@ -6,8 +6,12 @@ import app.coinverse.content.ContentRepository.queryLabeledContentList
 import app.coinverse.content.ContentViewModel
 import app.coinverse.content.models.ContentEffectType.OpenContentSourceIntentEffect
 import app.coinverse.content.models.ContentEffectType.UpdateAdsEffect
-import app.coinverse.content.models.ContentViewEvents.*
-import app.coinverse.contentviewmodel.*
+import app.coinverse.content.models.ContentViewEventType.*
+import app.coinverse.contentviewmodel.NavigateContentTest
+import app.coinverse.contentviewmodel.mockGetContent
+import app.coinverse.contentviewmodel.mockGetMainFeedList
+import app.coinverse.contentviewmodel.mockQueryMainContentListFlow
+import app.coinverse.contentviewmodel.testCases.navigateContentTestCases
 import app.coinverse.utils.*
 import app.coinverse.utils.FeedType.*
 import app.coinverse.utils.LCE_STATE.CONTENT
@@ -32,23 +36,23 @@ class NavigateContentTests(val testDispatcher: TestCoroutineDispatcher,
     fun `Navigate Content`(test: NavigateContentTest) = testDispatcher.runBlockingTest {
         mockComponents(test)
         FeedLoad(test.feedType, test.timeframe, false).also { event ->
-            contentViewModel.processEvent(event)
+            contentViewModel.feedLoad(event)
             assertContentList(test)
         }
         ContentShared(test.mockContent).also { event ->
-            contentViewModel.processEvent(event)
+            contentViewModel.contentShared(event)
             assertThat(contentViewModel.viewEffects().shareContentIntent.observe()
                     .contentRequest.observe())
                     .isEqualTo(test.mockContent)
         }
         ContentSourceOpened(test.mockContent.url).also { event ->
-            contentViewModel.processEvent(event)
+            contentViewModel.contentSourceOpened(event)
             assertThat(contentViewModel.viewEffects().openContentSourceIntent.observe())
                     .isEqualTo(OpenContentSourceIntentEffect(test.mockContent.url))
         }
         // Occurs on Fragment 'onViewStateRestored'
         UpdateAds().also { event ->
-            contentViewModel.processEvent(event)
+            contentViewModel.updateAds(event)
             assertThat(contentViewModel.viewEffects().updateAds.observe().javaClass)
                     .isEqualTo(UpdateAdsEffect::class.java)
         }

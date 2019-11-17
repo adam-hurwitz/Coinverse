@@ -54,14 +54,13 @@ object PriceRepository {
                 exchangeOrdersDataMap.clear()
                 index = 0
             }
-            try {
-                contentEthBtcCollection
-                        .orderBy(TIMESTAMP, ASCENDING)
-                        .whereGreaterThan(TIMESTAMP, getTimeframe(timeframe))
-                        .awaitRealtime()?.let { value -> parsePriceData(value!!.documentChanges) }
-            } catch (error: FirebaseFirestoreException) {
-                Log.e(LOG_TAG, "Price Data EventListener Failed.", error)
-            }
+            val response = contentEthBtcCollection
+                    .orderBy(TIMESTAMP, ASCENDING)
+                    .whereGreaterThan(TIMESTAMP, getTimeframe(timeframe))
+                    .awaitRealtime()
+            if (response.error == null)
+                response?.let { value -> parsePriceData(value.packet!!.documentChanges) }
+            else Log.e(LOG_TAG, "Price Data EventListener Failed.", response.error)
         } else {
             try {
                 exchangeOrdersPointsMap.clear()

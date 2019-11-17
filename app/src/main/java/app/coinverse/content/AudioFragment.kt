@@ -30,19 +30,16 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import app.coinverse.R.string.*
 import app.coinverse.analytics.Analytics.setCurrentScreen
 import app.coinverse.content.models.ContentToPlay
+import app.coinverse.content.models.ContentViewEventType.AudioPlayerLoad
 import app.coinverse.content.models.ContentViewEvents
-import app.coinverse.content.models.ContentViewEvents.AudioPlayerLoad
 import app.coinverse.databinding.FragmentAudioDialogBinding
 import app.coinverse.utils.*
 import app.coinverse.utils.PlayerActionType.*
-import app.coinverse.utils.livedata.Event
 import app.coinverse.utils.livedata.EventObserver
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.SimpleExoPlayer
@@ -61,8 +58,7 @@ private val LOG_TAG = AudioFragment::class.java.simpleName
  *  https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
  **/
 class AudioFragment : Fragment() {
-    private val viewEvent: LiveData<Event<ContentViewEvents>> get() = _viewEvent
-    private val _viewEvent = MutableLiveData<Event<ContentViewEvents>>()
+    private lateinit var viewEvents: ContentViewEvents
     private var player: SimpleExoPlayer? = null
     private lateinit var contentToPlay: ContentToPlay
     private lateinit var contentViewModel: ContentViewModel
@@ -84,8 +80,9 @@ class AudioFragment : Fragment() {
         super.onCreate(savedInstanceState)
         contentToPlay = arguments!!.getParcelable(CONTENT_TO_PLAY_KEY)!!
         contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
+        contentViewModel.attachEvents(this)
         if (savedInstanceState == null)
-            _viewEvent.value = Event(AudioPlayerLoad(
+            viewEvents.audioPlayerLoad(AudioPlayerLoad(
                     contentToPlay.content.id, contentToPlay.filePath!!,
                     contentToPlay.content.previewImage))
     }
@@ -110,9 +107,10 @@ class AudioFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         if (player == null && playerView != null) playerView.onResume()
-        viewEvent.observe(viewLifecycleOwner, EventObserver { event ->
-            contentViewModel.processEvent(event)
-        })
+    }
+
+    fun initEvents(viewEvents: ContentViewEvents) {
+        this.viewEvents = viewEvents
     }
 
     private fun setPlayerView() {

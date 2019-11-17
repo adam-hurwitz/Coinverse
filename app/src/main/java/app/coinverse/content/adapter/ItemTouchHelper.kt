@@ -7,7 +7,6 @@ import android.graphics.Paint
 import android.graphics.drawable.ColorDrawable
 import androidx.core.content.ContextCompat.getColor
 import androidx.core.content.ContextCompat.getDrawable
-import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ItemTouchHelper.*
 import androidx.recyclerview.widget.RecyclerView
@@ -16,21 +15,20 @@ import app.coinverse.R.dimen
 import app.coinverse.R.drawable.*
 import app.coinverse.R.string.dismiss
 import app.coinverse.R.string.save
+import app.coinverse.content.models.ContentViewEventType.ContentSwipeDrawed
+import app.coinverse.content.models.ContentViewEventType.ContentSwiped
 import app.coinverse.content.models.ContentViewEvents
-import app.coinverse.content.models.ContentViewEvents.ContentSwipeDrawed
-import app.coinverse.content.models.ContentViewEvents.ContentSwiped
 import app.coinverse.utils.*
 import app.coinverse.utils.FeedType.*
 import app.coinverse.utils.PaymentStatus.FREE
 import app.coinverse.utils.PaymentStatus.PAID
 import app.coinverse.utils.UserActionType.DISMISS
 import app.coinverse.utils.UserActionType.SAVE
-import app.coinverse.utils.livedata.Event
 import com.mopub.nativeads.MoPubRecyclerAdapter
 
 private val LOG_TAG = ItemTouchHelper::class.java.simpleName
 
-class ItemTouchHelper(val _contentViewEvent: MutableLiveData<Event<ContentViewEvents>>) {
+class ItemTouchHelper(val viewEvents: ContentViewEvents) {
 
     fun build(context: Context, paymentStatus: PaymentStatus, feedType: FeedType,
               moPubAdapter: MoPubRecyclerAdapter?) = ItemTouchHelper(object : Callback() {
@@ -49,16 +47,16 @@ class ItemTouchHelper(val _contentViewEvent: MutableLiveData<Event<ContentViewEv
                             target: RecyclerView.ViewHolder) = false
 
         override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-            _contentViewEvent.value = Event(ContentSwiped(
-                    feedType,
-                    if (direction == RIGHT_SWIPE && feedType != SAVED) SAVE else DISMISS,
-                    viewHolder.adapterPosition))
+            viewEvents.contentSwiped(ContentSwiped(
+                    feedType = feedType,
+                    actionType = if (direction == RIGHT_SWIPE && feedType != SAVED) SAVE else DISMISS,
+                    position = viewHolder.adapterPosition))
         }
 
         override fun onChildDraw(c: Canvas, recyclerView: RecyclerView,
                                  viewHolder: RecyclerView.ViewHolder, dX: Float, dY: Float,
                                  actionState: Int, isCurrentlyActive: Boolean) {
-            _contentViewEvent.value = Event(ContentSwipeDrawed(true))
+            viewEvents.contentSwipeDrawed(ContentSwipeDrawed(true))
             if (actionState == ACTION_STATE_SWIPE) {
                 var icon = getDrawable(context, ic_error_black_48dp)
                 val iconLeft: Int

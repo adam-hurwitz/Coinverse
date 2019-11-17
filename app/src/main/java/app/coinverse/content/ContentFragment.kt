@@ -13,8 +13,6 @@ import android.view.animation.AnimationUtils
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources.getDrawable
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
@@ -31,8 +29,8 @@ import app.coinverse.analytics.Analytics.setCurrentScreen
 import app.coinverse.content.adapter.ContentAdapter
 import app.coinverse.content.adapter.ItemTouchHelper
 import app.coinverse.content.models.ContentToPlay
+import app.coinverse.content.models.ContentViewEventType.*
 import app.coinverse.content.models.ContentViewEvents
-import app.coinverse.content.models.ContentViewEvents.*
 import app.coinverse.content.models.FeedViewState
 import app.coinverse.databinding.FragmentContentBinding
 import app.coinverse.home.HomeViewModel
@@ -42,7 +40,6 @@ import app.coinverse.utils.ContentType.YOUTUBE
 import app.coinverse.utils.FeedType.*
 import app.coinverse.utils.PaymentStatus.FREE
 import app.coinverse.utils.SignInType.DIALOG
-import app.coinverse.utils.livedata.Event
 import app.coinverse.utils.livedata.EventObserver
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
@@ -57,8 +54,7 @@ import kotlinx.android.synthetic.main.fragment_content.*
 private val LOG_TAG = ContentFragment::class.java.simpleName
 
 class ContentFragment : Fragment() {
-    private val viewEvent: LiveData<Event<ContentViewEvents>> get() = _viewEvent
-    private val _viewEvent = MutableLiveData<Event<ContentViewEvents>>()
+    private lateinit var viewEvents: ContentViewEvents
     private lateinit var feedType: FeedType
     private lateinit var binding: FragmentContentBinding
     private lateinit var contentViewModel: ContentViewModel
@@ -87,8 +83,7 @@ class ContentFragment : Fragment() {
         super.onViewStateRestored(savedInstanceState)
         if (savedInstanceState != null) {
             savedRecyclerPosition = savedInstanceState.getInt(CONTENT_RECYCLER_VIEW_POSITION)
-            if (homeViewModel.accountType.value == FREE)
-                _viewEvent.value = Event(UpdateAds())
+            if (homeViewModel.accountType.value == FREE) viewEvents.updateAds(UpdateAds())
         }
     }
 
@@ -97,9 +92,12 @@ class ContentFragment : Fragment() {
         getFeedType()
         contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
+        contentViewModel.attachEvents(this)
         if (savedInstanceState == null)
-            _viewEvent.value = Event(FeedLoad(feedType, homeViewModel.timeframe.value!!,
-                    homeViewModel.isRealtime.value!!))
+            viewEvents.feedLoad(FeedLoad(
+                    feedType = feedType,
+                    timeframe = homeViewModel.timeframe.value!!,
+                    isRealtime = homeViewModel.isRealtime.value!!))
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -120,29 +118,26 @@ class ContentFragment : Fragment() {
         observeViewEffects()
     }
 
-    override fun onResume() {
-        super.onResume()
-        viewEvent.observe(viewLifecycleOwner, EventObserver { event ->
-            contentViewModel.processEvent(event)
-        })
-    }
-
     override fun onDestroy() {
         if (homeViewModel.accountType.value == FREE) moPubAdapter.destroy()
         super.onDestroy()
     }
 
     fun swipeToRefresh() {
-        _viewEvent.value = Event(SwipeToRefresh(
+        viewEvents.swipeToRefresh(SwipeToRefresh(
                 feedType, homeViewModel.timeframe.value!!, homeViewModel.isRealtime.value!!))
+    }
+
+    fun initEvents(viewEvents: ContentViewEvents) {
+        this.viewEvents = viewEvents
     }
 
     private fun initAdapters() {
         val paymentStatus = homeViewModel.accountType.value
         contentRecyclerView.layoutManager = LinearLayoutManager(context)
-        adapter = ContentAdapter(contentViewModel, _viewEvent).apply {
+        adapter = ContentAdapter(contentViewModel, viewEvents).apply {
             this.contentSelected.observe(viewLifecycleOwner, EventObserver { contentSelected ->
-                _contentViewEvent.value = Event(ContentSelected(
+                viewEvents.contentSelected(ContentSelected(
                         getAdapterPosition(contentSelected.position), contentSelected.content))
             })
         }
@@ -181,7 +176,7 @@ class ContentFragment : Fragment() {
             moPubAdapter.setContentChangeStrategy(MOVE_ALL_ADS_WITH_CONTENT)
             contentRecyclerView.adapter = moPubAdapter
         } else /* PAID */ contentRecyclerView.adapter = adapter
-        ItemTouchHelper(_viewEvent).apply {
+        ItemTouchHelper(viewEvents).apply {
             this.build(context!!, paymentStatus!!, feedType,
                     if (paymentStatus == FREE) moPubAdapter else null)
                     .attachToRecyclerView(contentRecyclerView)
@@ -193,7 +188,7 @@ class ContentFragment : Fragment() {
             setToolbar(viewState)
             viewState.contentList.observe(viewLifecycleOwner, Observer { pagedList ->
                 adapter.submitList(pagedList)
-                _viewEvent.value = Event(FeedLoadComplete(pagedList.isNotEmpty()))
+                viewEvents.feedLoadComplete(FeedLoadComplete(pagedList.isNotEmpty()))
                 if (pagedList.isNotEmpty())
                     if (savedRecyclerPosition != 0) {
                         contentRecyclerView.layoutManager?.scrollToPosition(
@@ -247,13 +242,13 @@ class ContentFragment : Fragment() {
             })
             effect.contentSwiped.observe(viewLifecycleOwner, EventObserver {
                 FirebaseAuth.getInstance().currentUser.let { user ->
-                    _viewEvent.value = Event(ContentLabeled(
-                            feedType,
-                            it.actionType,
-                            user,
-                            getAdapterPosition(it.position),
-                            adapter.getContent(getAdapterPosition(it.position)),
-                            if (feedType == MAIN) adapter.itemCount == 1 else false))
+                    viewEvents.contentLabeled(ContentLabeled(
+                            feedType = feedType,
+                            actionType = it.actionType,
+                            user = user,
+                            position = getAdapterPosition(it.position),
+                            content = adapter.getContent(getAdapterPosition(it.position)),
+                            isMainFeedEmptied = if (feedType == MAIN) adapter.itemCount == 1 else false))
                 }
             })
             effect.snackBar.observe(viewLifecycleOwner, EventObserver {
@@ -400,7 +395,7 @@ class ContentFragment : Fragment() {
     private fun openContentFromNotification() {
         if (openContentFromNotification)
             openContentFromNotificationContentToPlay?.let {
-                _viewEvent.value = Event(ContentSelected(it.position, it.content))
+                viewEvents.contentSelected(ContentSelected(it.position, it.content))
                 contentRecyclerView.layoutManager?.scrollToPosition(it.position)
                 openContentFromNotification = false
             }

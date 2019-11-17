@@ -3,7 +3,6 @@ package app.coinverse.contentviewmodel
 import android.net.Uri
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
-import androidx.paging.PagedList
 import app.coinverse.content.models.*
 import app.coinverse.utils.*
 import app.coinverse.utils.ContentType.ARTICLE
@@ -34,22 +33,12 @@ fun mockGetMainFeedList(mockFeedList: List<Content>, lceState: LCE_STATE) = flow
     }
 }
 
-// TODO - pagedList builder
 fun mockQueryMainContentListFlow(mockFeedList: List<Content>) = flow {
-    emit(mockFeedList.asPagedList(PagedList.Config.Builder()
-            .setEnablePlaceholders(false)
-            .setPrefetchDistance(24)
-            .setPageSize(12)
-            .build()))
+    emit(mockFeedList.asPagedList())
 }
 
-// TODO - pagedList builder
 fun mockQueryMainContentListLiveData(mockFeedList: List<Content>) = liveData {
-    emit(mockFeedList.asPagedList(PagedList.Config.Builder()
-            .setEnablePlaceholders(false)
-            .setPrefetchDistance(24)
-            .setPageSize(12)
-            .build()))
+    emit(mockFeedList.asPagedList())
 }
 
 fun mockGetAudiocast(test: PlayContentTest) = flow {

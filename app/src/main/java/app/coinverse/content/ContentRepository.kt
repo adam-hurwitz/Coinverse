@@ -10,7 +10,7 @@ import androidx.paging.toLiveData
 import app.coinverse.BuildConfig.BUILD_TYPE
 import app.coinverse.analytics.models.ContentAction
 import app.coinverse.content.models.*
-import app.coinverse.content.models.ContentViewEvents.ContentSelected
+import app.coinverse.content.models.ContentViewEventType.ContentSelected
 import app.coinverse.content.room.CoinverseDatabase.database
 import app.coinverse.firebase.*
 import app.coinverse.utils.*
@@ -51,11 +51,11 @@ object ContentRepository {
         emit(Loading())
         val labeledSet = HashSet<String>()
         if (getInstance().currentUser != null && !getInstance().currentUser!!.isAnonymous) {
-            if (isRealtime) getLoggedInAndRealtimeContent(timeframe, labeledSet, this)
-            else getLoggedInNonRealtimeContent(timeframe, labeledSet, this)
             val user = usersDocument.collection(getInstance().currentUser!!.uid)
             syncLabeledContent(user, timeframe, labeledSet, SAVE_COLLECTION, this)
             syncLabeledContent(user, timeframe, labeledSet, DISMISS_COLLECTION, this)
+            if (isRealtime) getLoggedInAndRealtimeContent(timeframe, labeledSet, this)
+            else getLoggedInNonRealtimeContent(timeframe, labeledSet, this)
         } else getLoggedOutNonRealtimeContent(timeframe, this)
     }
 
@@ -232,38 +232,39 @@ object ContentRepository {
 
     private suspend fun syncLabeledContent(user: CollectionReference, timeframe: Timestamp,
                                            labeledSet: HashSet<String>, collection: String,
-                                           lce: FlowCollector<Lce<PagedListResult>>) =
-            try {
-                database.contentDao().insertContentList(
-                        user.document(COLLECTIONS_DOCUMENT)
-                                .collection(collection)
-                                .orderBy(TIMESTAMP, DESCENDING)
-                                .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe)
-                                .awaitRealtime()?.documentChanges?.map { doc ->
-                            doc.document.toObject(Content::class.java).also { content ->
-                                labeledSet.add(content.id)
-                            }
-                        })
-            } catch (error: FirebaseFirestoreException) {
-                lce.emit(Error(PagedListResult(null,
-                        "Error retrieving user save_collection: ${error.localizedMessage}")))
+                                           lce: FlowCollector<Lce<PagedListResult>>) {
+        val response = user.document(COLLECTIONS_DOCUMENT)
+                .collection(collection)
+                .orderBy(TIMESTAMP, DESCENDING)
+                .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe)
+                .awaitRealtime()
+        if (response.error == null) {
+            val contentList = response.packet?.documentChanges?.map { doc ->
+                doc.document.toObject(Content::class.java).also { content ->
+                    labeledSet.add(content.id)
+                }
             }
+            database.contentDao().insertContentList(contentList)
+        } else lce.emit(Error(PagedListResult(null,
+                "Error retrieving user save_collection: ${response.error?.localizedMessage}")))
+    }
 
     private suspend fun getLoggedInAndRealtimeContent(timeframe: Timestamp,
                                                       labeledSet: HashSet<String>,
-                                                      lce: FlowCollector<Lce<PagedListResult>>) =
-            try {
-                database.contentDao().insertContentList(
-                        contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
-                                .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe)
-                                .awaitRealtime()?.documentChanges
-                                ?.map { change -> change.document.toObject(Content::class.java) }
-                                ?.filter { content -> !labeledSet.contains(content.id) })
-                lce.emit(Lce.Content(PagedListResult(queryMainContentList(timeframe), "")))
-            } catch (error: FirebaseFirestoreException) {
-                lce.emit(Error(PagedListResult(null,
-                        CONTENT_LOGGED_IN_REALTIME_ERROR + "${error.localizedMessage}")))
-            }
+                                                      lce: FlowCollector<Lce<PagedListResult>>) {
+
+        val response = contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
+                .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe)
+                .awaitRealtime()
+        if (response.error == null) {
+            val contentList = response.packet?.documentChanges
+                    ?.map { change -> change.document.toObject(Content::class.java) }
+                    ?.filter { content -> !labeledSet.contains(content.id) }
+            database.contentDao().insertContentList(contentList)
+            lce.emit(Lce.Content(PagedListResult(queryMainContentList(timeframe), "")))
+        } else lce.emit(Error(PagedListResult(null,
+                CONTENT_LOGGED_IN_REALTIME_ERROR + "${response.error.localizedMessage}")))
+    }
 
     private suspend fun getLoggedInNonRealtimeContent(timeframe: Timestamp,
                                                       labeledSet: HashSet<String>,

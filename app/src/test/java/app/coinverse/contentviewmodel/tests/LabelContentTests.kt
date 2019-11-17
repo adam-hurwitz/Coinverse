@@ -9,8 +9,12 @@ import app.coinverse.content.ContentRepository.getMainFeedList
 import app.coinverse.content.ContentRepository.queryLabeledContentList
 import app.coinverse.content.ContentViewModel
 import app.coinverse.content.models.ContentEffectType.*
-import app.coinverse.content.models.ContentViewEvents.*
-import app.coinverse.contentviewmodel.*
+import app.coinverse.content.models.ContentViewEventType.*
+import app.coinverse.contentviewmodel.LabelContentTest
+import app.coinverse.contentviewmodel.mockEditContentLabels
+import app.coinverse.contentviewmodel.mockGetMainFeedList
+import app.coinverse.contentviewmodel.mockQueryMainContentListFlow
+import app.coinverse.contentviewmodel.testCases.labelContentTestCases
 import app.coinverse.home.HomeViewModel
 import app.coinverse.utils.*
 import app.coinverse.utils.FeedType.*
@@ -51,15 +55,15 @@ class LabelContentTests(val testDispatcher: TestCoroutineDispatcher,
     fun `Label Content`(test: LabelContentTest) = testDispatcher.runBlockingTest {
         mockComponents(test)
         FeedLoad(test.feedType, test.timeframe, false).also { event ->
-            contentViewModel.processEvent(event)
+            contentViewModel.feedLoad(event)
             assertContentList(test)
         }
         ContentSwipeDrawed(test.isDrawed).also { event ->
-            contentViewModel.processEvent(event)
+            contentViewModel.contentSwipeDrawed(event)
             assertEnableSwipeToRefresh()
         }
         ContentSwiped(test.feedType, test.actionType, test.adapterPosition).also { event ->
-            contentViewModel.processEvent(event)
+            contentViewModel.contentSwiped(event)
             assertContentLabeled(test)
         }
         verifyTests(test)
@@ -92,7 +96,7 @@ class LabelContentTests(val testDispatcher: TestCoroutineDispatcher,
                     position = contentSwipedEffect.position,
                     content = test.mockContent,
                     isMainFeedEmptied = false).also { event ->
-                contentViewModel.processEvent(event)
+                contentViewModel.contentLabeled(event)
                 if (test.isUserSignedIn) {
                     when (test.lceState) {
                         CONTENT -> {
@@ -110,11 +114,10 @@ class LabelContentTests(val testDispatcher: TestCoroutineDispatcher,
                     }
                 } else {
                     contentViewModel.feedViewState().contentLabeled.observe()
-                    assertThat(contentViewModel.viewEffects().notifyItemChanged
-                            .observe())
+                    assertThat(contentViewModel.viewEffects().notifyItemChanged.observe())
                             .isEqualTo(NotifyItemChangedEffect(test.adapterPosition))
-                    assertThat(contentViewModel.viewEffects().signIn
-                            .observe()).isEqualTo(SignInEffect(true))
+                    assertThat(contentViewModel.viewEffects().signIn.observe())
+                            .isEqualTo(SignInEffect(true))
                 }
             }
         }

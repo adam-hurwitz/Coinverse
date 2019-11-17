@@ -1,31 +1,41 @@
 package app.coinverse.content.models
 
+import app.coinverse.content.models.ContentViewEventType.*
 import app.coinverse.utils.FeedType
 import app.coinverse.utils.Timeframe
 import app.coinverse.utils.UserActionType
 import com.google.firebase.auth.FirebaseUser
 
-sealed class ContentViewEvents {
-    data class FeedLoad(val feedType: FeedType, val timeframe: Timeframe, val isRealtime: Boolean)
-        : ContentViewEvents()
+interface ContentViewEvents {
+    fun feedLoad(event: FeedLoad)
+    fun feedLoadComplete(event: FeedLoadComplete)
+    fun audioPlayerLoad(event: AudioPlayerLoad)
+    fun swipeToRefresh(event: SwipeToRefresh)
+    fun contentSelected(event: ContentSelected)
+    fun contentSwipeDrawed(event: ContentSwipeDrawed)
+    fun contentSwiped(event: ContentSwiped)
+    fun contentLabeled(event: ContentViewEventType.ContentLabeled)
+    fun contentShared(event: ContentShared)
+    fun contentSourceOpened(event: ContentSourceOpened)
+    fun updateAds(event: UpdateAds)
+}
 
-    data class FeedLoadComplete(val hasContent: Boolean) : ContentViewEvents()
-    data class AudioPlayerLoad(val contentId: String, val filePath: String, val previewImageUrl: String)
-        : ContentViewEvents()
-
+sealed class ContentViewEventType {
+    data class FeedLoad(val feedType: FeedType, val timeframe: Timeframe, val isRealtime: Boolean) : ContentViewEventType()
+    data class FeedLoadComplete(val hasContent: Boolean) : ContentViewEventType()
+    data class AudioPlayerLoad(val contentId: String, val filePath: String, val previewImageUrl: String) : ContentViewEventType()
     data class SwipeToRefresh(val feedType: FeedType, val timeframe: Timeframe,
-                              val isRealtime: Boolean) : ContentViewEvents()
+                              val isRealtime: Boolean) : ContentViewEventType()
 
-    data class ContentSelected(val position: Int, val content: Content) : ContentViewEvents()
-    data class ContentSwipeDrawed(val isDrawed: Boolean) : ContentViewEvents()
-    data class ContentSwiped(val feedType: FeedType, val actionType: UserActionType, val position: Int)
-        : ContentViewEvents()
+    data class ContentSelected(val position: Int, val content: Content) : ContentViewEventType()
+    data class ContentSwipeDrawed(val isDrawed: Boolean) : ContentViewEventType()
+    data class ContentSwiped(val feedType: FeedType, val actionType: UserActionType, val position: Int) : ContentViewEventType()
 
     data class ContentLabeled(val feedType: FeedType, val actionType: UserActionType,
                               val user: FirebaseUser?, val position: Int, val content: Content?,
-                              val isMainFeedEmptied: Boolean) : ContentViewEvents()
+                              val isMainFeedEmptied: Boolean) : ContentViewEventType()
 
-    data class ContentShared(val content: Content) : ContentViewEvents()
-    data class ContentSourceOpened(val url: String) : ContentViewEvents()
-    class UpdateAds : ContentViewEvents()
+    data class ContentShared(val content: Content) : ContentViewEventType()
+    data class ContentSourceOpened(val url: String) : ContentViewEventType()
+    class UpdateAds : ContentViewEventType()
 }
