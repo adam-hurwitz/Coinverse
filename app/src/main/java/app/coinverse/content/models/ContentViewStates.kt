@@ -5,7 +5,7 @@ import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.liveData
 import androidx.paging.PagedList
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -21,11 +21,11 @@ import java.util.*
 
 data class FeedViewState(val feedType: FeedType = MAIN,
                          val timeframe: Timeframe = DAY,
-                         val toolbar: ToolbarState = ToolbarState(),
-                         val contentList: LiveData<PagedList<Content>> = MutableLiveData(),
-                         val contentToPlay: LiveData<Event<ContentToPlay?>> = MutableLiveData(),
-                         val contentLabeled: LiveData<Event<ContentLabeled?>> = MutableLiveData(),
-                         val notificationBitmap: LiveData<Event<Bitmap>> = MutableLiveData())
+                         val toolbar: ToolbarState,
+                         val contentList: LiveData<PagedList<Content>>,
+                         val contentToPlay: LiveData<Event<ContentToPlay?>> = liveData {},
+                         val contentLabeled: LiveData<Event<ContentLabeled?>> = liveData {},
+                         val notificationBitmap: LiveData<Event<Bitmap>> = liveData {})
 
 data class PlayerViewState(val contentPlayer: LiveData<Event<ContentPlayer>>)
 

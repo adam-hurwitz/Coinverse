@@ -245,8 +245,9 @@ object ContentRepository {
                 }
             }
             database.contentDao().insertContentList(contentList)
-        } else lce.emit(Error(PagedListResult(null,
-                "Error retrieving user save_collection: ${response.error?.localizedMessage}")))
+        } else
+            lce.emit(Error(PagedListResult(null,
+                    "Error retrieving user save_collection: ${response.error?.localizedMessage}")))
     }
 
     private suspend fun getLoggedInAndRealtimeContent(timeframe: Timestamp,
@@ -270,12 +271,12 @@ object ContentRepository {
                                                       labeledSet: HashSet<String>,
                                                       lce: FlowCollector<Lce<PagedListResult>>) =
             try {
-                database.contentDao().insertContentList(
-                        contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
-                                .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe).get().await()
-                                .documentChanges
-                                ?.map { change -> change.document.toObject(Content::class.java) }
-                                ?.filter { content -> !labeledSet.contains(content.id) })
+                val contentList = contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
+                        .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe).get().await()
+                        .documentChanges
+                        ?.map { change -> change.document.toObject(Content::class.java) }
+                        ?.filter { content -> !labeledSet.contains(content.id) }
+                database.contentDao().insertContentList(contentList)
                 lce.emit(Lce.Content(PagedListResult(queryMainContentList(timeframe), "")))
             } catch (error: FirebaseFirestoreException) {
                 lce.emit(Error(PagedListResult(
@@ -286,11 +287,11 @@ object ContentRepository {
     private suspend fun getLoggedOutNonRealtimeContent(timeframe: Timestamp,
                                                        lce: FlowCollector<Lce<PagedListResult>>) =
             try {
-                database.contentDao().insertContentList(
-                        contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
-                                .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe).get().await()
-                                .documentChanges
-                                ?.map { change -> change.document.toObject(Content::class.java) })
+                val contentList = contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
+                        .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe).get().await()
+                        .documentChanges
+                        ?.map { change -> change.document.toObject(Content::class.java) }
+                database.contentDao().insertContentList(contentList)
                 lce.emit(Lce.Content(PagedListResult(queryMainContentList(timeframe), "")))
             } catch (error: FirebaseFirestoreException) {
                 lce.emit(Error(PagedListResult(

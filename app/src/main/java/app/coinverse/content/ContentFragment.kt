@@ -123,13 +123,13 @@ class ContentFragment : Fragment() {
         super.onDestroy()
     }
 
+    fun initEvents(viewEvents: ContentViewEvents) {
+        this.viewEvents = viewEvents
+    }
+
     fun swipeToRefresh() {
         viewEvents.swipeToRefresh(SwipeToRefresh(
                 feedType, homeViewModel.timeframe.value!!, homeViewModel.isRealtime.value!!))
-    }
-
-    fun initEvents(viewEvents: ContentViewEvents) {
-        this.viewEvents = viewEvents
     }
 
     private fun initAdapters() {

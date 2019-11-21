@@ -62,9 +62,7 @@ class ContentViewModel : ViewModel(), ContentViewEvents {
                 toolbar = setToolbar(event.feedType),
                 contentList = getContentList(event, event.feedType, event.isRealtime,
                         getTimeframe(event.timeframe)))
-        _viewEffect.value = ContentEffects(updateAds = liveData {
-            emit(Event(UpdateAdsEffect()))
-        })
+        _viewEffect.value = ContentEffects(updateAds = liveData { emit(Event(UpdateAdsEffect())) })
     }
 
     override fun feedLoadComplete(event: FeedLoadComplete) {

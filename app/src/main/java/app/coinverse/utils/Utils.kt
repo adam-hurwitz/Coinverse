@@ -26,9 +26,10 @@ lateinit var resourcesUtil: Resources
 
 data class QueryResponse(val packet: QuerySnapshot?, val error: FirebaseFirestoreException?)
 
+
 suspend fun Query.awaitRealtime() = suspendCancellableCoroutine<QueryResponse> { continuation ->
     addSnapshotListener({ value, error ->
-        if (error == null && continuation.isActive && !value!!.isEmpty)
+        if (error == null && continuation.isActive)
             continuation.resume(QueryResponse(value, null))
         else if (error != null && continuation.isActive)
             continuation.resume(QueryResponse(null, error))

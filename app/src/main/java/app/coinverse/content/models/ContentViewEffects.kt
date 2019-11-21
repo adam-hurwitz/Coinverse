@@ -9,17 +9,16 @@ import app.coinverse.utils.UserActionType
 import app.coinverse.utils.livedata.Event
 
 data class ContentEffects(
-        val signIn: LiveData<Event<SignInEffect>> = MutableLiveData(),
-        val notifyItemChanged: LiveData<Event<NotifyItemChangedEffect>> = MutableLiveData(),
-        val enableSwipeToRefresh: LiveData<Event<EnableSwipeToRefreshEffect>> = MutableLiveData(),
-        val swipeToRefresh: LiveData<Event<SwipeToRefreshEffect>> = MutableLiveData(),
-        val contentSwiped: LiveData<Event<ContentSwipedEffect>> = MutableLiveData(),
-        val snackBar: LiveData<Event<SnackBarEffect>> = MutableLiveData(),
-        val shareContentIntent: LiveData<Event<ShareContentIntentEffect>> = MutableLiveData(),
-        val openContentSourceIntent: LiveData<Event<OpenContentSourceIntentEffect>> =
-                MutableLiveData(),
-        val screenEmpty: LiveData<Event<ScreenEmptyEffect>> = MutableLiveData(),
-        val updateAds: LiveData<Event<UpdateAdsEffect>> = MutableLiveData())
+        val signIn: LiveData<Event<SignInEffect>> = liveData {},
+        val notifyItemChanged: LiveData<Event<NotifyItemChangedEffect>> = liveData {},
+        val enableSwipeToRefresh: LiveData<Event<EnableSwipeToRefreshEffect>> = liveData {},
+        val swipeToRefresh: LiveData<Event<SwipeToRefreshEffect>> = liveData {},
+        val contentSwiped: LiveData<Event<ContentSwipedEffect>> = liveData {},
+        val snackBar: LiveData<Event<SnackBarEffect>> = liveData {},
+        val shareContentIntent: LiveData<Event<ShareContentIntentEffect>> = liveData {},
+        val openContentSourceIntent: LiveData<Event<OpenContentSourceIntentEffect>> = liveData {},
+        val screenEmpty: LiveData<Event<ScreenEmptyEffect>> = liveData {},
+        val updateAds: LiveData<Event<UpdateAdsEffect>> = liveData {})
 
 sealed class ContentEffectType {
 
