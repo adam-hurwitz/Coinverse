@@ -148,8 +148,7 @@ data class ContentToPlay(var position: Int,
 }
 
 data class ContentLabeled(val position: Int, val errorMessage: String)
-data class PagedListResult(val pagedList: LiveData<PagedList<Content>>?,
-                           val errorMessage: String)
+data class PagedListResult(val pagedList: LiveData<PagedList<Content>>?, val errorMessage: String)
 
 data class ContentUri(val uri: Uri, val errorMessage: String)
 data class ContentBitmap(val image: ByteArray = ByteArray(0),
