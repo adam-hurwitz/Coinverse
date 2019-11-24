@@ -40,6 +40,7 @@ class LabelContentTests(val testDispatcher: TestCoroutineDispatcher,
 
     @BeforeAll
     fun beforeAll() {
+
         // Android libraries
         mockkStatic(FirebaseAuth::class)
         mockkStatic(FirebaseRemoteConfig::class)
@@ -145,7 +146,7 @@ class LabelContentTests(val testDispatcher: TestCoroutineDispatcher,
             queryLabeledContentList(test.feedType)
         } returns mockQueryMainContentListFlow(test.mockFeedList)
 
-        // FirebaseRemoteConfig constant values
+        // FirebaseRemoteConfig - Constant values
         mockkStatic(CONSTANTS_CLASS_COMPILED_JAVA)
         every { CONTENT_LABEL_ERROR } returns MOCK_CONTENT_LABEL_ERROR
     }

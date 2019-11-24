@@ -49,9 +49,6 @@ class PlayContentTests(val testDispatcher: TestCoroutineDispatcher,
         mockkStatic(FirebaseRemoteConfig::class)
         mockkStatic(Crashlytics::class)
         mockkStatic(Uri::class)
-
-        // FirebaseRemoteConfig constant values
-        mockkStatic(CONSTANTS_CLASS_COMPILED_JAVA)
     }
 
     @ParameterizedTest
@@ -99,7 +96,8 @@ class PlayContentTests(val testDispatcher: TestCoroutineDispatcher,
         } returns mockGetContentUri(test)
         coEvery { bitmapToByteArray(test.mockPreviewImageUrl) } returns mockBitmapToByteArray(test)
 
-        // FirebaseRemoteConfig constant values
+        // FirebaseRemoteConfig - Constant values
+        mockkStatic(CONSTANTS_CLASS_COMPILED_JAVA)
         every { TTS_CHAR_LIMIT_ERROR } returns MOCK_TTS_CHAR_LIMIT_ERROR
         every { TTS_CHAR_LIMIT_ERROR_MESSAGE } returns MOCK_TTS_CHAR_LIMIT_ERROR_MESSAGE
         every { CONTENT_PLAY_ERROR } returns MOCK_CONTENT_PLAY_ERROR

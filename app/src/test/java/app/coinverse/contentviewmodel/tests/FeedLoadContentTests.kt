@@ -42,8 +42,6 @@ class FeedLoadContentTests(val testDispatcher: TestCoroutineDispatcher,
         // Android libraries
         mockkStatic(FirebaseRemoteConfig::class)
         mockkStatic(Crashlytics::class)
-        // FirebaseRemoteConfig constant values
-        mockkStatic(CONSTANTS_CLASS_COMPILED_JAVA)
     }
 
     @ParameterizedTest
@@ -94,9 +92,12 @@ class FeedLoadContentTests(val testDispatcher: TestCoroutineDispatcher,
             queryLabeledContentList(test.feedType)
         } returns mockQueryMainContentListFlow(test.mockFeedList)
 
-        // FirebaseRemoteConfig constant values
+        // FirebaseRemoteConfig - Constant values
+        mockkStatic(CONSTANTS_CLASS_COMPILED_JAVA)
         every { CONTENT_REQUEST_NETWORK_ERROR } returns MOCK_CONTENT_REQUEST_NETWORK_ERROR
-        every { CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR } returns MOCK_CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR
+        every {
+            CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR
+        } returns MOCK_CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR
     }
 
     private fun assertThatToolbarState(test: FeedLoadContentTest) {
