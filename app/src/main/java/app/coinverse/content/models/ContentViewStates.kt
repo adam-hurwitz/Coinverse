@@ -19,6 +19,7 @@ import app.coinverse.utils.models.ToolbarState
 import com.google.firebase.Timestamp
 import java.util.*
 
+/** View state data for content feeds */
 data class FeedViewState(val feedType: FeedType = MAIN,
                          val timeframe: Timeframe = DAY,
                          val toolbar: ToolbarState,

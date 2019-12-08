@@ -33,6 +33,9 @@ private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Content>() {
 class ContentAdapter(val contentViewModel: ContentViewModel, val viewEvents: ContentViewEvents)
     : PagedListAdapter<Content, ContentAdapter.ViewHolder>(DIFF_CALLBACK) {
 
+    /**
+     * Observe [ContentSelected] event in View in order to calculate [app.coinverse.content.ContentFragment.getAdapterPosition].
+     */
     val contentSelected: LiveData<Event<ContentSelected>> get() = _contentSelected
     private val _contentSelected = MutableLiveData<Event<ContentSelected>>()
 

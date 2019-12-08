@@ -27,12 +27,12 @@ import kotlinx.coroutines.tasks.await
 
 private val LOG_TAG = PriceRepository::class.java.simpleName
 
+/**
+ * TODO: Remove price graphs and replace with content search bar.
+ */
 object PriceRepository {
 
     val compositeDisposable = CompositeDisposable()
-    //TODO: Refactor backend service.
-    //TODO: 1) 1 source per price pair.
-    //TODO: 2) Remove RxJava and subscribe to LiveData from functions instead of instance methods.
     var graphLiveData = MutableLiveData<HashMap<Exchange, PriceGraphData>>()
     var priceDifferenceDetailsLiveData = MutableLiveData<PercentDifference>()
     var graphConstraintsLiveData = MutableLiveData<PriceGraphXAndYConstraints>()

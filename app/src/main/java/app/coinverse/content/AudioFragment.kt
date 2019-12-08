@@ -53,8 +53,7 @@ import kotlinx.android.synthetic.main.fragment_audio_dialog.*
 private val LOG_TAG = AudioFragment::class.java.simpleName
 
 /**
- * TODO - Refactor with Unidirectional Data Flow.
- *  See [ContentFragment]
+ * TODO: Refactor with Unidirectional Data Flow. See [ContentFragment].
  *  https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
  **/
 class AudioFragment : Fragment() {
@@ -68,11 +67,8 @@ class AudioFragment : Fragment() {
     private val serviceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
             if (service is AudioService.AudioServiceBinder)
-                playerView.player = service.getExoPlayerInstance().apply {
-                    player = this
-                }
+                playerView.player = service.getExoPlayerInstance().apply { player = this }
         }
-
         override fun onServiceDisconnected(componentName: ComponentName) {}
     }
 

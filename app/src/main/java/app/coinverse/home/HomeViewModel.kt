@@ -13,9 +13,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 
 /**
- * TODO - Refactor with Unidirectional Data Flow.
- *  See [ContentViewModel]
- *  https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
+ * TODO: Refactor with Unidirectional Data Flow. See [app.coinverse.content.ContentViewModel].
+ * See more: https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
  **/
 class HomeViewModel : ViewModel() {
     val user: LiveData<FirebaseUser> get() = _user
@@ -39,9 +38,7 @@ class HomeViewModel : ViewModel() {
     private val _savedContentToPlay = MutableLiveData<Event<ContentToPlay?>>()
 
     init {
-        //TODO: Set ability to toggle based on user configuration.
-        //TODO: Return info to ContentFragment observerSignIn().
-        //TODO: Toggle with button if subscribed user.
+        //TODO: Toggle with button if paid user.
         _isRealtime.value = false
         _accountType.value = FREE
         _timeframe.value = DateAndTime.buildTypeTimescale

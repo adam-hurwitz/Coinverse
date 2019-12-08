@@ -21,7 +21,6 @@ enum class Currency {
     BTC, ETH
 }
 
-//TODO: Replace usages with LCEs.
 enum class Status {
     LOADING, SUCCESS, ERROR
 }

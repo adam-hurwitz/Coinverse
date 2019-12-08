@@ -14,8 +14,10 @@ import app.coinverse.analytics.Analytics.updateActionsAndAnalytics
 import app.coinverse.analytics.Analytics.updateStartActionsAndAnalytics
 import app.coinverse.content.models.ContentToPlay
 import app.coinverse.databinding.FragmentContentDialogBinding
-import app.coinverse.utils.*
 import app.coinverse.utils.BuildType.*
+import app.coinverse.utils.CONTENT_TO_PLAY_KEY
+import app.coinverse.utils.YOUTUBE_ID_REGEX
+import app.coinverse.utils.YOUTUBE_VIEW
 import app.coinverse.utils.auth.APP_API_KEY_OPEN_SHARED
 import app.coinverse.utils.auth.APP_API_KEY_PRODUCTION
 import app.coinverse.utils.auth.APP_API_KEY_STAGING
@@ -25,9 +27,8 @@ import com.google.android.youtube.player.YouTubePlayerSupportFragment
 import kotlinx.coroutines.launch
 
 /**
- * TODO - Refactor with Unidirectional Data Flow.
- *  See [ContentFragment]
- *  https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
+ * TODO: Refactor with Unidirectional Data Flow. See [ContentFragment]
+ * See more: https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
  **/
 class YouTubeFragment : Fragment() {
 
@@ -40,13 +41,6 @@ class YouTubeFragment : Fragment() {
     private var seekToPositionMillis = 0
 
     fun newInstance(bundle: Bundle) = YouTubeFragment().apply { arguments = bundle }
-
-    //TODO: Remove savedInstanceState
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putBoolean(MEDIA_IS_PLAYING_KEY, youtubePlayer.isPlaying)
-        outState.putInt(MEDIA_CURRENT_TIME_KEY, youtubePlayer.currentTimeMillis)
-        super.onSaveInstanceState(outState)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,15 +65,10 @@ class YouTubeFragment : Fragment() {
                                                          wasRestored: Boolean) {
                         if (!wasRestored) {
                             youtubePlayer = player
-                            player.setPlayerStateChangeListener(
-                                    PlayerStateChangeListener(savedInstanceState))
+                            player.setPlayerStateChangeListener(PlayerStateChangeListener())
                             player.setPlaybackEventListener(PlaybackEventListener())
-                            Regex(YOUTUBE_ID_REGEX).replace(contentToPlay.content.id, "")
-                                    .also { youTubeId ->
-                                        if (savedInstanceState == null) player.loadVideo(youTubeId)
-                                        else player.loadVideo(youTubeId, savedInstanceState
-                                                .getInt(MEDIA_CURRENT_TIME_KEY))
-                                    }
+                            val youTubeId = Regex(YOUTUBE_ID_REGEX).replace(contentToPlay.content.id, "")
+                            player.loadVideo(youTubeId)
                         }
                     }
 
@@ -88,22 +77,16 @@ class YouTubeFragment : Fragment() {
                         Log.e(LOG_TAG, "onInitializationFailure ${result.name}")
                     }
                 })
-        childFragmentManager.beginTransaction()
-                .replace(dialog_content, youTubePlayerFragment as Fragment).commit()
+        childFragmentManager.beginTransaction().replace(dialog_content, youTubePlayerFragment as Fragment).commit()
         return binding.root
     }
 
-    private inner class PlayerStateChangeListener(var savedInstanceState: Bundle?)
-        : YouTubePlayer.PlayerStateChangeListener {
+    private inner class PlayerStateChangeListener : YouTubePlayer.PlayerStateChangeListener {
         override fun onLoading() {}
-        override fun onLoaded(videoId: String) {
-            if (savedInstanceState != null && !savedInstanceState!!.getBoolean(MEDIA_IS_PLAYING_KEY))
-                youtubePlayer.pause()
-        }
-
+        override fun onLoaded(videoId: String) {}
         override fun onAdStarted() {}
         override fun onVideoStarted() {
-            updateStartActionsAndAnalytics(savedInstanceState, contentToPlay.content)
+            updateStartActionsAndAnalytics(contentToPlay.content)
         }
 
         override fun onVideoEnded() {}
@@ -116,8 +99,7 @@ class YouTubeFragment : Fragment() {
         override fun onStopped() {}
         override fun onPaused() {}
         override fun onSeekTo(newSeekPositionMillis: Int) {
-            if (newSeekPositionMillis > seekToPositionMillis)
-                seekToPositionMillis = newSeekPositionMillis
+            if (newSeekPositionMillis > seekToPositionMillis) seekToPositionMillis = newSeekPositionMillis
         }
     }
 

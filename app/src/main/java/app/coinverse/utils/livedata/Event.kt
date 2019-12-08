@@ -2,6 +2,7 @@ package app.coinverse.utils.livedata
 
 /**
  * Used as a wrapper for data that is exposed via a LiveData that represents an event.
+ * See more: https://medium.com/androiddevelopers/livedata-with-snackbar-navigation-and-other-events-the-singleliveevent-case-ac2622673150
  */
 open class Event<out T>(private val event: T) {
 

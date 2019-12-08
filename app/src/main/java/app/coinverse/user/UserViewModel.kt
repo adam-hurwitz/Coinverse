@@ -1,32 +1,30 @@
 package app.coinverse.user
 
 import android.util.Log
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import app.coinverse.utils.Status
+import androidx.lifecycle.liveData
 import app.coinverse.utils.Status.ERROR
 import app.coinverse.utils.Status.SUCCESS
 import app.coinverse.utils.livedata.Event
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.functions.FirebaseFunctionsException
+import kotlinx.coroutines.tasks.await
 
 private val LOG_TAG = UserViewModel::class.java.simpleName
 
 /**
- * TODO - Refactor with Unidirectional Data Flow.
- *  See [ContentViewModel]
- *  https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
+ * TODO: Refactor with Unidirectional Data Flow. See [ContentViewModel].
+ * See more: https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
  **/
 
 class UserViewModel : ViewModel() {
-    fun deleteUser(user: FirebaseUser) =
-            MutableLiveData<Event<Status>>().apply {
-                // TODO - Refactor addOnCompleteListeners to await() coroutine. See [ContentRepository]
-                deleteUserCall(user).addOnCompleteListener { task ->
-                    if (task.isSuccessful) this.value = Event(SUCCESS)
-                    else {
-                        Log.e(LOG_TAG, "Failed to delete user error: ${task.exception?.localizedMessage}")
-                        this.value = Event(ERROR)
-                    }
-                }
-            }
+    fun deleteUser(user: FirebaseUser) = liveData {
+        try {
+            deleteUserCall(user).await()
+            emit(Event(SUCCESS))
+        } catch (e: FirebaseFunctionsException) {
+            emit(Event(ERROR))
+            Log.e(LOG_TAG, "Failed to delete user error: ${e?.localizedMessage}")
+        }
+    }
 }

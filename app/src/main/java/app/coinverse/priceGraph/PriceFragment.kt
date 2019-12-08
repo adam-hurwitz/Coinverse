@@ -40,6 +40,9 @@ import kotlinx.android.synthetic.main.fragment_price.*
 
 private val dataPointRadiusValue = TypedValue()
 
+/**
+ * TODO: Remove price graphs and replace with content search bar.
+ */
 class PriceFragment : Fragment() {
     private var LOG_TAG = PriceFragment::class.java.simpleName
     private lateinit var binding: FragmentPriceBinding

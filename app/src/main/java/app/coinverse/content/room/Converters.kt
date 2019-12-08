@@ -10,7 +10,6 @@ import com.google.firebase.Timestamp
 import java.util.*
 
 class Converters {
-
     @TypeConverter
     fun toTimestamp(value: Long): Timestamp = Timestamp(Date(value))
 

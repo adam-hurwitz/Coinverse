@@ -2,7 +2,6 @@ package app.coinverse.firebase
 
 import android.content.Context
 import android.util.Log
-import androidx.databinding.library.BuildConfig.DEBUG
 import app.coinverse.BuildConfig
 import app.coinverse.R
 import app.coinverse.utils.BuildType.open
@@ -12,6 +11,7 @@ import com.firebase.client.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigException
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 
 private val LOG_TAG = FirebaseHelper.javaClass.simpleName
@@ -39,22 +39,16 @@ object FirebaseHelper {
         initializeRemoteConfig()
     }
 
-    // FIXME - Update deprecated code.
     private fun initializeRemoteConfig() {
         val firebaseRemoteConfig = FirebaseRemoteConfig.getInstance()
-        firebaseRemoteConfig.setConfigSettings(FirebaseRemoteConfigSettings.Builder()
-                .setDeveloperModeEnabled(DEBUG)
-                .build())
-        firebaseRemoteConfig.setDefaults(R.xml.remote_config_defaults)
-        var cacheExpiration = 3600L
-        if (firebaseRemoteConfig.info.configSettings.isDeveloperModeEnabled) cacheExpiration = 0
-        // TODO - Refactor addOnCompleteListeners to await() coroutine. See [ContentRepository]
-        firebaseRemoteConfig.fetch(cacheExpiration).addOnCompleteListener { task ->
-            // After config data is successfully fetched, it must be activated before newly fetched
-            // values are returned.
-            if (task.isSuccessful) firebaseRemoteConfig.activateFetched()
-            else Crashlytics.log(Log.ERROR, LOG_TAG, "Remote Config Fetch Failed")
+        firebaseRemoteConfig.setConfigSettingsAsync(FirebaseRemoteConfigSettings.Builder().build())
+        firebaseRemoteConfig.setDefaultsAsync(R.xml.remote_config_defaults)
+        val cacheExpiration = 3600L
+        try {
+            firebaseRemoteConfig.fetch(cacheExpiration)
+            firebaseRemoteConfig.fetchAndActivate()
+        } catch (exception: FirebaseRemoteConfigException) {
+            Crashlytics.log(Log.ERROR, LOG_TAG, "initializeRemoteConfig: ${exception.localizedMessage}")
         }
-
     }
 }

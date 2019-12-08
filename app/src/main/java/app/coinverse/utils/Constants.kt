@@ -30,7 +30,6 @@ const val SAVED_CONTENT_EXPANDED_KEY = "savedContentExpandedKey"
 const val USER_KEY = "userKey"
 
 // User
-val SIGN_OUT_ON_BACK_PRESS_DELAY_IN_MILLIS = getInstance().getLong("sign_out_on_back_press_delay_in_millis")
 val DELETE_USER_FUNCTION = getInstance().getString("delete_user_function")
 val USER_ID_FUNCTION_PARAM = getInstance().getString("user_id_function_param")
 val PATH_FUNCTION_PARAM = getInstance().getString("path_function_param")
@@ -83,7 +82,6 @@ const val CONTENT_DIALOG_FRAGMENT_TAG = "contentDialogFragmentTag"
 const val SAVED_CONTENT_TAG = "savedContentTag"
 const val FEED_TYPE_KEY = "feedType"
 const val CONTENT_SELECTED_ACTION = "contentSelectedAction"
-const val CONTENT_SELECTED_KEY = "contentSelectedKey"
 const val CONTENT_TO_PLAY_KEY = "contentToPlayKey"
 const val CONTENT_SELECTED_BITMAP_KEY = "bitmapKey"
 const val PLAYER_ACTION = "playerAction"
@@ -91,15 +89,8 @@ const val PLAYER_KEY = "playerKey"
 const val PLAY_OR_PAUSE_PRESSED_KEY = "playOrPausePressedKey"
 const val ADAPTER_POSITION_KEY = 122218133
 const val CONTENT_RECYCLER_VIEW_POSITION = "contentRecyclerViewPosition"
-const val MEDIA_IS_PLAYING_KEY = "mediaIsPlayingKey"
-const val MEDIA_CURRENT_TIME_KEY = "mediaCurrentTimeKey"
 const val OPEN_FROM_NOTIFICATION_ACTION = "openFromNotificationAction"
 const val OPEN_CONTENT_FROM_NOTIFICATION_KEY = "openContentFromNotificationKey"
-const val KEY_TRACK_SELECTOR_PARAMETERS = "track_selector_parameters"
-const val KEY_WINDOW = "window"
-const val KEY_POSITION = "position"
-const val KEY_AUTO_PLAY = "auto_play"
-const val KEY_SEEK_TO_POSITION_MILLIS = "seek_to_position_millis"
 
 // Analytics
 
@@ -118,10 +109,8 @@ val CLEAR_FEED_EVENT = getInstance().getString("clear_feed_event")
 val DISMISS_EVENT = getInstance().getString("dismiss_content_event")
 // Params
 val USER_ID_PARAM = getInstance().getString("user_id_param")
-val QUALITY_SCORE_PARAM = getInstance().getString("quality_score_param")
 val TIMESTAMP_PARAM = getInstance().getString("timestamp_param")
 val CREATOR_PARAM = getInstance().getString("creator_name_param")
-val FEED_TYPE_PARAM = getInstance().getString("feed_type_param")
 
 // Utils
 const val REQUEST_CODE_LOC_PERMISSION = 1909

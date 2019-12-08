@@ -11,10 +11,10 @@ import java.util.stream.Stream
 
 fun labelContentTestCases() = Stream.of(
 
-        // User - Signed In
+        // User: Signed In
 
-        // FeedType - MAIN
-        // UserActionType - SAVE
+        // FeedType: MAIN
+        // UserActionType: SAVE
         LabelContentTest(
                 isUserSignedIn = true,
                 isRealtime = false,
@@ -61,8 +61,8 @@ fun labelContentTestCases() = Stream.of(
                 actionType = UserActionType.DISMISS,
                 adapterPosition = 1),
 
-        // FeedType - SAVED
-        // UserActionType - DISMISS
+        // FeedType: SAVED
+        // UserActionType: DISMISS
         LabelContentTest(
                 isUserSignedIn = true,
                 isRealtime = false,
@@ -86,8 +86,8 @@ fun labelContentTestCases() = Stream.of(
                 actionType = UserActionType.DISMISS,
                 adapterPosition = 1),
 
-        // FeedType - DISMISSED
-        // UserActionType - SAVE
+        // FeedType: DISMISSED
+        // UserActionType: SAVE
         LabelContentTest(
                 isUserSignedIn = true,
                 isRealtime = false,
@@ -111,10 +111,10 @@ fun labelContentTestCases() = Stream.of(
                 actionType = UserActionType.SAVE,
                 adapterPosition = 1),
 
-        // User - Not signed in.
+        // User: Signed out
 
-        // FeedType - MAIN
-        // UserActionType - SAVE
+        // FeedType: MAIN
+        // UserActionType: SAVE
         LabelContentTest(
                 isUserSignedIn = false,
                 isRealtime = false,

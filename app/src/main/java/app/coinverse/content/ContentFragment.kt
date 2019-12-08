@@ -1,5 +1,6 @@
 package app.coinverse.content
 
+//import app.coinverse.content.adapter.ItemTouchHelper
 import android.content.Intent
 import android.content.Intent.*
 import android.net.Uri
@@ -27,7 +28,7 @@ import app.coinverse.R.string
 import app.coinverse.R.string.*
 import app.coinverse.analytics.Analytics.setCurrentScreen
 import app.coinverse.content.adapter.ContentAdapter
-import app.coinverse.content.adapter.ItemTouchHelper
+import app.coinverse.content.adapter.initItemTouchHelper
 import app.coinverse.content.models.ContentToPlay
 import app.coinverse.content.models.ContentViewEventType.*
 import app.coinverse.content.models.ContentViewEvents
@@ -137,13 +138,15 @@ class ContentFragment : Fragment() {
         contentRecyclerView.layoutManager = LinearLayoutManager(context)
         adapter = ContentAdapter(contentViewModel, viewEvents).apply {
             this.contentSelected.observe(viewLifecycleOwner, EventObserver { contentSelected ->
-                viewEvents.contentSelected(ContentSelected(
-                        getAdapterPosition(contentSelected.position), contentSelected.content))
+                viewEvents.contentSelected(
+                        ContentSelected(getAdapterPosition(contentSelected.position), contentSelected.content))
             })
         }
-        // FREE
+        /** Free account */
         if (paymentStatus == FREE) {
-            moPubAdapter = MoPubRecyclerAdapter(activity!!, adapter,
+            moPubAdapter = MoPubRecyclerAdapter(
+                    activity!!,
+                    adapter,
                     MoPubNativeAdPositioning.MoPubServerPositioning())
             moPubAdapter.registerAdRenderer(FacebookAdRenderer(
                     FacebookViewBinder.Builder(fb_native_ad_item)
@@ -175,12 +178,17 @@ class ContentFragment : Fragment() {
             moPubAdapter.registerAdRenderer(MoPubStaticNativeAdRenderer(viewBinder))
             moPubAdapter.setContentChangeStrategy(MOVE_ALL_ADS_WITH_CONTENT)
             contentRecyclerView.adapter = moPubAdapter
-        } else /* PAID */ contentRecyclerView.adapter = adapter
-        ItemTouchHelper(viewEvents).apply {
-            this.build(context!!, paymentStatus!!, feedType,
-                    if (paymentStatus == FREE) moPubAdapter else null)
-                    .attachToRecyclerView(contentRecyclerView)
+        } else {
+            /** Paid account */
+            contentRecyclerView.adapter = adapter
         }
+        initItemTouchHelper(
+                context = context!!,
+                paymentStatus = paymentStatus!!,
+                feedType = feedType,
+                moPubAdapter = if (paymentStatus == FREE) moPubAdapter else null,
+                viewEvents = viewEvents
+        ).attachToRecyclerView(contentRecyclerView)
     }
 
     private fun observeViewState() {
@@ -210,7 +218,7 @@ class ContentFragment : Fragment() {
                 }
             })
             viewState.contentLabeled.observe(viewLifecycleOwner, EventObserver { contentLabeled ->
-                //TODO - Add undo feature here.
+                //TODO: Undo feature
                 if (homeViewModel.accountType.value == FREE) {
                     contentLabeled?.let {
                         val moPubPosition = moPubAdapter.getAdjustedPosition(contentLabeled.position)

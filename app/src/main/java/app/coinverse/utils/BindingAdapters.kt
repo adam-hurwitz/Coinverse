@@ -25,7 +25,6 @@ fun ImageView.setImageUrl(url: String?) {
 @BindingAdapter("contentTypeIcon")
 fun ImageView.setContentTypeIcon(contentType: ContentType) {
     when (contentType) {
-        //TODO: Add ARTICLE, NONE icons.
         ARTICLE -> this.setImageResource(R.drawable.ic_audio_black)
         YOUTUBE -> this.setImageResource(R.drawable.ic_video_black)
     }
@@ -33,10 +32,7 @@ fun ImageView.setContentTypeIcon(contentType: ContentType) {
 
 @BindingAdapter("profileImageUrl")
 fun ImageView.setProfileImageUrl(url: String?) {
-    Glide.with(context)
-            .load(url)
-            .apply(circleCropTransform())
-            .into(this)
+    Glide.with(context).load(url).apply(circleCropTransform()).into(this)
 }
 
 @BindingAdapter("timePostedAgo")

@@ -19,7 +19,8 @@ abstract class CoinverseDatabaseBuilder : RoomDatabase() {
     companion object {
         private var INSTANCE: CoinverseDatabaseBuilder? = null
         fun getAppDatabase(context: Context): CoinverseDatabaseBuilder {
-            if (INSTANCE == null) INSTANCE = databaseBuilder(context.applicationContext,
+            if (INSTANCE == null)
+                INSTANCE = databaseBuilder(context.applicationContext,
                     CoinverseDatabaseBuilder::class.java, DATABASE_NAME)
                     .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build()

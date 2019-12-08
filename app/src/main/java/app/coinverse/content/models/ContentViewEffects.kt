@@ -8,6 +8,7 @@ import app.coinverse.utils.FeedType
 import app.coinverse.utils.UserActionType
 import app.coinverse.utils.livedata.Event
 
+/** View state effects for content feeds */
 data class ContentEffects(
         val signIn: LiveData<Event<SignInEffect>> = liveData {},
         val notifyItemChanged: LiveData<Event<NotifyItemChangedEffect>> = liveData {},
@@ -39,6 +40,12 @@ sealed class ContentEffectType {
     class UpdateAdsEffect : ContentEffectType()
 }
 
+/**
+ * Updates [ContentEffects] effect state.
+ *
+ * @receiver MutableLiveData<ContentEffects> view effect state
+ * @param effect ContentEffectType
+ */
 fun MutableLiveData<ContentEffects>.send(effect: ContentEffectType) {
     this.value = when (effect) {
         is SignInEffect ->

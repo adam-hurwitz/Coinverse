@@ -20,6 +20,7 @@ import com.google.firebase.auth.FirebaseUser
 
 private val LOG_TAG = Analytics::class.java.simpleName
 
+//TODO: Move Firebase user profile calls and Analytics to Cloud Functions
 object Analytics {
     lateinit var analytics: FirebaseAnalytics
 
@@ -31,66 +32,66 @@ object Analytics {
         analytics.setCurrentScreen(activity, viewName, null)
     }
 
+    /**
+     * Track user action in user profile and Google Analytics.
+     *
+     * @param content Content audiocast, video, or text media
+     * @param watchPercent Double the amount of time in seconds the user has listened/watched content
+     */
     suspend fun updateActionsAndAnalytics(content: Content, watchPercent: Double) {
+        val bundle = Bundle()
         database.contentDao().updateContent(content)
-        if (watchPercent >= FINISH_THRESHOLD)
-            Bundle().also { bundle ->
-                FirebaseAuth.getInstance().currentUser.also { user ->
-                    bundle.putString(Param.ITEM_NAME, content.title)
-                    if (user != null && !user.isAnonymous) {
-                        updateActionAnalytics(FINISH, content, user)
-                        bundle.putString(USER_ID_PARAM, user.uid)
-                    }
+        if (watchPercent >= FINISH_THRESHOLD) {
+            FirebaseAuth.getInstance().currentUser.also { user ->
+                bundle.putString(Param.ITEM_NAME, content.title)
+                if (user != null && !user.isAnonymous) {
+                    updateActionAnalytics(FINISH, content, user)
+                    bundle.putString(USER_ID_PARAM, user.uid)
                 }
-                bundle.putString(CREATOR_PARAM, content.creator)
-                analytics.logEvent(FINISH_CONTENT_EVENT, bundle)
             }
-        else if (watchPercent >= CONSUME_THRESHOLD)
-            Bundle().also { bundle ->
-                FirebaseAuth.getInstance().currentUser.also { user ->
-                    bundle.putString(Param.ITEM_NAME, content.title)
-                    if (user != null && !user.isAnonymous) {
-                        updateActionAnalytics(CONSUME, content, user)
-                        bundle.putString(USER_ID_PARAM, user.uid)
-                    }
+            bundle.putString(CREATOR_PARAM, content.creator)
+            analytics.logEvent(FINISH_CONTENT_EVENT, bundle)
+        } else if (watchPercent >= CONSUME_THRESHOLD) {
+            FirebaseAuth.getInstance().currentUser.also { user ->
+                bundle.putString(Param.ITEM_NAME, content.title)
+                if (user != null && !user.isAnonymous) {
+                    updateActionAnalytics(CONSUME, content, user)
+                    bundle.putString(USER_ID_PARAM, user.uid)
                 }
                 bundle.putString(CREATOR_PARAM, content.creator)
                 analytics.logEvent(CONSUME_CONTENT_EVENT, bundle)
             }
+        }
     }
 
+    /**
+     * Track user starting content in user profile and Google Analytics.
+     *
+     * @param content Content audiocast, video, or text media
+     */
     fun updateStartActionsAndAnalytics(content: Content) {
-        analytics.logEvent(START_CONTENT_EVENT, Bundle().apply {
-            this.putString(Param.ITEM_NAME, content.title)
-            this.putString(CREATOR_PARAM, content.creator)
-            FirebaseAuth.getInstance().currentUser.let { user ->
-                if (user != null && !user.isAnonymous) {
-                    updateActionAnalytics(START, content, user)
-                    this.putString(USER_ID_PARAM, user.uid)
-                }
+        val bundle = Bundle()
+        bundle.putString(Param.ITEM_NAME, content.title)
+        bundle.putString(CREATOR_PARAM, content.creator)
+        FirebaseAuth.getInstance().currentUser.let { user ->
+            if (user != null && !user.isAnonymous) {
+                updateActionAnalytics(START, content, user)
+                bundle.putString(USER_ID_PARAM, user.uid)
             }
-        })
-    }
-
-
-    fun updateStartActionsAndAnalytics(savedInstanceState: Bundle?, content: Content) {
-        if (savedInstanceState == null)
-            analytics.logEvent(START_CONTENT_EVENT, Bundle().apply {
-                this.putString(Param.ITEM_NAME, content.title)
-                this.putString(CREATOR_PARAM, content.creator)
-                FirebaseAuth.getInstance().currentUser.let { user ->
-                    if (user != null && !user.isAnonymous) {
-                        updateActionAnalytics(START, content, user)
-                        this.putString(USER_ID_PARAM, user.uid)
-                    }
-                }
-            })
+        }
+        analytics.logEvent(START_CONTENT_EVENT, bundle)
     }
 
     fun getWatchPercent(currentPosition: Double, seekToPositionMillis: Double, duration: Double) =
             (currentPosition - seekToPositionMillis) / duration
 
-    //TODO - Move to Cloud Function
+    /**
+     * Track user action in user profile and Google Analytics.
+     *
+     * @param actionType UserActionType action taken on content
+     * @param content Content audiocast, video, or text media
+     * @param user FirebaseUser user account
+     */
     fun updateActionAnalytics(actionType: UserActionType, content: Content, user: FirebaseUser) {
         var actionCollection = ""
         var score = INVALID_SCORE
@@ -134,17 +135,24 @@ object Analytics {
                 }
     }
 
-    //TODO - Move to Cloud Function
+    /**
+     * Track user labeling content in Google Analytics.
+     *
+     * @param content Content audiocast, video, or text media
+     */
     fun labelContentFirebaseAnalytics(content: Content) {
-        Bundle().apply {
-            this.putString(Param.ITEM_ID, content.id)
-            this.putString(USER_ID_PARAM, FirebaseAuth.getInstance().currentUser?.uid)
-            this.putString(CREATOR_PARAM, content.creator)
-            analytics.logEvent(
-                    if (content.feedType == SAVED) ORGANIZE_EVENT else DISMISS_EVENT, this)
-        }
+        val bundle = Bundle()
+        bundle.putString(Param.ITEM_ID, content.id)
+        bundle.putString(USER_ID_PARAM, FirebaseAuth.getInstance().currentUser?.uid)
+        bundle.putString(CREATOR_PARAM, content.creator)
+        analytics.logEvent(if (content.feedType == SAVED) ORGANIZE_EVENT else DISMISS_EVENT, bundle)
     }
 
+    /**
+     * Track user clearing the main feed of content in user profile and Google Analytics.
+     *
+     * @param userId String of active user
+     */
     fun updateFeedEmptiedActionsAndAnalytics(userId: String) {
         ContentRepository.updateUserActionCounter(userId, CLEAR_FEED_COUNT)
         analytics.logEvent(CLEAR_FEED_EVENT, Bundle().apply {

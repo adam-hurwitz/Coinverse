@@ -29,7 +29,6 @@ fun feedLoadTestCases() = Stream.of(
                 timeframe = Timeframe.DAY,
                 lceState = LCE_STATE.CONTENT,
                 mockFeedList = listOf()),
-        // TODO - Add FeedLoad Error, SwipeToRefreshError
         FeedLoadContentTest(
                 isRealtime = false,
                 feedType = FeedType.MAIN,

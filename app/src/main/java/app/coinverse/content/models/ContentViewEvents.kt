@@ -6,6 +6,9 @@ import app.coinverse.utils.Timeframe
 import app.coinverse.utils.UserActionType
 import com.google.firebase.auth.FirebaseUser
 
+/**
+ * View state events for content feeds
+ */
 interface ContentViewEvents {
     fun feedLoad(event: FeedLoad)
     fun feedLoadComplete(event: FeedLoadComplete)

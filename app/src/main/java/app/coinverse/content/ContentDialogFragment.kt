@@ -15,6 +15,10 @@ import app.coinverse.utils.ContentType.*
 import app.coinverse.utils.PlayerActionType.STOP
 
 
+/**
+ * TODO: Refactor with Unidirectional Data Flow. See [app.coinverse.content.ContentFragment].
+ * See more: https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
+ **/
 class ContentDialogFragment : DialogFragment() {
     private var LOG_TAG = ContentDialogFragment::class.java.simpleName
 
@@ -30,6 +34,7 @@ class ContentDialogFragment : DialogFragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = FragmentContentDialogBinding.inflate(inflater, container, false)
+        /** Creates dialog Fragment to play media if not already created */
         if (savedInstanceState == null && childFragmentManager.findFragmentById(dialog_content) == null)
             childFragmentManager.beginTransaction().replace(dialog_content,
                     when (contentToPlay.content.contentType) {

@@ -64,18 +64,18 @@ android {
 }
 
 dependencies {
-    def lifecycle_alpha_version = '2.2.0-rc02'
+    def lifecycle_alpha_version = '2.2.0-rc03'
     def lifecycle_version = '2.1.0'
     def paging_version = '2.1.0'
     def nav_version = '1.0.0'
     def play_services_version = '17.0.0'
     def exoplayer_version = '2.10.1'
-    def room_version = '2.2.1'
+    def room_version = '2.2.2'
     def glide_version = '4.9.0'
     def mopub_version = '+@aar'
     def junit_version = '5.5.1'
     def test_rules_core_version = '1.2.0'
-    def fragment_test_version = '1.2.0-rc02'
+    def fragment_test_version = '1.2.0-rc03'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.core:core-ktx:1.1.0'
@@ -99,7 +99,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-perf:19.0.2'
     implementation 'com.google.firebase:firebase-firestore-ktx:21.3.0'
     implementation 'com.google.firebase:firebase-functions:19.0.1'
-    implementation 'com.google.firebase:firebase-auth:19.1.0'
+    implementation 'com.google.firebase:firebase-auth:19.2.0'
     implementation 'com.firebaseui:firebase-ui-firestore:4.2.0'
     implementation 'com.firebaseui:firebase-ui-auth:4.2.1'
     implementation 'com.google.firebase:firebase-storage:19.1.0'
@@ -121,8 +121,8 @@ dependencies {
     implementation("com.mopub:mopub-sdk-native-video:$mopub_version") { transitive = true }
     implementation 'com.facebook.android:audience-network-sdk:5.1.0'
     implementation 'com.mopub.mediation:facebookaudiencenetwork:5.1.0.0'
-    implementation 'com.flurry.android:ads:11.4.0@aar'
-    implementation 'com.flurry.android:analytics:11.4.0@aar'
+    implementation 'com.flurry.android:ads:12.1.0@aar'
+    implementation 'com.flurry.android:analytics:12.1.0@aar'
     implementation 'com.mopub.mediation:flurry:11.4.0.0'
 
     // Testing

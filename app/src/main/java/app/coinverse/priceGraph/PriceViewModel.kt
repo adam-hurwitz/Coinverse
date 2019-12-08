@@ -16,17 +16,9 @@ import com.jjoe64.graphview.series.LineGraphSeries
 import kotlinx.coroutines.launch
 
 /**
- * TODO - Refactor with Unidirectional Data Flow.
- * TODO - Refactor LiveData to Coroutine Flow.
- *  See [ContentViewModel]
- *  https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
- *  https://kotlinlang.org/docs/reference/coroutines/flow.html
- **/
+ * TODO: Remove price graphs and replace with content search bar.
+ */
 class PriceViewModel : ViewModel() {
-
-    //TODO: Set timeframe from UI.
-
-    //TODO: Query Firebase by pricePair.
     val pricePair = PricePair(Currency.ETH, Currency.BTC)
     val timeframe: LiveData<Timeframe> get() = _timeframe
     val enabledExchanges: LiveData<ArrayList<Exchange?>> get() = _enabledExchanges

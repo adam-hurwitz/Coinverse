@@ -61,18 +61,16 @@ class AudioService : Service() {
     private var playOrPausePressed = false
 
     // Called first time audiocast is loaded.
-    override fun onBind(intent: Intent?) =
-            AudioServiceBinder().apply {
-                player = ExoPlayerFactory.newSimpleInstance(
-                        applicationContext,
-                        AudioOnlyRenderersFactory(applicationContext),
-                        DefaultTrackSelector())
-                player?.addListener(PlayerEventListener())
-                buildNotification(
-                        intent!!.getParcelableExtra(CONTENT_TO_PLAY_KEY),
-                        intent.getByteArrayExtra(CONTENT_SELECTED_BITMAP_KEY).byteArrayToBitmap(applicationContext)
-                )
-            }
+    override fun onBind(intent: Intent?) = AudioServiceBinder().apply {
+        player = ExoPlayerFactory.newSimpleInstance(
+                applicationContext,
+                AudioOnlyRenderersFactory(applicationContext),
+                DefaultTrackSelector())
+        player?.addListener(PlayerEventListener())
+        buildNotification(
+                contentToPlay = intent!!.getParcelableExtra(CONTENT_TO_PLAY_KEY),
+                bitmap = intent.getByteArrayExtra(CONTENT_SELECTED_BITMAP_KEY).byteArrayToBitmap(applicationContext))
+    }
 
     override fun onDestroy() {
         playerNotificationManager?.setPlayer(null)
@@ -81,46 +79,47 @@ class AudioService : Service() {
         super.onDestroy()
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int) =
-            super.onStartCommand(intent?.apply {
-                when (intent.action) {
-                    CONTENT_SELECTED_ACTION ->
-                        this.getParcelableExtra<ContentToPlay>(CONTENT_TO_PLAY_KEY).also { contentToPlay ->
-                            if (!contentToPlay.content.equals(content)) { // New content playing
-                                content = contentToPlay.content
-                                seekToPositionMillis = 0
-                                updateStartActionsAndAnalytics(content)
-                                player?.prepare(ProgressiveMediaSource.Factory(
-                                        DefaultDataSourceFactory(
-                                                applicationContext,
-                                                Util.getUserAgent(applicationContext, getString(app_name))))
-                                        .createMediaSource(Uri.parse(content.audioUrl)))
-                                playerNotificationManager?.setPlayer(null)
-                                buildNotification(
-                                        intent.getParcelableExtra(CONTENT_TO_PLAY_KEY),
-                                        intent.getByteArrayExtra(CONTENT_SELECTED_BITMAP_KEY)
-                                                .byteArrayToBitmap(applicationContext))
-                            }
-                        }
-                    PLAYER_ACTION -> when (this.getStringExtra(PLAYER_KEY)) {
-                        PAUSE.name -> {
-                            player?.playWhenReady = false
-                            wakeAndwifiLockManager(false)
-                            playOrPausePressed =
-                                    this.getBooleanExtra(PLAY_OR_PAUSE_PRESSED_KEY, false)
-                        }
-                        PLAY.name -> {
-                            player?.playWhenReady = true
-                            wakeAndwifiLockManager(true)
-                            playOrPausePressed =
-                                    this.getBooleanExtra(PLAY_OR_PAUSE_PRESSED_KEY, false)
-                        }
-                        STOP.name -> stopService()
-                        else -> Crashlytics.log(Log.ERROR, LOG_TAG, "ExoPlayer controls error")
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val intent = intent.apply {
+            when (intent?.action) {
+                CONTENT_SELECTED_ACTION -> {
+                    val contentToPlay = this?.getParcelableExtra<ContentToPlay>(CONTENT_TO_PLAY_KEY)
+                    /** New content playing */
+                    if (!contentToPlay?.content?.equals(content)!!) {
+                        content = contentToPlay.content
+                        seekToPositionMillis = 0
+                        updateStartActionsAndAnalytics(content)
+                        player?.prepare(ProgressiveMediaSource.Factory(
+                                DefaultDataSourceFactory(
+                                        applicationContext,
+                                        Util.getUserAgent(applicationContext, getString(app_name))))
+                                .createMediaSource(Uri.parse(content.audioUrl)))
+                        playerNotificationManager?.setPlayer(null)
+                        buildNotification(
+                                intent.getParcelableExtra(CONTENT_TO_PLAY_KEY),
+                                intent.getByteArrayExtra(CONTENT_SELECTED_BITMAP_KEY)
+                                        .byteArrayToBitmap(applicationContext))
                     }
-                    else -> Crashlytics.log(Log.ERROR, LOG_TAG, "ExoPlayer onStartCommand error")
                 }
-            }, flags, startId)
+                PLAYER_ACTION -> when (this?.getStringExtra(PLAYER_KEY)) {
+                    PAUSE.name -> {
+                        player?.playWhenReady = false
+                        wakeAndwifiLockManager(false)
+                        playOrPausePressed = this.getBooleanExtra(PLAY_OR_PAUSE_PRESSED_KEY, false)
+                    }
+                    PLAY.name -> {
+                        player?.playWhenReady = true
+                        wakeAndwifiLockManager(true)
+                        playOrPausePressed = this.getBooleanExtra(PLAY_OR_PAUSE_PRESSED_KEY, false)
+                    }
+                    STOP.name -> stopService()
+                    else -> Crashlytics.log(Log.ERROR, LOG_TAG, "ExoPlayer controls error")
+                }
+                else -> Crashlytics.log(Log.ERROR, LOG_TAG, "ExoPlayer onStartCommand error")
+            }
+        }
+        return super.onStartCommand(intent, flags, startId)
+    }
 
     /**
      * This class will be what is returned when an activity binds to this service.
@@ -200,8 +199,9 @@ class AudioService : Service() {
                 seekToPositionMillis = newSeekPositionMillis.toInt()
             val job = CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    updateActionsAndAnalytics(content,
-                            getWatchPercent(player?.currentPosition!!.toDouble(),
+                    updateActionsAndAnalytics(
+                            content = content,
+                            watchPercent = getWatchPercent(player?.currentPosition!!.toDouble(),
                                     seekToPositionMillis.toDouble(), player?.duration!!.toDouble()))
                 } catch (error: Exception) {
                     this.cancel()

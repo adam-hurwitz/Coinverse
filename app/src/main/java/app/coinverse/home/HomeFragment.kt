@@ -16,7 +16,8 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
-import android.widget.Toast
+import android.widget.Toast.LENGTH_SHORT
+import android.widget.Toast.makeText
 import androidx.appcompat.app.AppCompatActivity.MODE_PRIVATE
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
@@ -25,6 +26,7 @@ import androidx.core.content.PermissionChecker.checkSelfPermission
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import app.coinverse.BuildConfig.VERSION_NAME
 import app.coinverse.R
@@ -61,21 +63,24 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.*
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.android.synthetic.main.toolbar_home.*
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.util.*
 
 private val LOG_TAG = HomeFragment::class.java.simpleName
 
 /**
- * TODO - Refactor with Unidirectional Data Flow.
- *  See [ContentFragment]
+ * TODO: Refactor
+ *  1. Refactor with Unidirectional Data Flow. See [app.coinverse.content.ContentFragment].
  *  https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
- *
- * TODO - Refactor addOnCompleteListeners to await() coroutine.
- * See [ContentRepository]
- */
+ *  2. Move Firebase calls to Repository.
+ *  3. Move Firebase user calls to Cloud Functions.
+ **/
+
 class HomeFragment : Fragment() {
 
     private var user: FirebaseUser? = null
@@ -284,75 +289,71 @@ class HomeFragment : Fragment() {
         homeViewModel.user.observe(this, Observer { user: FirebaseUser? ->
             this.user = user
             initProfileButton(user != null && !user.isAnonymous)
-            // Signed in.
-            if (user != null && !user.isAnonymous) {
-                Crashlytics.setUserIdentifier(user.uid)
-                // TODO - Replace with Cloud Function.
-                usersDocument.collection(user.uid).document(ACCOUNT_DOCUMENT).get()
-                        .addOnCompleteListener { userQuery ->
-                            // Create user if user does not exist.
-                            if (!userQuery.result!!.exists()) {
-                                usersDocument.collection(user.uid).document(ACCOUNT_DOCUMENT).set(
-                                        User(user.uid, user.displayName, user.email, user.phoneNumber,
-                                                user.photoUrl.toString(),
-                                                Timestamp(Date(user.metadata!!.creationTimestamp)),
-                                                Timestamp(Date(user.metadata!!.lastSignInTimestamp)),
-                                                user.providerId, FREE, READ))
-                                        .addOnSuccessListener {
-                                            Log.v(LOG_TAG, String.format(
-                                                    "New user account data success:%s", it))
-                                        }.addOnFailureListener {
-                                            Log.v(LOG_TAG, String.format(
-                                                    "New user account data failure:%s", it))
-                                        }
-                                usersDocument.collection(user.uid).document(ACTIONS_DOCUMENT).set(
-                                        UserActionCount(0.0, 0.0, 0.0,
-                                                0.0, 0.0, 0.0,
-                                                0.0, 0.0)
-                                ).addOnSuccessListener {
-                                    Crashlytics.setUserIdentifier(user.uid)
-                                    Log.v(LOG_TAG, String.format(
-                                            "New user action data success:%s", it))
+            lifecycleScope.launch {
+                /** Signed in */
+                if (user != null && !user.isAnonymous) {
+                    Crashlytics.setUserIdentifier(user.uid)
+                    val userSnapshot = usersDocument.collection(user.uid)
+                            .document(ACCOUNT_DOCUMENT).get().await()
+                    /** Create user if user one does not exist. */
+                    if (!userSnapshot.exists()) {
+                        usersDocument.collection(user.uid).document(ACCOUNT_DOCUMENT).set(
+                                User(user.uid, user.displayName, user.email, user.phoneNumber,
+                                        user.photoUrl.toString(),
+                                        Timestamp(Date(user.metadata!!.creationTimestamp)),
+                                        Timestamp(Date(user.metadata!!.lastSignInTimestamp)),
+                                        user.providerId, FREE, READ))
+                                .addOnSuccessListener {
+                                    Log.v(LOG_TAG, String.format("New user account data success:%s", it))
                                 }.addOnFailureListener {
-                                    Log.v(LOG_TAG, String.format(
-                                            "New user action data failure:%s", it))
+                                    Log.v(LOG_TAG, String.format("New user account data failure:%s", it))
                                 }
-                            }
+                        usersDocument.collection(user.uid).document(ACTIONS_DOCUMENT).set(
+                                UserActionCount(0.0, 0.0, 0.0,
+                                        0.0, 0.0, 0.0,
+                                        0.0, 0.0)
+                        ).addOnSuccessListener {
+                            Crashlytics.setUserIdentifier(user.uid)
+                            Log.v(LOG_TAG, String.format(
+                                    "New user action data success:%s", it))
+                        }.addOnFailureListener {
+                            Log.v(LOG_TAG, String.format(
+                                    "New user action data failure:%s", it))
                         }
-                if ((childFragmentManager.findFragmentByTag(CONTENT_FEED_FRAGMENT_TAG) == null
-                                && savedInstanceState == null)
-                        || savedInstanceState?.getParcelable<FirebaseUser>(USER_KEY) == null) {
-                    initMainFeedFragment()
-                    initSavedContentFragment()
+                    }
+                    if ((childFragmentManager.findFragmentByTag(CONTENT_FEED_FRAGMENT_TAG) == null
+                                    && savedInstanceState == null)
+                            || savedInstanceState?.getParcelable<FirebaseUser>(USER_KEY) == null) {
+                        initMainFeedFragment()
+                        initSavedContentFragment()
+                    }
                 }
-                // Signed out.
-            } else if (childFragmentManager.findFragmentByTag(CONTENT_FEED_FRAGMENT_TAG) == null &&
-                    savedInstanceState == null) {
-                // TODO - Create view event, add to Repo, handle result with LCE
-                FirebaseAuth.getInstance(firebaseApp(true)).signInAnonymously()
-                        .addOnCompleteListener(activity!!) { task ->
-                            if (task.isSuccessful)
-                                Crashlytics.log(Log.VERBOSE, LOG_TAG, "observeSignIn anonymous success")
-                            else {
-                                Crashlytics.log(Log.ERROR, LOG_TAG, "observeSignIn ${task.exception}")
-                                snackbarWithText(getString(error_sign_in_anonymously), contentContainer)
-                                Toast.makeText(context, "Authentication failed.",
-                                        Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                initMainFeedFragment()
+                /** Signed out */
+                else if (childFragmentManager.findFragmentByTag(CONTENT_FEED_FRAGMENT_TAG) == null &&
+                        savedInstanceState == null) {
+                    try {
+                        FirebaseAuth.getInstance(firebaseApp(true)).signInAnonymously().await()
+                        Crashlytics.log(Log.VERBOSE, LOG_TAG, "observeSignIn anonymous success")
+                    } catch (exception: FirebaseAuthException) {
+                        Crashlytics.log(Log.ERROR, LOG_TAG, "observeSignIn ${exception.localizedMessage}")
+                        snackbarWithText(getString(error_sign_in_anonymously), contentContainer)
+                        makeText(context, "Authentication failed.", LENGTH_SHORT).show()
+                    }
+                    initMainFeedFragment()
+                }
             }
         })
     }
 
     private fun initMainFeedFragment() {
         if (homeViewModel.accountType.value == FREE) getLocationPermissionCheck()
-        childFragmentManager.beginTransaction().replace(contentContainer.id,
+        childFragmentManager.beginTransaction().replace(
+                contentContainer.id,
                 ContentFragment.newInstance(Bundle().apply {
                     putString(FEED_TYPE_KEY, MAIN.name)
                     openFromNotificaitonFeedType?.let { if (it == MAIN) putAll(arguments) }
-                }), CONTENT_FEED_FRAGMENT_TAG)
-                .commit()
+                }), CONTENT_FEED_FRAGMENT_TAG
+        ).commit()
     }
 
     private fun initSavedContentFragment() {
@@ -367,7 +368,8 @@ class HomeFragment : Fragment() {
                         putAll(arguments)
                     }
                 }),
-                SAVED_CONTENT_TAG).commit()
+                SAVED_CONTENT_TAG
+        ).commit()
     }
 
     private fun getLocationPermissionCheck() {

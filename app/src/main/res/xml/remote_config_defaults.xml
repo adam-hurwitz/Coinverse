@@ -76,10 +76,6 @@
         <value>actions</value>
     </entry>
     <entry>
-        <key>sign_out_on_back_press_delay_in_millis</key>
-        <value>500</value>
-    </entry>
-    <entry>
         <key>cell_content_margin</key>
         <value>32</value>
     </entry>
@@ -394,20 +390,12 @@
         <value>user_id</value>
     </entry>
     <entry>
-        <key>quality_score_param</key>
-        <value>quality_score</value>
-    </entry>
-    <entry>
         <key>timestamp_param</key>
         <value>timestamp</value>
     </entry>
     <entry>
         <key>creator_name_param</key>
         <value>creator_name</value>
-    </entry>
-    <entry>
-        <key>feed_type_param</key>
-        <value>feed_type</value>
     </entry>
 
     <!--Ads-->

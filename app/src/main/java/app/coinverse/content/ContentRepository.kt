@@ -175,7 +175,7 @@ object ContentRepository {
         }
     }
 
-    //TODO - Move to Cloud Function
+    //TODO: Move to Cloud Function
     fun updateContentActionCounter(contentId: String, counterType: String) {
         contentEnCollection.document(contentId).apply {
             FirebaseFirestore.getInstance().runTransaction(Transaction.Function<String> { counterTransaction ->
@@ -188,7 +188,7 @@ object ContentRepository {
         }
     }
 
-    //TODO - Move to Cloud Function
+    //TODO: Move to Cloud Function
     fun updateUserActions(userId: String, actionCollection: String, content: Content, countType: String) {
         usersDocument.collection(userId).document(ACTIONS_DOCUMENT).collection(actionCollection)
                 .document(content.id).set(ContentAction(now(), content.id, content.title, content.creator,
@@ -199,7 +199,7 @@ object ContentRepository {
                 }
     }
 
-    //TODO - Move to Cloud Function
+    //TODO: Move to Cloud Function
     fun updateUserActionCounter(userId: String, counterType: String) {
         usersDocument.collection(userId).document(ACTIONS_DOCUMENT).apply {
             FirebaseFirestore.getInstance().runTransaction(Transaction.Function<String> { counterTransaction ->
@@ -211,7 +211,7 @@ object ContentRepository {
         }
     }
 
-    //TODO - Move to Cloud Function
+    //TODO: Move to Cloud Function
     fun updateQualityScore(score: Double, contentId: String) {
         Log.d(LOG_TAG, "Transaction success: " + score)
         contentEnCollection.document(contentId).also {
@@ -253,7 +253,6 @@ object ContentRepository {
     private suspend fun getLoggedInAndRealtimeContent(timeframe: Timestamp,
                                                       labeledSet: HashSet<String>,
                                                       lce: FlowCollector<Lce<PagedListResult>>) {
-
         val response = contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
                 .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe)
                 .awaitRealtime()

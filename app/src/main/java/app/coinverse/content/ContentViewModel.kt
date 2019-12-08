@@ -46,8 +46,7 @@ class ContentViewModel : ViewModel(), ContentViewEvents {
     private val _viewEffect = MutableLiveData<ContentEffects>()
     private val contentLoadingSet = hashSetOf<String>()
 
-    // View events
-
+    /** View events */
     fun attachEvents(fragment: Fragment) {
         when (fragment) {
             is ContentFragment -> fragment.initEvents(this)
@@ -144,7 +143,8 @@ class ContentViewModel : ViewModel(), ContentViewEvents {
                         is Lce.Content -> {
                             if (event.feedType == MAIN) {
                                 labelContentFirebaseAnalytics(event.content!!)
-                                //TODO - Move to Cloud Function. Use with WorkManager.
+                                //TODO: Move to Cloud Function.
+                                // Use with WorkManager.
                                 // Return error in ContentLabeled.
                                 updateActionAnalytics(event.actionType, event.content, event.user)
                                 if (event.isMainFeedEmptied)
@@ -224,7 +224,7 @@ class ContentViewModel : ViewModel(), ContentViewEvents {
         }
     }
 
-    // TODO - Refactor MediatorLiveData to Coroutine Flow - https://kotlinlang.org/docs/reference/coroutines/flow.html
+    // TODO: Refactor MediatorLiveData to Coroutine Flow - https://kotlinlang.org/docs/reference/coroutines/flow.html
     /**
      * Get audiocast player for PlayerNotificationManager in [AudioService].
      *

@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import app.coinverse.R
 import app.coinverse.R.string.*
@@ -18,7 +19,6 @@ import app.coinverse.firebase.firebaseApp
 import app.coinverse.home.HomeViewModel
 import app.coinverse.utils.FeedType.DISMISSED
 import app.coinverse.utils.PROFILE_VIEW
-import app.coinverse.utils.SIGN_OUT_ON_BACK_PRESS_DELAY_IN_MILLIS
 import app.coinverse.utils.Status.SUCCESS
 import app.coinverse.utils.livedata.EventObserver
 import app.coinverse.utils.snackbarWithText
@@ -29,21 +29,23 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.snackbar.Snackbar.LENGTH_SHORT
 import com.google.android.material.snackbar.Snackbar.make
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.android.synthetic.main.fragment_user.*
 import kotlinx.android.synthetic.main.toolbar.*
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 private val LOG_TAG = UserFragment::class.java.simpleName
 
 /**
- * TODO - Refactor with Unidirectional Data Flow.
- *  See [ContentFragment]
+ * TODO: Refactor
+ *  1. Refactor with Unidirectional Data Flow. See [app.coinverse.content.ContentViewModel].
  *  https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
- *
- * TODO - Refactor addOnCompleteListeners to await() coroutine.
- * See [ContentRepository]
- */
+ *  2. Move Firebase calls to Repository.
+ **/
+
 class UserFragment : Fragment() {
     private lateinit var binding: FragmentUserBinding
     private lateinit var userViewModel: UserViewModel
@@ -88,58 +90,44 @@ class UserFragment : Fragment() {
 
         signOut.setOnClickListener { view: View ->
             var message: Int
-            FirebaseAuth.getInstance().currentUser.let { user ->
-                if (user != null)
-                    getInstance().signOut(context!!).addOnCompleteListener {
-                        if (it.isSuccessful) {
-                            homeViewModel.setUser(null)
-                            message = signed_out
-                            make(view, getString(message), LENGTH_SHORT).show()
-                            signOut.postDelayed({ activity?.onBackPressed() },
-                                    SIGN_OUT_ON_BACK_PRESS_DELAY_IN_MILLIS)
-                            //TODO - Create view event, add to Repo, handle result with LCE
-                            FirebaseAuth.getInstance(firebaseApp(true)).signInAnonymously()
-                                    .addOnCompleteListener(activity!!) { task ->
-                                        if (task.isSuccessful)
-                                            Crashlytics.log(Log.VERBOSE, LOG_TAG, "observeSignIn anonymous success")
-                                        else {
-                                            Crashlytics.log(Log.ERROR, LOG_TAG, "observeSignIn ${task.exception}")
-                                            snackbarWithText(getString(error_sign_in_anonymously), contentContainer)
-                                            Toast.makeText(context, "Authentication failed.",
-                                                    Toast.LENGTH_SHORT).show()
-                                        }
-                                    }
-                        } //TODO: Add retry.
+            val user = FirebaseAuth.getInstance().currentUser
+            if (user != null) {
+                try {
+                    lifecycleScope.launch {
+                        getInstance().signOut(context!!).await()
+                        homeViewModel.setUser(null)
+                        message = signed_out
+                        FirebaseAuth.getInstance(firebaseApp(true)).signInAnonymously().await()
+                        Snackbar.make(view, getString(message), LENGTH_SHORT).show()
+                        activity?.onBackPressed()
                     }
-                else {
-                    message = already_signed_out
-                    Snackbar.make(view, getString(message), LENGTH_SHORT).show()
+                } catch (exception: FirebaseAuthException) {
+                    //TODO: Add retry.
+                    Crashlytics.log(Log.ERROR, LOG_TAG, "observeSignIn ${exception.localizedMessage}")
+                    snackbarWithText(getString(error_sign_in_anonymously), contentContainer)
+                    Toast.makeText(context, "Authentication failed.", Toast.LENGTH_SHORT).show()
                 }
+            } else {
+                message = already_signed_out
+                Snackbar.make(view, getString(message), LENGTH_SHORT).show()
             }
         }
         delete.setOnClickListener { view: View ->
             FirebaseAuth.getInstance().currentUser?.let { user ->
                 userViewModel.deleteUser(user).observe(viewLifecycleOwner, EventObserver { status ->
                     if (status == SUCCESS)
-                        AuthUI.getInstance().signOut(context!!).addOnCompleteListener { status ->
-                            if (status.isSuccessful) {
+                        lifecycleScope.launch {
+                            try {
+                                AuthUI.getInstance().signOut(context!!).await()
                                 homeViewModel.setUser(null)
-                                make(view, getString(deleted), LENGTH_SHORT).show()
-                                delete.postDelayed({
-                                    activity?.onBackPressed()
-                                }, SIGN_OUT_ON_BACK_PRESS_DELAY_IN_MILLIS)
-                                //TODO - Create view event, add to Repo, handle result with LCE
-                                FirebaseAuth.getInstance(firebaseApp(true)).signInAnonymously()
-                                        .addOnCompleteListener(activity!!) { task ->
-                                            if (task.isSuccessful)
-                                                Crashlytics.log(Log.VERBOSE, LOG_TAG, "observeSignIn anonymous success")
-                                            else {
-                                                Crashlytics.log(Log.ERROR, LOG_TAG, "observeSignIn ${task.exception}")
-                                                snackbarWithText(getString(error_sign_in_anonymously), contentContainer)
-                                                Toast.makeText(context, "Authentication failed.",
-                                                        Toast.LENGTH_SHORT).show()
-                                            }
-                                        }
+                                Snackbar.make(view, getString(deleted), LENGTH_SHORT).show()
+                                activity?.onBackPressed()
+                                FirebaseAuth.getInstance(firebaseApp(true)).signInAnonymously().await()
+                                Crashlytics.log(Log.VERBOSE, LOG_TAG, "observeSignIn anonymous success")
+                            } catch (e: FirebaseAuthException) {
+                                Crashlytics.log(Log.ERROR, LOG_TAG, "observeSignIn ${e.localizedMessage}")
+                                snackbarWithText(getString(error_sign_in_anonymously), contentContainer)
+                                Toast.makeText(context, "Authentication failed.", Toast.LENGTH_SHORT).show()
                             }
                         }
                     else make(view, getString(unable_to_delete), LENGTH_SHORT).show()
