@@ -6,6 +6,9 @@
 
 ## Developers
 ### [App Setup Instructions](https://medium.com/coinverse/coinverse-open-app-set-up-7a9fdbd1ba46)
+
+**Note**: For the purpose of this sample, the `open` Android Studio build variant connects to a Firestore database of content that is not actively updated.   
+
 ### Architecture & Libraries
 #### Client - Kotlin
 - Unidirectional Data Flow w/ Data Binding, ViewModels, LiveData, and Coroutines
