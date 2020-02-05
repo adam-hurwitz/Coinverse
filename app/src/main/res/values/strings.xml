@@ -70,6 +70,7 @@
     <string name="content_type">Content Type</string>
 
     <!--Audio-->
+    <string name="notification_channel_description">audiocast player</string>
     <string name="wake_lock_media">wake lock media</string>
     <string name="wifi_lock_media">wifi lock media</string>
     <string name="error_generic">Playback failed</string>

@@ -24,7 +24,6 @@ import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Pair
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -32,7 +31,6 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import app.coinverse.R.string.*
 import app.coinverse.analytics.Analytics.setCurrentScreen
 import app.coinverse.content.models.ContentToPlay
 import app.coinverse.content.models.ContentViewEventType.AudioPlayerLoad
@@ -41,11 +39,7 @@ import app.coinverse.databinding.FragmentAudioDialogBinding
 import app.coinverse.utils.*
 import app.coinverse.utils.PlayerActionType.*
 import app.coinverse.utils.livedata.EventObserver
-import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.mediacodec.MediaCodecRenderer
-import com.google.android.exoplayer2.mediacodec.MediaCodecUtil
-import com.google.android.exoplayer2.util.ErrorMessageProvider
 import kotlinx.android.synthetic.main.exo_playback_control_view.*
 import kotlinx.android.synthetic.main.exo_playback_control_view.view.*
 import kotlinx.android.synthetic.main.fragment_audio_dialog.*
@@ -110,7 +104,6 @@ class AudioFragment : Fragment() {
     }
 
     private fun setPlayerView() {
-        playerView.setErrorMessageProvider(PlayerErrorMessageProvider())
         playerView.requestFocus()
         playerView.preview.setImageUrl(context!!, contentToPlay.content.previewImage)
         playerView.title.text = contentToPlay.content.title
@@ -165,24 +158,5 @@ class AudioFragment : Fragment() {
                         })
             })
         })
-    }
-
-    private inner class PlayerErrorMessageProvider : ErrorMessageProvider<ExoPlaybackException> {
-        override fun getErrorMessage(e: ExoPlaybackException): Pair<Int, String> {
-            var errorString = getString(error_generic)
-            if (e.type == ExoPlaybackException.TYPE_RENDERER) {
-                val cause = e.rendererException
-                if (cause is MediaCodecRenderer.DecoderInitializationException)
-                // Special case for decoder initialization failures.
-                    if (cause.decoderName == null)
-                        if (cause.cause is MediaCodecUtil.DecoderQueryException)
-                            errorString = getString(error_querying_decoders)
-                        else if (cause.secureDecoderRequired)
-                            errorString = getString(error_no_secure_decoder, cause.mimeType)
-                        else errorString = getString(error_no_decoder, cause.mimeType)
-                    else errorString = getString(error_instantiating_decoder, cause.decoderName)
-            }
-            return Pair.create(0, errorString)
-        }
     }
 }

@@ -56,20 +56,14 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/preview">
 
-        <!--TODO: Enable once feed is connected to Playlist.-->
-        <!--<ImageButton
-            android:id="@id/exo_prev"
-            style="@style/ExoMediaButton.Previous"
-            android:visibility="gone" />-->
+        <!--TODO: Enable once feed is connected to playlist.
+            1. 'exo_prev'
+            2. 'exo_next' -->
 
         <ImageButton
             android:id="@id/exo_rew"
             style="@style/ExoMediaButton.Rewind"
             android:tint="@color/colorPrimary" />
-
-        <ImageButton
-            android:id="@id/exo_shuffle"
-            style="@style/ExoMediaButton.Shuffle" />
 
         <ImageButton
             android:id="@id/exo_repeat_toggle"
@@ -89,12 +83,6 @@
             android:id="@id/exo_ffwd"
             style="@style/ExoMediaButton.FastForward"
             android:tint="@color/colorPrimary" />
-
-        <!--TODO: Enable once feed is connected to Playlist.-->
-        <!--<ImageButton
-            android:id="@id/exo_next"
-            style="@style/ExoMediaButton.Next"
-            android:visibility="gone" />-->
 
     </LinearLayout>
 

@@ -33,10 +33,7 @@ import com.google.android.exoplayer2.mediacodec.MediaCodecSelector
 import com.google.android.exoplayer2.metadata.MetadataOutput
 import com.google.android.exoplayer2.source.BehindLiveWindowException
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.source.TrackGroupArray
 import com.google.android.exoplayer2.text.TextOutput
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
-import com.google.android.exoplayer2.trackselection.TrackSelectionArray
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
@@ -62,10 +59,7 @@ class AudioService : Service() {
 
     // Called first time audiocast is loaded.
     override fun onBind(intent: Intent?) = AudioServiceBinder().apply {
-        player = ExoPlayerFactory.newSimpleInstance(
-                applicationContext,
-                AudioOnlyRenderersFactory(applicationContext),
-                DefaultTrackSelector())
+        player = SimpleExoPlayer.Builder(applicationContext, AudioOnlyRenderersFactory(applicationContext)).build()
         player?.addListener(PlayerEventListener())
         buildNotification(
                 contentToPlay = intent!!.getParcelableExtra(CONTENT_TO_PLAY_KEY),
@@ -136,11 +130,11 @@ class AudioService : Service() {
     }
 
     private inner class AudioOnlyRenderersFactory(var context: Context) : RenderersFactory {
-        override fun createRenderers(eventHandler: Handler?,
-                                     videoRendererEventListener: VideoRendererEventListener?,
-                                     audioRendererEventListener: AudioRendererEventListener?,
-                                     textRendererOutput: TextOutput?,
-                                     metadataRendererOutput: MetadataOutput?,
+        override fun createRenderers(eventHandler: Handler,
+                                     videoRendererEventListener: VideoRendererEventListener,
+                                     audioRendererEventListener: AudioRendererEventListener,
+                                     textRendererOutput: TextOutput,
+                                     metadataRendererOutput: MetadataOutput,
                                      drmSessionManager: DrmSessionManager<FrameworkMediaCrypto>?) =
                 arrayOf(MediaCodecAudioRenderer(context, MediaCodecSelector.DEFAULT, eventHandler,
                         audioRendererEventListener))
@@ -151,27 +145,23 @@ class AudioService : Service() {
                 applicationContext,
                 contentToPlay.content.title,
                 app_name,
-                if (!contentToPlay.content.audioUrl.isNullOrEmpty()) 1 else -1,
+                notification_channel_description,
+                EXOPLAYER_NOTIFICATION_ID,
                 object : PlayerNotificationManager.MediaDescriptionAdapter {
-                    override fun createCurrentContentIntent(player: Player?) =
-                            PendingIntent.getActivity(
-                                    applicationContext,
-                                    0,
-                                    Intent(applicationContext, MainActivity::class.java).apply {
-                                        action = OPEN_FROM_NOTIFICATION_ACTION
-                                        putExtra(OPEN_CONTENT_FROM_NOTIFICATION_KEY, contentToPlay)
-                                    },
-                                    PendingIntent.FLAG_UPDATE_CURRENT)
+                    override fun createCurrentContentIntent(player: Player) = PendingIntent.getActivity(
+                            applicationContext,
+                            0,
+                            Intent(applicationContext, MainActivity::class.java).apply {
+                                action = OPEN_FROM_NOTIFICATION_ACTION
+                                putExtra(OPEN_CONTENT_FROM_NOTIFICATION_KEY, contentToPlay)
+                            },
+                            PendingIntent.FLAG_UPDATE_CURRENT)
 
-                    override fun getCurrentContentText(player: Player?) =
-                            contentToPlay.content.description
+                    override fun getCurrentContentText(player: Player) = contentToPlay.content.description
 
-                    override fun getCurrentContentTitle(player: Player?) =
-                            contentToPlay.content.title
+                    override fun getCurrentContentTitle(player: Player) = contentToPlay.content.title
 
-                    override fun getCurrentLargeIcon(player: Player?,
-                                                     callback: PlayerNotificationManager.BitmapCallback?) =
-                            bitmap
+                    override fun getCurrentLargeIcon(player: Player, callback: PlayerNotificationManager.BitmapCallback) = bitmap
                 },
                 object : PlayerNotificationManager.NotificationListener {
                     override fun onNotificationStarted(notificationId: Int, notification: Notification) {
@@ -183,9 +173,8 @@ class AudioService : Service() {
                     override fun onNotificationCancelled(notificationId: Int) {
                         stopService()
                     }
-                }).apply {
-            setSmallIcon(ic_coinverse_notification_24dp)
-        }
+                })
+        playerNotificationManager?.setSmallIcon(ic_coinverse_notification_24dp)
         playerNotificationManager?.setPlayer(player)
     }
 
@@ -217,14 +206,8 @@ class AudioService : Service() {
             if (player?.playbackError != null) updateStartPosition()
         }
 
-        override fun onPlayerError(e: ExoPlaybackException?) {
-            if (isBehindLiveWindow(e!!)) {
-                clearStartPosition()
-            } else updateStartPosition()
-        }
-
-        override fun onTracksChanged(trackGroups: TrackGroupArray?, trackSelections: TrackSelectionArray?) {
-            // Not implemented.
+        override fun onPlayerError(e: ExoPlaybackException) {
+            if (isBehindLiveWindow(e)) clearStartPosition() else updateStartPosition()
         }
     }
 
