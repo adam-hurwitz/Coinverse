@@ -7,15 +7,13 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
-import android.net.wifi.WifiManager
 import android.os.Binder
 import android.os.Handler
-import android.os.PowerManager
 import android.util.Log
-import android.view.WindowManager
 import app.coinverse.MainActivity
 import app.coinverse.R.drawable.ic_coinverse_notification_24dp
-import app.coinverse.R.string.*
+import app.coinverse.R.string.app_name
+import app.coinverse.R.string.notification_channel_description
 import app.coinverse.analytics.Analytics.getWatchPercent
 import app.coinverse.analytics.Analytics.updateActionsAndAnalytics
 import app.coinverse.analytics.Analytics.updateStartActionsAndAnalytics
@@ -52,14 +50,13 @@ class AudioService : Service() {
     private var startAutoPlay: Boolean = false
     private var startWindow: Int = 0
     private var startPosition: Long = 0
-    private var wakeLock: PowerManager.WakeLock? = null
-    private var wifiLock: WifiManager.WifiLock? = null
     private var seekToPositionMillis = 0
     private var playOrPausePressed = false
 
     // Called first time audiocast is loaded.
     override fun onBind(intent: Intent?) = AudioServiceBinder().apply {
         player = SimpleExoPlayer.Builder(applicationContext, AudioOnlyRenderersFactory(applicationContext)).build()
+        player?.setHandleWakeLock(true)
         player?.addListener(PlayerEventListener())
         buildNotification(
                 contentToPlay = intent!!.getParcelableExtra(CONTENT_TO_PLAY_KEY),
@@ -69,7 +66,6 @@ class AudioService : Service() {
     override fun onDestroy() {
         playerNotificationManager?.setPlayer(null)
         player?.release()
-        wakeAndwifiLockManager(false)
         super.onDestroy()
     }
 
@@ -98,12 +94,10 @@ class AudioService : Service() {
                 PLAYER_ACTION -> when (this?.getStringExtra(PLAYER_KEY)) {
                     PAUSE.name -> {
                         player?.playWhenReady = false
-                        wakeAndwifiLockManager(false)
                         playOrPausePressed = this.getBooleanExtra(PLAY_OR_PAUSE_PRESSED_KEY, false)
                     }
                     PLAY.name -> {
                         player?.playWhenReady = true
-                        wakeAndwifiLockManager(true)
                         playOrPausePressed = this.getBooleanExtra(PLAY_OR_PAUSE_PRESSED_KEY, false)
                     }
                     STOP.name -> stopService()
@@ -167,7 +161,6 @@ class AudioService : Service() {
                     override fun onNotificationStarted(notificationId: Int, notification: Notification) {
                         startForeground(notificationId, notification)
                         player?.playWhenReady = true
-                        wakeAndwifiLockManager(true)
                     }
 
                     override fun onNotificationCancelled(notificationId: Int) {
@@ -221,7 +214,6 @@ class AudioService : Service() {
 
     private fun stopService() {
         player?.playWhenReady = false
-        wakeAndwifiLockManager(false)
         stopForeground(true)
         stopSelf()
     }
@@ -238,19 +230,5 @@ class AudioService : Service() {
         startAutoPlay = true
         startWindow = C.INDEX_UNSET
         startPosition = C.TIME_UNSET
-    }
-
-    private fun wakeAndwifiLockManager(enabled: Boolean) {
-        if (enabled) {
-            wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager).newWakeLock(
-                    WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, getString(wake_lock_media)).apply {
-                this.acquire(10000)
-            }
-            wifiLock = (getSystemService(Context.WIFI_SERVICE) as WifiManager).createWifiLock(
-                    WifiManager.WIFI_MODE_FULL_HIGH_PERF, getString(wifi_lock_media)).apply {
-                this.acquire()
-            }
-        } else if (!enabled && wakeLock != null && wakeLock!!.isHeld) wakeLock?.release()
-        else if (!enabled && wifiLock != null && wifiLock!!.isHeld) wifiLock?.release()
     }
 }
