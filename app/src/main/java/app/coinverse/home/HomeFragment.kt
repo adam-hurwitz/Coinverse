@@ -24,9 +24,9 @@ import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.core.content.PermissionChecker.PERMISSION_GRANTED
 import androidx.core.content.PermissionChecker.checkSelfPermission
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.observe
 import androidx.navigation.findNavController
 import app.coinverse.BuildConfig.VERSION_NAME
 import app.coinverse.R
@@ -229,13 +229,13 @@ class HomeFragment : Fragment() {
     }
 
     private fun observeBottomSheetBackPressed() {
-        homeViewModel.bottomSheetState.observe(viewLifecycleOwner, Observer { bottomSheetState ->
+        homeViewModel.bottomSheetState.observe(viewLifecycleOwner) { bottomSheetState ->
             if (bottomSheetState == STATE_COLLAPSED) bottomSheetBehavior.state = STATE_COLLAPSED
             if (bottomSheetState == STATE_HIDDEN) {
                 bottomSheetBehavior.isHideable = true
                 bottomSheetBehavior.state = STATE_HIDDEN
             }
-        })
+        }
     }
 
     private fun setClickListeners() {
@@ -286,7 +286,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun observeSignIn(savedInstanceState: Bundle?) {
-        homeViewModel.user.observe(this, Observer { user: FirebaseUser? ->
+        homeViewModel.user.observe(this) { user: FirebaseUser? ->
             this.user = user
             initProfileButton(user != null && !user.isAnonymous)
             lifecycleScope.launch {
@@ -342,7 +342,7 @@ class HomeFragment : Fragment() {
                     initMainFeedFragment()
                 }
             }
-        })
+        }
     }
 
     private fun initMainFeedFragment() {
@@ -390,12 +390,12 @@ class HomeFragment : Fragment() {
     }
 
     private fun initSwipeToRefresh() {
-        homeViewModel.isSwipeToRefreshEnabled.observe(viewLifecycleOwner, Observer { isEnabled: Boolean ->
+        homeViewModel.isSwipeToRefreshEnabled.observe(viewLifecycleOwner) { isEnabled: Boolean ->
             swipeToRefresh.isEnabled = isEnabled
-        })
-        homeViewModel.isRefreshing.observe(viewLifecycleOwner, Observer { isRefreshing: Boolean ->
+        }
+        homeViewModel.isRefreshing.observe(viewLifecycleOwner) { isRefreshing: Boolean ->
             swipeToRefresh.isRefreshing = isRefreshing
-        })
+        }
         swipeToRefresh.setOnRefreshListener {
             if (homeViewModel.accountType.value == FREE) getLocationPermissionCheck()
             (childFragmentManager.findFragmentById(R.id.priceContainer) as PriceFragment)

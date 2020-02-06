@@ -29,8 +29,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.observe
 import app.coinverse.analytics.Analytics.setCurrentScreen
 import app.coinverse.content.models.ContentToPlay
 import app.coinverse.content.models.ContentViewEventType.AudioPlayerLoad
@@ -63,6 +63,7 @@ class AudioFragment : Fragment() {
             if (service is AudioService.AudioServiceBinder)
                 playerView.player = service.getExoPlayerInstance().apply { player = this }
         }
+
         override fun onServiceDisconnected(componentName: ComponentName) {}
     }
 
@@ -128,8 +129,8 @@ class AudioFragment : Fragment() {
     }
 
     private fun observeViewState() {
-        contentViewModel.playerViewState.observe(viewLifecycleOwner, Observer { viewState ->
-            viewState?.contentPlayer?.observe(viewLifecycleOwner, EventObserver { contentPlayer ->
+        contentViewModel.playerViewState.observe(viewLifecycleOwner) { viewState ->
+            viewState.contentPlayer.observe(viewLifecycleOwner, EventObserver { contentPlayer ->
                 if (contentToPlay.content.id != contentViewModel.contentPlaying.id)
                     if (VERSION.SDK_INT >= VERSION_CODES.O)
                         context?.startService(Intent(context, AudioService::class.java).apply {
@@ -157,6 +158,6 @@ class AudioFragment : Fragment() {
                             putExtra(CONTENT_SELECTED_BITMAP_KEY, contentPlayer.image)
                         })
             })
-        })
+        }
     }
 }

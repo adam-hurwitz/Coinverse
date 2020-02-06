@@ -31,13 +31,13 @@ android {
     }
     buildTypes {
         release {
+            // TODO: Test minify
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro',
                     'proguard.cfg'
-            // FIXME
-            /*proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
-                    'proguard-rules.pro', 'proguard.cfg'
             minifyEnabled true
-            shrinkResources true*/
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                    'proguard-rules.pro', 'proguard.cfg'
         }
         debug {
             applicationIdSuffix ".staging"
@@ -72,7 +72,7 @@ dependencies {
     def exoplayer_version = '2.11.1'
     def room_version = '2.2.3'
     def glide_version = '4.9.0'
-    def mopub_version = '+@aar'
+    def mopub_version = '5.11.0@aar'
     def junit_version = '5.5.1'
     def test_rules_core_version = '1.2.0'
     def fragment_test_version = '1.2.0'

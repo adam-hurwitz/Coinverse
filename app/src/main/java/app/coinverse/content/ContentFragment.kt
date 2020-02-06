@@ -1,6 +1,5 @@
 package app.coinverse.content
 
-//import app.coinverse.content.adapter.ItemTouchHelper
 import android.content.Intent
 import android.content.Intent.*
 import android.net.Uri
@@ -14,8 +13,8 @@ import android.view.animation.AnimationUtils
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources.getDrawable
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.observe
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import app.coinverse.R
@@ -192,9 +191,9 @@ class ContentFragment : Fragment() {
     }
 
     private fun observeViewState() {
-        contentViewModel.feedViewState.observe(viewLifecycleOwner, Observer { viewState ->
+        contentViewModel.feedViewState.observe(viewLifecycleOwner) { viewState ->
             setToolbar(viewState)
-            viewState.contentList.observe(viewLifecycleOwner, Observer { pagedList ->
+            viewState.contentList.observe(viewLifecycleOwner) { pagedList ->
                 adapter.submitList(pagedList)
                 viewEvents.feedLoadComplete(FeedLoadComplete(pagedList.isNotEmpty()))
                 if (pagedList.isNotEmpty())
@@ -205,7 +204,7 @@ class ContentFragment : Fragment() {
                         savedRecyclerPosition = 0
                     }
                 openContentFromNotification()
-            })
+            }
             viewState.contentToPlay.observe(viewLifecycleOwner, EventObserver { contentToPlay ->
                 when (feedType) {
                     MAIN, DISMISSED ->
@@ -229,11 +228,11 @@ class ContentFragment : Fragment() {
                     }
                 }
             })
-        })
+        }
     }
 
     private fun observeViewEffects() {
-        contentViewModel.viewEffect.observe(viewLifecycleOwner, Observer { effect ->
+        contentViewModel.viewEffect.observe(viewLifecycleOwner) { effect ->
             effect.signIn.observe(viewLifecycleOwner, EventObserver {
                 SignInDialogFragment.newInstance(Bundle().apply {
                     putString(SIGNIN_TYPE_KEY, DIALOG.name)
@@ -373,7 +372,7 @@ class ContentFragment : Fragment() {
                     }
                 })
             })
-        })
+        }
     }
 
     private fun getFeedType() {

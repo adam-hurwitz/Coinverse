@@ -14,8 +14,8 @@ import android.widget.Toast.LENGTH_SHORT
 import android.widget.Toast.makeText
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.observe
 import app.coinverse.R.color.colorAccent
 import app.coinverse.R.color.colorPrimaryDark
 import app.coinverse.R.dimen.data_point_radius
@@ -62,9 +62,9 @@ class PriceFragment : Fragment() {
         priceViewModel = ViewModelProviders.of(this).get(PriceViewModel::class.java)
         homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
         if (savedInstanceState == null) {
-            homeViewModel.isRealtime.observe(this, Observer { isRealtime: Boolean ->
+            homeViewModel.isRealtime.observe(this) { isRealtime: Boolean ->
                 getPrices(isRealtime, true)
-            })
+            }
         }
     }
 
@@ -99,16 +99,16 @@ class PriceFragment : Fragment() {
         graphLabels.isHorizontalLabelsVisible = false
         graphLabels.isVerticalLabelsVisible = false
         resources.getValue(data_point_radius, dataPointRadiusValue, true)
-        priceViewModel.timeframe.observe(viewLifecycleOwner, Observer { timeframeToQuery: Timeframe? ->
+        priceViewModel.timeframe.observe(viewLifecycleOwner) { timeframeToQuery: Timeframe? ->
             when (timeframeToQuery) {
                 DAY -> timeframe.text = resources.getString(timeframe_last_day)
                 else -> timeframe.text = resources.getString(timeframe_last_day)
             }
-        })
+        }
     }
 
     private fun observeOrderTypesEnabled() {
-        priceViewModel.enabledOrderTypes.observe(viewLifecycleOwner, Observer { enabledOrderTypeList ->
+        priceViewModel.enabledOrderTypes.observe(viewLifecycleOwner) { enabledOrderTypeList ->
             if (enabledExchangeList!!.isNotEmpty()) {
                 graph.removeAllSeries()
                 for (exchange in enabledExchangeList!!) {
@@ -122,11 +122,11 @@ class PriceFragment : Fragment() {
             setExchangeToggleColor(enabledOrderTypeList.contains(BID), bidsToggle)
             setExchangeToggleColor(enabledOrderTypeList.contains(ASK), asksToggle)
             this.enabledOrderTypeList = enabledOrderTypeList
-        })
+        }
     }
 
     private fun observeExchangesEnabled() {
-        priceViewModel.enabledExchanges.observe(viewLifecycleOwner, Observer { enabledExchangeList ->
+        priceViewModel.enabledExchanges.observe(viewLifecycleOwner) { enabledExchangeList ->
             this.enabledExchangeList = enabledExchangeList
             graph.removeAllSeries()
             setExchangeToggleColor(COINBASE, enabledExchangeList, coinbaseToggle)
@@ -143,14 +143,14 @@ class PriceFragment : Fragment() {
                     if (enabledOrderTypeList!!.contains(BID)) graph.addSeries(bids)
                 }
             }
-        })
+        }
     }
 
     private fun observePriceSelected() {
-        priceViewModel.priceSelected.observe(viewLifecycleOwner, Observer { selected ->
+        priceViewModel.priceSelected.observe(viewLifecycleOwner) { selected ->
             priceSelected.setTextColor(context!!.getColor(getExchangeColor(selected.first)))
             priceSelected.text = selected.second
-        })
+        }
     }
 
     private fun setExchangeToggleColor(exchange: Exchange, enabledExchangeList: ArrayList<Exchange?>?,
@@ -166,48 +166,47 @@ class PriceFragment : Fragment() {
     }
 
     private fun observeGraphData() {
-        priceViewModel.graphLiveData.observe(viewLifecycleOwner, Observer { priceGraphDataMap ->
+        priceViewModel.graphLiveData.observe(viewLifecycleOwner) { priceGraphDataMap ->
             for (priceGraphData in priceGraphDataMap!!.entries) {
                 val exchange = priceGraphData.key
                 val graphSeriesMap = priceViewModel.graphSeriesMap[exchange]
                 setGraph(exchange, ASK, graphSeriesMap?.asks, priceGraphDataMap)
                 setGraph(exchange, BID, graphSeriesMap?.bids, priceGraphDataMap)
             }
-        })
+        }
     }
 
     private fun observeGraphConstraints() {
         priceViewModel.priceGraphXAndYConstraintsLiveData.observe(
-                viewLifecycleOwner,
-                Observer { priceGraphXAndYConstraints: PriceGraphXAndYConstraints? ->
-                    graph.viewport.setMinY(priceGraphXAndYConstraints?.minY ?: 0.0)
-                    graph.viewport.setMaxY(priceGraphXAndYConstraints?.maxY ?: 0.0)
-                    graph.viewport.setMinX(priceGraphXAndYConstraints?.minX ?: 0.0)
-                    graph.viewport.setMaxX(priceGraphXAndYConstraints?.maxX ?: 0.0)
-                    graph.onDataChanged(true, false)
-                })
+                viewLifecycleOwner) { priceGraphXAndYConstraints: PriceGraphXAndYConstraints? ->
+            graph.viewport.setMinY(priceGraphXAndYConstraints?.minY ?: 0.0)
+            graph.viewport.setMaxY(priceGraphXAndYConstraints?.maxY ?: 0.0)
+            graph.viewport.setMinX(priceGraphXAndYConstraints?.minX ?: 0.0)
+            graph.viewport.setMaxX(priceGraphXAndYConstraints?.maxX ?: 0.0)
+            graph.onDataChanged(true, false)
+        }
     }
 
     private fun observePriceDifferenceDetails() {
-        priceViewModel.priceDifferenceLiveData.observe(viewLifecycleOwner, Observer { minAndMaxPriceData ->
+        priceViewModel.priceDifferenceLiveData.observe(viewLifecycleOwner) { minAndMaxPriceData ->
             if (SDK_INT >= O) {
                 maxBid.tooltipText = String.format(getString(max_min_format),
-                        minAndMaxPriceData?.bidExchange, minAndMaxPriceData?.baseToQuoteBid?.toFloat())
+                        minAndMaxPriceData.bidExchange, minAndMaxPriceData.baseToQuoteBid.toFloat())
                 minAsk.tooltipText = String.format(getString(max_min_format),
-                        minAndMaxPriceData?.askExchange, minAndMaxPriceData?.baseToQuoteAsk?.toFloat())
+                        minAndMaxPriceData.askExchange, minAndMaxPriceData.baseToQuoteAsk.toFloat())
             } else {
                 maxBid.setOnClickListener {
                     makeText(context, String.format(getString(max_min_format),
-                            minAndMaxPriceData?.bidExchange, minAndMaxPriceData?.baseToQuoteBid?.toFloat()),
+                            minAndMaxPriceData.bidExchange, minAndMaxPriceData.baseToQuoteBid.toFloat()),
                             LENGTH_SHORT).show()
                 }
                 minAsk.setOnClickListener {
                     makeText(context, String.format(getString(max_min_format),
-                            minAndMaxPriceData?.askExchange, minAndMaxPriceData?.baseToQuoteAsk?.toFloat()),
+                            minAndMaxPriceData.askExchange, minAndMaxPriceData.baseToQuoteAsk.toFloat()),
                             LENGTH_SHORT).show()
                 }
             }
-        })
+        }
     }
 
     private fun setGraph(exchange: Exchange, orderType: OrderType, orders: LineGraphSeries<DataPoint>?,
