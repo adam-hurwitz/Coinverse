@@ -8,7 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
-import androidx.lifecycle.ViewModelProviders
+import androidx.fragment.app.activityViewModels
 import app.coinverse.databinding.FragmentSignInBinding
 import app.coinverse.databinding.FragmentSignInDialogBinding
 import app.coinverse.home.HomeViewModel
@@ -26,15 +26,10 @@ private val LOG_TAG = SignInDialogFragment::class.java.simpleName
 
 class SignInDialogFragment : DialogFragment() {
 
-    private lateinit var homeViewModel: HomeViewModel
+    private val homeViewModel: HomeViewModel by activityViewModels()
 
     companion object {
         fun newInstance(bundle: Bundle) = SignInDialogFragment().apply { arguments = bundle }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) =

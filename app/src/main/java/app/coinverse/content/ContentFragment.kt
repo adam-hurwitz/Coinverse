@@ -13,7 +13,8 @@ import android.view.animation.AnimationUtils
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources.getDrawable
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProviders
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.observe
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -54,17 +55,17 @@ import kotlinx.android.synthetic.main.fragment_content.*
 private val LOG_TAG = ContentFragment::class.java.simpleName
 
 class ContentFragment : Fragment() {
-    private lateinit var viewEvents: ContentViewEvents
-    private lateinit var feedType: FeedType
-    private lateinit var binding: FragmentContentBinding
-    private lateinit var contentViewModel: ContentViewModel
-    private lateinit var homeViewModel: HomeViewModel
-    private lateinit var adapter: ContentAdapter
-    private lateinit var moPubAdapter: MoPubRecyclerAdapter
+    private val homeViewModel: HomeViewModel by activityViewModels()
+    private val contentViewModel: ContentViewModel by viewModels()
     private var savedRecyclerPosition: Int = 0
     private var clearAdjacentAds = false
     private var openContentFromNotification = false
     private var openContentFromNotificationContentToPlay: ContentToPlay? = null
+    private lateinit var viewEvents: ContentViewEvents
+    private lateinit var feedType: FeedType
+    private lateinit var binding: FragmentContentBinding
+    private lateinit var adapter: ContentAdapter
+    private lateinit var moPubAdapter: MoPubRecyclerAdapter
 
     companion object {
         @JvmStatic
@@ -90,8 +91,6 @@ class ContentFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         getFeedType()
-        contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
-        homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
         contentViewModel.attachEvents(this)
         if (savedInstanceState == null)
             viewEvents.feedLoad(FeedLoad(

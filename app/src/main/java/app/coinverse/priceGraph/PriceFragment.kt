@@ -14,7 +14,8 @@ import android.widget.Toast.LENGTH_SHORT
 import android.widget.Toast.makeText
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProviders
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.observe
 import app.coinverse.R.color.colorAccent
 import app.coinverse.R.color.colorPrimaryDark
@@ -44,10 +45,11 @@ private val dataPointRadiusValue = TypedValue()
  * TODO: Remove price graphs and replace with content search bar.
  */
 class PriceFragment : Fragment() {
-    private var LOG_TAG = PriceFragment::class.java.simpleName
+    private val LOG_TAG = PriceFragment::class.java.simpleName
+    private val homeViewModel: HomeViewModel by activityViewModels()
+    private val priceViewModel: PriceViewModel by viewModels()
+
     private lateinit var binding: FragmentPriceBinding
-    private lateinit var priceViewModel: PriceViewModel
-    private lateinit var homeViewModel: HomeViewModel
 
     private var enabledOrderTypeList: ArrayList<OrderType?>? = ArrayList()
     private var enabledExchangeList: ArrayList<Exchange?>? = ArrayList()
@@ -59,8 +61,6 @@ class PriceFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        priceViewModel = ViewModelProviders.of(this).get(PriceViewModel::class.java)
-        homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
         if (savedInstanceState == null) {
             homeViewModel.isRealtime.observe(this) { isRealtime: Boolean ->
                 getPrices(isRealtime, true)

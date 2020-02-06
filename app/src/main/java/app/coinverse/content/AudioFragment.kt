@@ -29,7 +29,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProviders
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.observe
 import app.coinverse.analytics.Analytics.setCurrentScreen
 import app.coinverse.content.models.ContentToPlay
@@ -51,10 +51,10 @@ private val LOG_TAG = AudioFragment::class.java.simpleName
  *  https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
  **/
 class AudioFragment : Fragment() {
-    private lateinit var viewEvents: ContentViewEvents
+    private val contentViewModel: ContentViewModel by viewModels()
     private var player: SimpleExoPlayer? = null
+    private lateinit var viewEvents: ContentViewEvents
     private lateinit var contentToPlay: ContentToPlay
-    private lateinit var contentViewModel: ContentViewModel
 
     fun newInstance(bundle: Bundle) = AudioFragment().apply { arguments = bundle }
 
@@ -70,7 +70,6 @@ class AudioFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         contentToPlay = arguments!!.getParcelable(CONTENT_TO_PLAY_KEY)!!
-        contentViewModel = ViewModelProviders.of(this).get(ContentViewModel::class.java)
         contentViewModel.attachEvents(this)
         if (savedInstanceState == null)
             viewEvents.audioPlayerLoad(AudioPlayerLoad(

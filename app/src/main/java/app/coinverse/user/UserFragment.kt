@@ -8,7 +8,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProviders
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import app.coinverse.R
@@ -47,16 +47,15 @@ private val LOG_TAG = UserFragment::class.java.simpleName
  **/
 
 class UserFragment : Fragment() {
+    private val homeViewModel: HomeViewModel by activityViewModels()
+    private val userViewModel: UserViewModel by activityViewModels()
+
     private lateinit var binding: FragmentUserBinding
-    private lateinit var userViewModel: UserViewModel
-    private lateinit var homeViewModel: HomeViewModel
     private lateinit var user: FirebaseUser
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setCurrentScreen(activity!!, PROFILE_VIEW)
-        userViewModel = ViewModelProviders.of(activity!!).get(UserViewModel::class.java)
-        homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,

@@ -1,9 +1,9 @@
 package app.coinverse
 
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil.setContentView
-import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.Navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import app.coinverse.R.id.dismissedContentFragment
@@ -21,13 +21,12 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
     private val LOG_TAG = MainActivity::class.java.simpleName
+    private val homeViewModel: HomeViewModel by viewModels()
 
     private lateinit var binding: ActivityMainBinding
-    private lateinit var homeViewModel: HomeViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        homeViewModel = ViewModelProviders.of(this).get(HomeViewModel::class.java)
         binding = setContentView(this, activity_main)
         openContentFromNotification()
     }

@@ -24,7 +24,7 @@ import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.core.content.PermissionChecker.PERMISSION_GRANTED
 import androidx.core.content.PermissionChecker.checkSelfPermission
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProviders
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.observe
 import androidx.navigation.findNavController
@@ -83,13 +83,14 @@ private val LOG_TAG = HomeFragment::class.java.simpleName
 
 class HomeFragment : Fragment() {
 
+    private val homeViewModel: HomeViewModel by activityViewModels()
+
     private var user: FirebaseUser? = null
     private var isAppBarExpanded = false
     private var isSavedContentExpanded = false
     private var openFromNotificaitonFeedType: FeedType? = null
 
     private lateinit var binding: FragmentHomeBinding
-    private lateinit var homeViewModel: HomeViewModel
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<*>
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -128,7 +129,6 @@ class HomeFragment : Fragment() {
         arguments?.getParcelable<ContentToPlay>(OPEN_CONTENT_FROM_NOTIFICATION_KEY)?.let {
             openFromNotificaitonFeedType = it.content.feedType
         }
-        homeViewModel = ViewModelProviders.of(activity!!).get(HomeViewModel::class.java)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
