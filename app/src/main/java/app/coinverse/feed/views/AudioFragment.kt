@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package app.coinverse.content
+package app.coinverse.feed.views
 
 import android.content.ComponentName
 import android.content.Context
@@ -32,10 +32,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.observe
 import app.coinverse.analytics.Analytics.setCurrentScreen
-import app.coinverse.content.models.ContentToPlay
-import app.coinverse.content.models.ContentViewEventType.AudioPlayerLoad
-import app.coinverse.content.models.ContentViewEvents
 import app.coinverse.databinding.FragmentAudioDialogBinding
+import app.coinverse.feed.AudioService
+import app.coinverse.feed.models.AudioViewEventType.AudioPlayerLoad
+import app.coinverse.feed.models.AudioViewEvents
+import app.coinverse.feed.models.ContentToPlay
+import app.coinverse.feed.viewmodels.AudioViewModel
 import app.coinverse.utils.*
 import app.coinverse.utils.PlayerActionType.*
 import app.coinverse.utils.livedata.EventObserver
@@ -47,13 +49,13 @@ import kotlinx.android.synthetic.main.fragment_audio_dialog.*
 private val LOG_TAG = AudioFragment::class.java.simpleName
 
 /**
- * TODO: Refactor with Unidirectional Data Flow. See [ContentFragment].
+ * TODO: Refactor with Unidirectional Data Flow. See [FeedFragment].
  *  https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
  **/
 class AudioFragment : Fragment() {
-    private val contentViewModel: ContentViewModel by viewModels()
+    private val audioViewModel: AudioViewModel by viewModels()
     private var player: SimpleExoPlayer? = null
-    private lateinit var viewEvents: ContentViewEvents
+    private lateinit var viewEvents: AudioViewEvents
     private lateinit var contentToPlay: ContentToPlay
 
     fun newInstance(bundle: Bundle) = AudioFragment().apply { arguments = bundle }
@@ -70,7 +72,7 @@ class AudioFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         contentToPlay = arguments!!.getParcelable(CONTENT_TO_PLAY_KEY)!!
-        contentViewModel.attachEvents(this)
+        audioViewModel.attachEvents(this)
         if (savedInstanceState == null)
             viewEvents.audioPlayerLoad(AudioPlayerLoad(
                     contentToPlay.content.id, contentToPlay.filePath!!,
@@ -99,7 +101,7 @@ class AudioFragment : Fragment() {
         if (player == null && playerView != null) playerView.onResume()
     }
 
-    fun initEvents(viewEvents: ContentViewEvents) {
+    fun initEvents(viewEvents: AudioViewEvents) {
         this.viewEvents = viewEvents
     }
 
@@ -128,17 +130,17 @@ class AudioFragment : Fragment() {
     }
 
     private fun observeViewState() {
-        contentViewModel.playerViewState.observe(viewLifecycleOwner) { viewState ->
+        audioViewModel.playerViewState.observe(viewLifecycleOwner) { viewState ->
             viewState.contentPlayer.observe(viewLifecycleOwner, EventObserver { contentPlayer ->
-                if (contentToPlay.content.id != contentViewModel.contentPlaying.id)
+                if (contentToPlay.content.id != audioViewModel.contentPlaying.id)
                     if (VERSION.SDK_INT >= VERSION_CODES.O)
                         context?.startService(Intent(context, AudioService::class.java).apply {
                             action = PLAYER_ACTION
-                            if (!contentViewModel.contentPlaying.id.isNullOrEmpty())
+                            if (!audioViewModel.contentPlaying.id.isNullOrEmpty())
                                 putExtra(PLAYER_KEY, STOP.name)
                         })
                     else context?.stopService(Intent(context, AudioService::class.java))
-                contentViewModel.contentPlaying = contentToPlay.content
+                audioViewModel.contentPlaying = contentToPlay.content
                 context?.bindService(
                         Intent(context, AudioService::class.java).apply {
                             action = CONTENT_SELECTED_ACTION

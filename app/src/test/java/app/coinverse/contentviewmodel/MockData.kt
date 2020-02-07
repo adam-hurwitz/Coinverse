@@ -3,7 +3,7 @@ package app.coinverse.contentviewmodel
 import android.net.Uri
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
-import app.coinverse.content.models.*
+import app.coinverse.feed.models.*
 import app.coinverse.utils.*
 import app.coinverse.utils.ContentType.ARTICLE
 import app.coinverse.utils.ContentType.YOUTUBE

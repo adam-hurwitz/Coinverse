@@ -1,4 +1,4 @@
-package app.coinverse.content
+package app.coinverse.feed.views
 
 import android.os.Bundle
 import android.util.Log
@@ -12,8 +12,8 @@ import app.coinverse.R.id.dialog_content
 import app.coinverse.analytics.Analytics.setCurrentScreen
 import app.coinverse.analytics.Analytics.updateActionsAndAnalytics
 import app.coinverse.analytics.Analytics.updateStartActionsAndAnalytics
-import app.coinverse.content.models.ContentToPlay
 import app.coinverse.databinding.FragmentContentDialogBinding
+import app.coinverse.feed.models.ContentToPlay
 import app.coinverse.utils.BuildType.*
 import app.coinverse.utils.CONTENT_TO_PLAY_KEY
 import app.coinverse.utils.YOUTUBE_ID_REGEX
@@ -27,7 +27,7 @@ import com.google.android.youtube.player.YouTubePlayerSupportFragment
 import kotlinx.coroutines.launch
 
 /**
- * TODO: Refactor with Unidirectional Data Flow. See [ContentFragment]
+ * TODO: Refactor with Unidirectional Data Flow. See [FeedFragment]
  * See more: https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
  **/
 class YouTubeFragment : Fragment() {

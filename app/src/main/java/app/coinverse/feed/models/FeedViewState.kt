@@ -1,4 +1,4 @@
-package app.coinverse.content.models
+package app.coinverse.feed.models
 
 import android.graphics.Bitmap
 import android.net.Uri
@@ -27,8 +27,6 @@ data class FeedViewState(val feedType: FeedType = MAIN,
                          val contentToPlay: LiveData<Event<ContentToPlay?>> = liveData {},
                          val contentLabeled: LiveData<Event<ContentLabeled?>> = liveData {},
                          val notificationBitmap: LiveData<Event<Bitmap>> = liveData {})
-
-data class PlayerViewState(val contentPlayer: LiveData<Event<ContentPlayer>>)
 
 @Entity(tableName = "content")
 data class Content(@PrimaryKey var id: String = "",
@@ -150,10 +148,6 @@ data class ContentToPlay(var position: Int,
 
 data class ContentLabeled(val position: Int, val errorMessage: String)
 data class PagedListResult(val pagedList: LiveData<PagedList<Content>>?, val errorMessage: String)
-
-data class ContentUri(val uri: Uri, val errorMessage: String)
-data class ContentBitmap(val image: ByteArray = ByteArray(0),
-                         val errorMessage: String = "")
 
 data class ContentPlayer(val uri: Uri, val image: ByteArray, val errorMessage: String) : Parcelable {
     constructor(parcel: Parcel) : this(

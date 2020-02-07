@@ -4,9 +4,9 @@ import android.app.Activity
 import android.os.Bundle
 import android.util.Log
 import app.coinverse.analytics.models.UserAction
-import app.coinverse.content.ContentRepository
-import app.coinverse.content.models.Content
-import app.coinverse.content.room.CoinverseDatabase.database
+import app.coinverse.feed.FeedRepository
+import app.coinverse.feed.models.Content
+import app.coinverse.feed.room.CoinverseDatabase.database
 import app.coinverse.firebase.*
 import app.coinverse.utils.*
 import app.coinverse.utils.FeedType.SAVED
@@ -126,9 +126,9 @@ object Analytics {
         contentEnCollection.document(content.id).collection(actionCollection)
                 .document(user.email!!).set(UserAction(Timestamp.now(), user.email!!))
                 .addOnSuccessListener { status ->
-                    ContentRepository.updateContentActionCounter(content.id, countType)
-                    ContentRepository.updateUserActions(user.uid, actionCollection, content, countType)
-                    ContentRepository.updateQualityScore(score, content.id)
+                    FeedRepository.updateContentActionCounter(content.id, countType)
+                    FeedRepository.updateUserActions(user.uid, actionCollection, content, countType)
+                    FeedRepository.updateQualityScore(score, content.id)
                 }.addOnFailureListener { e ->
                     Log.e(LOG_TAG,
                             "Transaction failure update action $actionCollection ${countType}.", e)
@@ -154,7 +154,7 @@ object Analytics {
      * @param userId String of active user
      */
     fun updateFeedEmptiedActionsAndAnalytics(userId: String) {
-        ContentRepository.updateUserActionCounter(userId, CLEAR_FEED_COUNT)
+        FeedRepository.updateUserActionCounter(userId, CLEAR_FEED_COUNT)
         analytics.logEvent(CLEAR_FEED_EVENT, Bundle().apply {
             putString(TIMESTAMP_PARAM, Timestamp.now().toString())
         })

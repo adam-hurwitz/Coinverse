@@ -1,26 +1,25 @@
-package app.coinverse.content
+package app.coinverse.feed.viewmodels
 
 import android.util.Log
 import android.view.View
 import android.widget.ProgressBar.GONE
 import android.widget.ProgressBar.VISIBLE
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
 import app.coinverse.R.string.*
 import app.coinverse.analytics.Analytics.labelContentFirebaseAnalytics
 import app.coinverse.analytics.Analytics.updateActionAnalytics
 import app.coinverse.analytics.Analytics.updateFeedEmptiedActionsAndAnalytics
-import app.coinverse.content.ContentRepository.bitmapToByteArray
-import app.coinverse.content.ContentRepository.editContentLabels
-import app.coinverse.content.ContentRepository.getAudiocast
-import app.coinverse.content.ContentRepository.getContent
-import app.coinverse.content.ContentRepository.getMainFeedList
-import app.coinverse.content.ContentRepository.queryLabeledContentList
-import app.coinverse.content.ContentRepository.queryMainContentList
-import app.coinverse.content.models.*
-import app.coinverse.content.models.ContentEffectType.*
-import app.coinverse.content.models.ContentViewEventType.*
-import app.coinverse.content.models.ContentViewEventType.ContentLabeled
+import app.coinverse.feed.FeedRepository.editContentLabels
+import app.coinverse.feed.FeedRepository.getAudiocast
+import app.coinverse.feed.FeedRepository.getContent
+import app.coinverse.feed.FeedRepository.getMainFeedList
+import app.coinverse.feed.FeedRepository.queryLabeledContentList
+import app.coinverse.feed.FeedRepository.queryMainContentList
+import app.coinverse.feed.models.*
+import app.coinverse.feed.models.FeedViewEffectType.*
+import app.coinverse.feed.models.FeedViewEventType.*
+import app.coinverse.feed.models.FeedViewEventType.ContentLabeled
+import app.coinverse.feed.views.FeedFragment
 import app.coinverse.utils.*
 import app.coinverse.utils.ContentType.*
 import app.coinverse.utils.DateAndTime.getTimeframe
@@ -31,60 +30,49 @@ import app.coinverse.utils.models.Lce.Error
 import app.coinverse.utils.models.Lce.Loading
 import app.coinverse.utils.models.ToolbarState
 import com.crashlytics.android.Crashlytics
-import com.google.firebase.Timestamp
 import kotlinx.coroutines.flow.collect
 
-class ContentViewModel : ViewModel(), ContentViewEvents {
+class FeedViewModel(private val state: SavedStateHandle,
+                    private val feedType: FeedType,
+                    private val timeframe: Timeframe,
+                    private val isRealtime: Boolean) : ViewModel(), FeedViewEvents {
     //TODO: Add isRealtime Boolean for paid feature.
-    var contentPlaying = Content()
-    val feedViewState: LiveData<FeedViewState> get() = _feedViewState
-    val playerViewState: LiveData<PlayerViewState> get() = _playerViewState
-    val viewEffect: LiveData<ContentEffects> get() = _viewEffect
-    private val LOG_TAG = ContentViewModel::class.java.simpleName
-    private val _feedViewState = MutableLiveData<FeedViewState>()
-    private val _playerViewState = MutableLiveData<PlayerViewState>()
-    private val _viewEffect = MutableLiveData<ContentEffects>()
+    val viewState: LiveData<FeedViewState> get() = _viewState
+    val viewEffect: LiveData<FeedViewEffects> get() = _viewEffect
+    val feedPosition = state.get<Int>(FEED_POSITION_KEY).let { position ->
+        if (position == null) 0 else position
+    }
+    private val LOG_TAG = FeedViewModel::class.java.simpleName
+    private val _viewState = MutableLiveData<FeedViewState>()
+    private val _viewEffect = MutableLiveData<FeedViewEffects>()
     private val contentLoadingSet = hashSetOf<String>()
 
-    /** View events */
-    fun attachEvents(fragment: Fragment) {
-        when (fragment) {
-            is ContentFragment -> fragment.initEvents(this)
-            is AudioFragment -> fragment.initEvents(this)
-        }
+    init {
+        _viewState.value = FeedViewState(
+                feedType = feedType,
+                timeframe = timeframe,
+                toolbar = setToolbar(feedType),
+                contentList = getContentList(FeedLoad(feedType, timeframe, isRealtime)))
+        _viewEffect.value = FeedViewEffects(updateAds = liveData { emit(Event(UpdateAdsEffect())) })
     }
 
-    override fun feedLoad(event: FeedLoad) {
-        _feedViewState.value = FeedViewState(
-                feedType = event.feedType,
-                timeframe = event.timeframe,
-                toolbar = setToolbar(event.feedType),
-                contentList = getContentList(event, event.feedType, event.isRealtime,
-                        getTimeframe(event.timeframe)))
-        _viewEffect.value = ContentEffects(updateAds = liveData { emit(Event(UpdateAdsEffect())) })
+    /** View events */
+    fun attachEvents(fragment: FeedFragment) {
+        fragment.initEvents(this)
     }
 
     override fun feedLoadComplete(event: FeedLoadComplete) {
         _viewEffect.send(ScreenEmptyEffect(!event.hasContent))
     }
 
-    override fun audioPlayerLoad(event: AudioPlayerLoad) {
-        _playerViewState.value = PlayerViewState(
-                getAudioPlayer(event.contentId, event.filePath, event.previewImageUrl))
-    }
-
     override fun swipeToRefresh(event: SwipeToRefresh) {
-        _feedViewState.value = _feedViewState.value?.copy(contentList = getContentList(
-                event = event,
-                feedType = event.feedType,
-                isRealtime = event.isRealtime,
-                timeframe = getTimeframe(event.timeframe)))
+        _viewState.value = _viewState.value?.copy(contentList = getContentList(event))
     }
 
     override fun contentSelected(event: ContentSelected) {
         val contentSelected = ContentSelected(event.position, event.content)
         when (contentSelected.content.contentType) {
-            ARTICLE -> _feedViewState.value = _feedViewState.value?.copy(contentToPlay = liveData {
+            ARTICLE -> _viewState.value = _viewState.value?.copy(contentToPlay = liveData {
                 getAudiocast(contentSelected).collect { lce ->
                     when (lce) {
                         is Loading -> {
@@ -112,7 +100,7 @@ class ContentViewModel : ViewModel(), ContentViewEvents {
             YOUTUBE -> {
                 setContentLoadingStatus(contentSelected.content.id, View.GONE)
                 _viewEffect.send(NotifyItemChangedEffect(contentSelected.position))
-                _feedViewState.value = _feedViewState.value?.copy(
+                _viewState.value = _viewState.value?.copy(
                         contentToPlay = liveData<Event<ContentToPlay?>> {
                             emit(Event(ContentToPlay(contentSelected.position,
                                     contentSelected.content, "", "")))
@@ -131,7 +119,7 @@ class ContentViewModel : ViewModel(), ContentViewEvents {
     }
 
     override fun contentLabeled(event: ContentLabeled) {
-        _feedViewState.value = _feedViewState.value?.copy(contentLabeled = liveData {
+        _viewState.value = _viewState.value?.copy(contentLabeled = liveData {
             if (event.user != null && !event.user.isAnonymous) {
                 editContentLabels(
                         feedType = event.feedType,
@@ -151,7 +139,7 @@ class ContentViewModel : ViewModel(), ContentViewEvents {
                                     updateFeedEmptiedActionsAndAnalytics(event.user.uid)
                             }
                             _viewEffect.send(NotifyItemChangedEffect(event.position))
-                            emit(Event(app.coinverse.content.models.ContentLabeled(event.position, "")))
+                            emit(Event(app.coinverse.feed.models.ContentLabeled(event.position, "")))
                         }
                         is Error -> {
                             _viewEffect.send(SnackBarEffect(CONTENT_LABEL_ERROR))
@@ -180,6 +168,10 @@ class ContentViewModel : ViewModel(), ContentViewEvents {
         _viewEffect.send(UpdateAdsEffect())
     }
 
+    fun saveFeedPosition(position: Int) {
+        state.set(FEED_POSITION_KEY, position)
+    }
+
     private fun setToolbar(feedType: FeedType) = ToolbarState(
             when (feedType) {
                 MAIN -> GONE
@@ -196,9 +188,12 @@ class ContentViewModel : ViewModel(), ContentViewEvents {
             }
     )
 
-    private fun getContentList(event: ContentViewEventType, feedType: FeedType,
-                               isRealtime: Boolean, timeframe: Timestamp) = liveData {
-        if (feedType == MAIN) getMainFeedList(isRealtime, timeframe).collect { lce ->
+    private fun getContentList(event: FeedViewEventType) = liveData {
+        val timeframe =
+                if (event is FeedLoad) getTimeframe(event.timeframe)
+                else if (event is SwipeToRefresh) getTimeframe(event.timeframe)
+                else null
+        if (feedType == MAIN) getMainFeedList(isRealtime, timeframe!!).collect { lce ->
             when (lce) {
                 is Loading -> {
                     if (event is SwipeToRefresh) _viewEffect.send(SwipeToRefreshEffect(true))
@@ -223,105 +218,6 @@ class ContentViewModel : ViewModel(), ContentViewEvents {
             emit(pagedList)
         }
     }
-
-    // TODO: Refactor MediatorLiveData to Coroutine Flow - https://kotlinlang.org/docs/reference/coroutines/flow.html
-    /**
-     * Get audiocast player for PlayerNotificationManager in [AudioService].
-     *
-     * @param contentId String ID of content
-     * @param filePath String location in Google Cloud Storage
-     * @param imageUrl String preview image of content
-     * @return MediatorLiveData<Event<ContentPlayer>> audio player
-     */
-    private fun getAudioPlayer(contentId: String, filePath: String, imageUrl: String) =
-            getContentUri(contentId, filePath).combinePlayerData(bitmapToByteArray(imageUrl)) { a, b ->
-                Event(ContentPlayer(
-                        uri = a.peekEvent().uri,
-                        image = b.peekEvent().image,
-                        errorMessage = getAudioPlayerErrors(a, b)))
-            }
-
-    /**
-     * Sets the value to the result of a function that is called when both `LiveData`s have data
-     * or when they receive updates after that.
-     *
-     * @receiver LiveData<A> the result of [getContentUri]
-     * @param other LiveData<B> the result of [bitmapToByteArray]
-     * @param onChange Function2<A, B, T> retrieves value from [getContentUri] and
-     * [bitmapToByteArray]
-     * @return MediatorLiveData<T> content mp3 file and formatted preview image
-     */
-    private fun <T, A, B> LiveData<A>.combinePlayerData(other: LiveData<B>, onChange: (A, B) -> T) =
-            MediatorLiveData<T>().also { result ->
-                var source1emitted = false
-                var source2emitted = false
-                val mergeF = {
-                    val source1Value = this.value
-                    val source2Value = other.value
-                    if (source1emitted && source2emitted)
-                        result.value = onChange.invoke(source1Value!!, source2Value!!)
-                }
-                result.addSource(this) {
-                    source1emitted = true
-                    mergeF.invoke()
-                }
-                result.addSource(other) {
-                    source2emitted = true
-                    mergeF.invoke()
-                }
-            }
-
-    /**
-     * Retrieves content mp3 file from Google Cloud Storage
-     *
-     * @param contentId String ID of content
-     * @param filePath String Google Cloud Storage location
-     * @return LiveData<(Event<ContentUri>?)> content mp3 file
-     */
-    private fun getContentUri(contentId: String, filePath: String) = liveData {
-        ContentRepository.getContentUri(contentId, filePath).collect { lce ->
-            when (lce) {
-                is Lce.Content -> emit(Event(ContentUri(lce.packet.uri, "")))
-                is Error -> {
-                    Crashlytics.log(Log.ERROR, LOG_TAG, lce.packet.errorMessage)
-                    emit(Event(ContentUri(lce.packet.uri, lce.packet.errorMessage)))
-                }
-            }
-        }
-    }
-
-    /**
-     * Converts content image Bitmap preview to ByteArray
-     *
-     * @param url String content image preview url
-     * @return LiveData<(Event<ContentBitmap>?)> content preview image as ByteArray
-     */
-    private fun bitmapToByteArray(url: String) = liveData {
-        ContentRepository.bitmapToByteArray(url).collect { lce ->
-            when (lce) {
-                is Lce.Content -> emit(Event(ContentBitmap(lce.packet.image, lce.packet.errorMessage)))
-                is Error -> {
-                    Crashlytics.log(Log.WARN, LOG_TAG,
-                            "bitmapToByteArray error or null - ${lce.packet.errorMessage}")
-                    emit(Event(ContentBitmap(lce.packet.image, lce.packet.errorMessage)))
-                }
-            }
-        }
-    }
-
-    /**
-     * Collects and combines errors from building the audio player.
-     *
-     * @param a Event<ContentUri> content mp3 file
-     * @param b Event<ContentBitmap> content preview image
-     * @return String combined error message
-     */
-    private fun getAudioPlayerErrors(a: Event<ContentUri>, b: Event<ContentBitmap>) =
-            a.peekEvent().errorMessage.apply { if (this.isNotEmpty()) this }.apply {
-                b.peekEvent().errorMessage.also {
-                    if (it.isNotEmpty()) this.plus(" " + it)
-                }
-            }
 
     fun getContentLoadingStatus(contentId: String?) =
             if (contentLoadingSet.contains(contentId)) VISIBLE else GONE

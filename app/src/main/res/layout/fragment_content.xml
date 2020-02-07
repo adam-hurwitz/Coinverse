@@ -6,7 +6,7 @@
 
         <variable
             name="viewmodel"
-            type="app.coinverse.content.ContentViewModel" />
+            type="app.coinverse.feed.viewmodels.FeedViewModel" />
 
     </data>
 

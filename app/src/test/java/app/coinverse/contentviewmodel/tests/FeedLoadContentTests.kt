@@ -2,21 +2,24 @@ package app.coinverse.contentviewmodel.tests
 
 import android.widget.ProgressBar.GONE
 import android.widget.ProgressBar.VISIBLE
+import androidx.lifecycle.SavedStateHandle
 import app.coinverse.R.string.*
-import app.coinverse.content.ContentRepository
-import app.coinverse.content.ContentRepository.getMainFeedList
-import app.coinverse.content.ContentRepository.queryLabeledContentList
-import app.coinverse.content.ContentRepository.queryMainContentList
-import app.coinverse.content.ContentViewModel
-import app.coinverse.content.models.ContentEffectType.*
-import app.coinverse.content.models.ContentViewEventType
-import app.coinverse.content.models.ContentViewEventType.*
 import app.coinverse.contentviewmodel.FeedLoadContentTest
 import app.coinverse.contentviewmodel.mockGetMainFeedList
 import app.coinverse.contentviewmodel.mockQueryMainContentListFlow
 import app.coinverse.contentviewmodel.mockQueryMainContentListLiveData
 import app.coinverse.contentviewmodel.testCases.feedLoadTestCases
+import app.coinverse.feed.FeedRepository
+import app.coinverse.feed.FeedRepository.getMainFeedList
+import app.coinverse.feed.FeedRepository.queryLabeledContentList
+import app.coinverse.feed.FeedRepository.queryMainContentList
+import app.coinverse.feed.models.FeedViewEffectType.*
+import app.coinverse.feed.models.FeedViewEventType.FeedLoadComplete
+import app.coinverse.feed.models.FeedViewEventType.SwipeToRefresh
+import app.coinverse.feed.viewmodels.FeedViewModel
 import app.coinverse.utils.*
+import app.coinverse.utils.FEED_EVENT_TYPE.FEED_LOAD
+import app.coinverse.utils.FEED_EVENT_TYPE.SWIPE_TO_REFRESH
 import app.coinverse.utils.FeedType.*
 import app.coinverse.utils.LCE_STATE.*
 import app.coinverse.utils.models.ToolbarState
@@ -32,10 +35,10 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
 @ExtendWith(ContentTestExtension::class)
-class FeedLoadContentTests(val testDispatcher: TestCoroutineDispatcher,
-                           val contentViewModel: ContentViewModel) {
+class FeedLoadContentTests(val testDispatcher: TestCoroutineDispatcher) {
 
     private fun FeedLoad() = feedLoadTestCases()
+    private lateinit var feedViewModel: FeedViewModel
 
     @BeforeAll
     fun beforeAll() {
@@ -48,11 +51,9 @@ class FeedLoadContentTests(val testDispatcher: TestCoroutineDispatcher,
     @MethodSource("FeedLoad")
     fun `Feed Load`(test: FeedLoadContentTest) = testDispatcher.runBlockingTest {
         mockComponents(test)
-        FeedLoad(test.feedType, test.timeframe, false).also { event ->
-            contentViewModel.feedLoad(event)
-            assertThatToolbarState(test)
-            assertContentList(test, event)
-        }
+        feedViewModel = FeedViewModel(SavedStateHandle(), test.feedType, test.timeframe, test.isRealtime)
+        assertThatToolbarState(test)
+        assertContentList(test, FEED_LOAD)
         verifyTests(test)
     }
 
@@ -60,14 +61,12 @@ class FeedLoadContentTests(val testDispatcher: TestCoroutineDispatcher,
     @MethodSource("FeedLoad")
     fun `Swipe-to-Refresh`(test: FeedLoadContentTest) = testDispatcher.runBlockingTest {
         mockComponents(test)
-        FeedLoad(test.feedType, test.timeframe, false).also { event ->
-            contentViewModel.feedLoad(event)
-            assertContentList(test, event)
-        }
+        feedViewModel = FeedViewModel(SavedStateHandle(), test.feedType, test.timeframe, test.isRealtime)
+        assertContentList(test, FEED_LOAD)
         SwipeToRefresh(test.feedType, test.timeframe, false).also { event ->
-            contentViewModel.swipeToRefresh(event)
-            assertContentList(test, event)
-            contentViewModel.feedViewState().contentList.getOrAwaitValue().also { pagedList ->
+            feedViewModel.swipeToRefresh(event)
+            assertContentList(test, SWIPE_TO_REFRESH)
+            feedViewModel.feedViewState().contentList.getOrAwaitValue().also { pagedList ->
                 assertThat(pagedList).isEqualTo(test.mockFeedList)
                 if (test.feedType == MAIN) assertSwipeToRefresh(test)
             }
@@ -101,7 +100,7 @@ class FeedLoadContentTests(val testDispatcher: TestCoroutineDispatcher,
     }
 
     private fun assertThatToolbarState(test: FeedLoadContentTest) {
-        assertThat(contentViewModel.feedViewState().toolbar).isEqualTo(ToolbarState(
+        assertThat(feedViewModel.feedViewState().toolbar).isEqualTo(ToolbarState(
                 when (test.feedType) {
                     MAIN -> GONE
                     SAVED, DISMISSED -> VISIBLE
@@ -118,23 +117,23 @@ class FeedLoadContentTests(val testDispatcher: TestCoroutineDispatcher,
         ))
     }
 
-    private fun assertContentList(test: FeedLoadContentTest, event: ContentViewEventType) {
-        contentViewModel.feedViewState().contentList.getOrAwaitValue().also { pagedList ->
+    private fun assertContentList(test: FeedLoadContentTest, eventType: FEED_EVENT_TYPE) {
+        feedViewModel.feedViewState().contentList.getOrAwaitValue().also { pagedList ->
             assertThat(pagedList).isEqualTo(test.mockFeedList)
-            assertThat(contentViewModel.feedViewState().timeframe).isEqualTo(test.timeframe)
-            contentViewModel.viewEffects().updateAds.observe().also { effect ->
+            assertThat(feedViewModel.feedViewState().timeframe).isEqualTo(test.timeframe)
+            feedViewModel.viewEffects().updateAds.observe().also { effect ->
                 assertThat(effect.javaClass).isEqualTo(UpdateAdsEffect::class.java)
             }
             if (test.feedType == MAIN && test.lceState == ERROR) {
-                contentViewModel.viewEffects().snackBar.observe().also { effect ->
+                feedViewModel.viewEffects().snackBar.observe().also { effect ->
                     assertThat(effect).isEqualTo(SnackBarEffect(
-                            if (event is FeedLoad) MOCK_CONTENT_REQUEST_NETWORK_ERROR
+                            if (eventType == FEED_LOAD) MOCK_CONTENT_REQUEST_NETWORK_ERROR
                             else MOCK_CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR))
                 }
             }
             // ScreenEmptyEffect
-            contentViewModel.feedLoadComplete(FeedLoadComplete(hasContent = pagedList.isNotEmpty()))
-            contentViewModel.viewEffects().screenEmpty.observe().also { effect ->
+            feedViewModel.feedLoadComplete(FeedLoadComplete(hasContent = pagedList.isNotEmpty()))
+            feedViewModel.viewEffects().screenEmpty.observe().also { effect ->
                 assertThat(effect).isEqualTo(ScreenEmptyEffect(pagedList.isEmpty()))
             }
         }
@@ -142,15 +141,15 @@ class FeedLoadContentTests(val testDispatcher: TestCoroutineDispatcher,
 
     private fun assertSwipeToRefresh(test: FeedLoadContentTest) {
         when (test.lceState) {
-            LOADING -> contentViewModel.viewEffects()
+            LOADING -> feedViewModel.viewEffects()
                     .swipeToRefresh.observe().also { effect ->
                 assertThat(effect).isEqualTo(SwipeToRefreshEffect(true))
             }
-            CONTENT -> contentViewModel.viewEffects()
+            CONTENT -> feedViewModel.viewEffects()
                     .swipeToRefresh.observe().also { effect ->
                 assertThat(effect).isEqualTo(SwipeToRefreshEffect(false))
             }
-            ERROR -> contentViewModel.viewEffects()
+            ERROR -> feedViewModel.viewEffects()
                     .swipeToRefresh.observe().also { effect ->
                 assertThat(effect).isEqualTo(SwipeToRefreshEffect(false))
             }
@@ -167,6 +166,6 @@ class FeedLoadContentTests(val testDispatcher: TestCoroutineDispatcher,
                 SAVED, DISMISSED -> queryLabeledContentList(test.feedType)
             }
         }
-        confirmVerified(ContentRepository)
+        confirmVerified(FeedRepository)
     }
 }

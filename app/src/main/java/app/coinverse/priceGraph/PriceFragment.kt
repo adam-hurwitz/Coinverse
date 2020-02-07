@@ -54,10 +54,7 @@ class PriceFragment : Fragment() {
     private var enabledOrderTypeList: ArrayList<OrderType?>? = ArrayList()
     private var enabledExchangeList: ArrayList<Exchange?>? = ArrayList()
 
-    companion object {
-        @JvmStatic
-        fun newInstance() = PriceFragment()
-    }
+    fun newInstance() = PriceFragment()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -3,7 +3,7 @@ package app.coinverse.home
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import app.coinverse.content.models.ContentToPlay
+import app.coinverse.feed.models.ContentToPlay
 import app.coinverse.utils.DateAndTime
 import app.coinverse.utils.PaymentStatus
 import app.coinverse.utils.PaymentStatus.FREE
@@ -13,7 +13,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 
 /**
- * TODO: Refactor with Unidirectional Data Flow. See [app.coinverse.content.ContentViewModel].
+ * TODO: Refactor with Unidirectional Data Flow. See [app.coinverse.feed.viewmodels.FeedViewModel].
  * See more: https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
  **/
 class HomeViewModel : ViewModel() {

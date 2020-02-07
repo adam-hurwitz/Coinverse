@@ -7,11 +7,11 @@
 
         <variable
             name="data"
-            type="app.coinverse.content.models.Content" />
+            type="app.coinverse.feed.models.Content" />
 
         <variable
             name="viewmodel"
-            type="app.coinverse.content.ContentViewModel" />
+            type="app.coinverse.feed.viewmodels.FeedViewModel" />
 
         <variable
             name="contentType"

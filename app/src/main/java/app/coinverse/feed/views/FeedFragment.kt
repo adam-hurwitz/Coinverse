@@ -1,4 +1,4 @@
-package app.coinverse.content
+package app.coinverse.feed.views
 
 import android.content.Intent
 import android.content.Intent.*
@@ -27,13 +27,15 @@ import app.coinverse.R.layout.native_ad_item
 import app.coinverse.R.string
 import app.coinverse.R.string.*
 import app.coinverse.analytics.Analytics.setCurrentScreen
-import app.coinverse.content.adapter.ContentAdapter
-import app.coinverse.content.adapter.initItemTouchHelper
-import app.coinverse.content.models.ContentToPlay
-import app.coinverse.content.models.ContentViewEventType.*
-import app.coinverse.content.models.ContentViewEvents
-import app.coinverse.content.models.FeedViewState
 import app.coinverse.databinding.FragmentContentBinding
+import app.coinverse.feed.adapter.ContentAdapter
+import app.coinverse.feed.adapter.initItemTouchHelper
+import app.coinverse.feed.models.ContentToPlay
+import app.coinverse.feed.models.FeedViewEventType.*
+import app.coinverse.feed.models.FeedViewEvents
+import app.coinverse.feed.models.FeedViewState
+import app.coinverse.feed.viewmodels.FeedViewModel
+import app.coinverse.feed.viewmodels.FeedViewModelFactory
 import app.coinverse.home.HomeViewModel
 import app.coinverse.user.SignInDialogFragment
 import app.coinverse.utils.*
@@ -52,61 +54,55 @@ import com.mopub.nativeads.MoPubRecyclerAdapter.ContentChangeStrategy.MOVE_ALL_A
 import kotlinx.android.synthetic.main.empty_content.view.*
 import kotlinx.android.synthetic.main.fragment_content.*
 
-private val LOG_TAG = ContentFragment::class.java.simpleName
+private val LOG_TAG = FeedFragment::class.java.simpleName
 
-class ContentFragment : Fragment() {
+class FeedFragment : Fragment() {
+
     private val homeViewModel: HomeViewModel by activityViewModels()
-    private val contentViewModel: ContentViewModel by viewModels()
+    private val feedViewModel: FeedViewModel by viewModels {
+        FeedViewModelFactory(
+                this,
+                feedType = feedType,
+                timeframe = homeViewModel.timeframe.value!!,
+                isRealtime = homeViewModel.isRealtime.value!!)
+    }
     private var savedRecyclerPosition: Int = 0
     private var clearAdjacentAds = false
     private var openContentFromNotification = false
     private var openContentFromNotificationContentToPlay: ContentToPlay? = null
-    private lateinit var viewEvents: ContentViewEvents
+
+    private lateinit var viewEvents: FeedViewEvents
     private lateinit var feedType: FeedType
     private lateinit var binding: FragmentContentBinding
     private lateinit var adapter: ContentAdapter
     private lateinit var moPubAdapter: MoPubRecyclerAdapter
 
-    companion object {
-        @JvmStatic
-        fun newInstance(contentBundle: Bundle) = ContentFragment().apply {
-            arguments = contentBundle
-        }
+    fun newInstance(contentBundle: Bundle) = FeedFragment().apply {
+        arguments = contentBundle
+        getFeedType()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        if (contentRecyclerView != null) outState.putInt(CONTENT_RECYCLER_VIEW_POSITION,
-                (contentRecyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition())
+        feedViewModel.saveFeedPosition((contentRecyclerView.layoutManager as LinearLayoutManager)
+                .findFirstVisibleItemPosition())
     }
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
-        if (savedInstanceState != null) {
-            savedRecyclerPosition = savedInstanceState.getInt(CONTENT_RECYCLER_VIEW_POSITION)
-            if (homeViewModel.accountType.value == FREE) viewEvents.updateAds(UpdateAds())
-        }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        getFeedType()
-        contentViewModel.attachEvents(this)
-        if (savedInstanceState == null)
-            viewEvents.feedLoad(FeedLoad(
-                    feedType = feedType,
-                    timeframe = homeViewModel.timeframe.value!!,
-                    isRealtime = homeViewModel.isRealtime.value!!))
+        savedRecyclerPosition = feedViewModel.feedPosition
+        if (homeViewModel.accountType.value == FREE) viewEvents.updateAds(UpdateAds())
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         setCurrentScreen(activity!!, feedType.name)
+        feedViewModel.attachEvents(this)
         binding = FragmentContentBinding.inflate(inflater, container, false)
         binding.lifecycleOwner = this
-        binding.viewmodel = contentViewModel
-        binding.actionbar.viewmodel = contentViewModel
-        binding.emptyContent.viewmodel = contentViewModel
+        binding.viewmodel = feedViewModel
+        binding.actionbar.viewmodel = feedViewModel
+        binding.emptyContent.viewmodel = feedViewModel
         return binding.root
     }
 
@@ -122,7 +118,7 @@ class ContentFragment : Fragment() {
         super.onDestroy()
     }
 
-    fun initEvents(viewEvents: ContentViewEvents) {
+    fun initEvents(viewEvents: FeedViewEvents) {
         this.viewEvents = viewEvents
     }
 
@@ -134,7 +130,7 @@ class ContentFragment : Fragment() {
     private fun initAdapters() {
         val paymentStatus = homeViewModel.accountType.value
         contentRecyclerView.layoutManager = LinearLayoutManager(context)
-        adapter = ContentAdapter(contentViewModel, viewEvents).apply {
+        adapter = ContentAdapter(feedViewModel, viewEvents).apply {
             this.contentSelected.observe(viewLifecycleOwner, EventObserver { contentSelected ->
                 viewEvents.contentSelected(
                         ContentSelected(getAdapterPosition(contentSelected.position), contentSelected.content))
@@ -190,7 +186,7 @@ class ContentFragment : Fragment() {
     }
 
     private fun observeViewState() {
-        contentViewModel.feedViewState.observe(viewLifecycleOwner) { viewState ->
+        feedViewModel.viewState.observe(viewLifecycleOwner) { viewState ->
             setToolbar(viewState)
             viewState.contentList.observe(viewLifecycleOwner) { pagedList ->
                 adapter.submitList(pagedList)
@@ -231,9 +227,9 @@ class ContentFragment : Fragment() {
     }
 
     private fun observeViewEffects() {
-        contentViewModel.viewEffect.observe(viewLifecycleOwner) { effect ->
+        feedViewModel.viewEffect.observe(viewLifecycleOwner) { effect ->
             effect.signIn.observe(viewLifecycleOwner, EventObserver {
-                SignInDialogFragment.newInstance(Bundle().apply {
+                SignInDialogFragment().newInstance(Bundle().apply {
                     putString(SIGNIN_TYPE_KEY, DIALOG.name)
                 }).show(fragmentManager!!, SIGNIN_DIALOG_FRAGMENT_TAG)
             })
@@ -376,7 +372,7 @@ class ContentFragment : Fragment() {
 
     private fun getFeedType() {
         feedType = (arguments!!.getParcelable<ContentToPlay>(OPEN_CONTENT_FROM_NOTIFICATION_KEY)).let {
-            if (it == null) FeedType.valueOf(ContentFragmentArgs.fromBundle(arguments!!).feedType)
+            if (it == null) FeedType.valueOf(FeedFragmentArgs.fromBundle(arguments!!).feedType)
             else {
                 openContentFromNotification = true
                 openContentFromNotificationContentToPlay = it

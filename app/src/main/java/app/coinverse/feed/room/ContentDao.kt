@@ -1,8 +1,8 @@
-package app.coinverse.content.room
+package app.coinverse.feed.room
 
 import androidx.paging.DataSource
 import androidx.room.*
-import app.coinverse.content.models.Content
+import app.coinverse.feed.models.Content
 import app.coinverse.utils.FeedType
 import com.google.firebase.Timestamp
 

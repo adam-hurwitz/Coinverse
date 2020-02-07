@@ -9,8 +9,8 @@ import androidx.navigation.fragment.findNavController
 import app.coinverse.R.id.dismissedContentFragment
 import app.coinverse.R.id.homeFragment
 import app.coinverse.R.layout.activity_main
-import app.coinverse.content.models.ContentToPlay
 import app.coinverse.databinding.ActivityMainBinding
+import app.coinverse.feed.models.ContentToPlay
 import app.coinverse.home.HomeViewModel
 import app.coinverse.utils.FeedType.*
 import app.coinverse.utils.OPEN_CONTENT_FROM_NOTIFICATION_KEY

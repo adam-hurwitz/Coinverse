@@ -1,4 +1,4 @@
-package app.coinverse.content
+package app.coinverse.feed
 
 import android.app.Notification
 import android.app.PendingIntent
@@ -17,8 +17,8 @@ import app.coinverse.R.string.notification_channel_description
 import app.coinverse.analytics.Analytics.getWatchPercent
 import app.coinverse.analytics.Analytics.updateActionsAndAnalytics
 import app.coinverse.analytics.Analytics.updateStartActionsAndAnalytics
-import app.coinverse.content.models.Content
-import app.coinverse.content.models.ContentToPlay
+import app.coinverse.feed.models.Content
+import app.coinverse.feed.models.ContentToPlay
 import app.coinverse.utils.*
 import app.coinverse.utils.PlayerActionType.*
 import com.crashlytics.android.Crashlytics

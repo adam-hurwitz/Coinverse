@@ -1,4 +1,4 @@
-package app.coinverse.content.room
+package app.coinverse.feed.room
 
 import android.content.Context
 import androidx.room.Database
@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import app.coinverse.content.models.Content
+import app.coinverse.feed.models.Content
 import app.coinverse.utils.DATABASE_NAME
 
 @Database(entities = arrayOf(Content::class), version = 3)

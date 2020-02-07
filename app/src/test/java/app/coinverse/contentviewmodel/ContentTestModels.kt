@@ -1,6 +1,6 @@
 package app.coinverse.contentviewmodel
 
-import app.coinverse.content.models.Content
+import app.coinverse.feed.models.Content
 import app.coinverse.utils.FeedType
 import app.coinverse.utils.LCE_STATE
 import app.coinverse.utils.Timeframe

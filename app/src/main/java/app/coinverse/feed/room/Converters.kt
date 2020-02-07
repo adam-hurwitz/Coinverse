@@ -1,4 +1,4 @@
-package app.coinverse.content.room
+package app.coinverse.feed.room
 
 import androidx.room.TypeConverter
 import app.coinverse.utils.ContentType

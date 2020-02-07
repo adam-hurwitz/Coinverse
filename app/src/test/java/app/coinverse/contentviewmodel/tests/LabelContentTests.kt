@@ -1,20 +1,21 @@
 package app.coinverse.contentviewmodel.tests
 
+import androidx.lifecycle.SavedStateHandle
 import app.coinverse.analytics.Analytics
 import app.coinverse.analytics.Analytics.labelContentFirebaseAnalytics
 import app.coinverse.analytics.Analytics.updateActionAnalytics
-import app.coinverse.content.ContentRepository
-import app.coinverse.content.ContentRepository.editContentLabels
-import app.coinverse.content.ContentRepository.getMainFeedList
-import app.coinverse.content.ContentRepository.queryLabeledContentList
-import app.coinverse.content.ContentViewModel
-import app.coinverse.content.models.ContentEffectType.*
-import app.coinverse.content.models.ContentViewEventType.*
 import app.coinverse.contentviewmodel.LabelContentTest
 import app.coinverse.contentviewmodel.mockEditContentLabels
 import app.coinverse.contentviewmodel.mockGetMainFeedList
 import app.coinverse.contentviewmodel.mockQueryMainContentListFlow
 import app.coinverse.contentviewmodel.testCases.labelContentTestCases
+import app.coinverse.feed.FeedRepository
+import app.coinverse.feed.FeedRepository.editContentLabels
+import app.coinverse.feed.FeedRepository.getMainFeedList
+import app.coinverse.feed.FeedRepository.queryLabeledContentList
+import app.coinverse.feed.models.FeedViewEffectType.*
+import app.coinverse.feed.models.FeedViewEventType.*
+import app.coinverse.feed.viewmodels.FeedViewModel
 import app.coinverse.home.HomeViewModel
 import app.coinverse.utils.*
 import app.coinverse.utils.FeedType.*
@@ -33,10 +34,10 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
 @ExtendWith(ContentTestExtension::class)
-class LabelContentTests(val testDispatcher: TestCoroutineDispatcher,
-                        val contentViewModel: ContentViewModel) {
+class LabelContentTests(val testDispatcher: TestCoroutineDispatcher) {
 
     private fun LabelContent() = labelContentTestCases()
+    private lateinit var feedViewModel: FeedViewModel
 
     @BeforeAll
     fun beforeAll() {
@@ -54,23 +55,21 @@ class LabelContentTests(val testDispatcher: TestCoroutineDispatcher,
     @MethodSource("LabelContent")
     fun `Label Content`(test: LabelContentTest) = testDispatcher.runBlockingTest {
         mockComponents(test)
-        FeedLoad(test.feedType, test.timeframe, false).also { event ->
-            contentViewModel.feedLoad(event)
-            assertContentList(test)
-        }
+        feedViewModel = FeedViewModel(SavedStateHandle(), test.feedType, test.timeframe, test.isRealtime)
+        assertContentList(test)
         ContentSwipeDrawed(test.isDrawed).also { event ->
-            contentViewModel.contentSwipeDrawed(event)
+            feedViewModel.contentSwipeDrawed(event)
             assertEnableSwipeToRefresh()
         }
         ContentSwiped(test.feedType, test.actionType, test.adapterPosition).also { event ->
-            contentViewModel.contentSwiped(event)
+            feedViewModel.contentSwiped(event)
             assertContentLabeled(test)
         }
         verifyTests(test)
     }
 
     private fun assertContentList(test: LabelContentTest) {
-        contentViewModel.feedViewState().contentList.getOrAwaitValue().also { pagedList ->
+        feedViewModel.feedViewState().contentList.getOrAwaitValue().also { pagedList ->
             assertThat(pagedList).isEqualTo(test.mockFeedList)
         }
     }
@@ -78,13 +77,13 @@ class LabelContentTests(val testDispatcher: TestCoroutineDispatcher,
     private fun assertEnableSwipeToRefresh() {
         HomeViewModel().apply {
             enableSwipeToRefresh(
-                    contentViewModel.viewEffects().enableSwipeToRefresh.observe().isEnabled)
+                    feedViewModel.viewEffects().enableSwipeToRefresh.observe().isEnabled)
             assertThat(isSwipeToRefreshEnabled.getOrAwaitValue()).isEqualTo(false)
         }
     }
 
     private fun assertContentLabeled(test: LabelContentTest) {
-        contentViewModel.viewEffects().contentSwiped.observe().also { contentSwipedEffect ->
+        feedViewModel.viewEffects().contentSwiped.observe().also { contentSwipedEffect ->
             assertThat(contentSwipedEffect).isEqualTo(ContentSwipedEffect(
                     feedType = test.feedType,
                     actionType = test.actionType,
@@ -96,27 +95,27 @@ class LabelContentTests(val testDispatcher: TestCoroutineDispatcher,
                     position = contentSwipedEffect.position,
                     content = test.mockContent,
                     isMainFeedEmptied = false).also { event ->
-                contentViewModel.contentLabeled(event)
+                feedViewModel.contentLabeled(event)
                 if (test.isUserSignedIn) {
                     when (test.lceState) {
                         CONTENT -> {
-                            assertThat(contentViewModel.feedViewState().contentLabeled.observe())
-                                    .isEqualTo(app.coinverse.content.models.ContentLabeled(
+                            assertThat(feedViewModel.feedViewState().contentLabeled.observe())
+                                    .isEqualTo(app.coinverse.feed.models.ContentLabeled(
                                             position = test.adapterPosition, errorMessage = ""))
-                            assertThat(contentViewModel.viewEffects().notifyItemChanged.observe())
+                            assertThat(feedViewModel.viewEffects().notifyItemChanged.observe())
                                     .isEqualTo(NotifyItemChangedEffect(position = test.adapterPosition))
                         }
                         ERROR -> {
-                            assertThat(contentViewModel.feedViewState().contentLabeled.observe()).isNull()
-                            assertThat(contentViewModel.viewEffects().snackBar.observe())
+                            assertThat(feedViewModel.feedViewState().contentLabeled.observe()).isNull()
+                            assertThat(feedViewModel.viewEffects().snackBar.observe())
                                     .isEqualTo(SnackBarEffect(text = MOCK_CONTENT_LABEL_ERROR))
                         }
                     }
                 } else {
-                    contentViewModel.feedViewState().contentLabeled.observe()
-                    assertThat(contentViewModel.viewEffects().notifyItemChanged.observe())
+                    feedViewModel.feedViewState().contentLabeled.observe()
+                    assertThat(feedViewModel.viewEffects().notifyItemChanged.observe())
                             .isEqualTo(NotifyItemChangedEffect(test.adapterPosition))
-                    assertThat(contentViewModel.viewEffects().signIn.observe())
+                    assertThat(feedViewModel.viewEffects().signIn.observe())
                             .isEqualTo(SignInEffect(true))
                 }
             }
@@ -160,6 +159,6 @@ class LabelContentTests(val testDispatcher: TestCoroutineDispatcher,
                 SAVED, DISMISSED -> queryLabeledContentList(test.feedType)
             }
         }
-        confirmVerified(ContentRepository)
+        confirmVerified(FeedRepository)
     }
 }

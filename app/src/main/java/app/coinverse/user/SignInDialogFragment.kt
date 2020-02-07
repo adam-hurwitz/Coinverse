@@ -28,9 +28,7 @@ class SignInDialogFragment : DialogFragment() {
 
     private val homeViewModel: HomeViewModel by activityViewModels()
 
-    companion object {
-        fun newInstance(bundle: Bundle) = SignInDialogFragment().apply { arguments = bundle }
-    }
+    fun newInstance(bundle: Bundle) = SignInDialogFragment().apply { arguments = bundle }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) =
             when (SignInType.valueOf(arguments?.getString(SIGNIN_TYPE_KEY)!!)) {

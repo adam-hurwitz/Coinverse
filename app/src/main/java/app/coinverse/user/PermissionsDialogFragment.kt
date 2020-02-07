@@ -14,9 +14,7 @@ class PermissionsDialogFragment : DialogFragment() {
 
     private val homeViewModel: HomeViewModel by activityViewModels()
 
-    companion object {
-        fun newInstance() = PermissionsDialogFragment()
-    }
+    fun newInstance() = PermissionsDialogFragment()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) =
             FragmentPermissionsDialogBinding.inflate(inflater, container, false).root

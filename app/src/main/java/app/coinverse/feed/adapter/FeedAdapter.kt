@@ -1,4 +1,4 @@
-package app.coinverse.content.adapter
+package app.coinverse.feed.adapter
 
 import android.view.LayoutInflater.from
 import android.view.View.OnClickListener
@@ -11,11 +11,11 @@ import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import app.coinverse.R.id.*
-import app.coinverse.content.ContentViewModel
-import app.coinverse.content.models.Content
-import app.coinverse.content.models.ContentViewEventType.*
-import app.coinverse.content.models.ContentViewEvents
 import app.coinverse.databinding.CellContentBinding.inflate
+import app.coinverse.feed.models.Content
+import app.coinverse.feed.models.FeedViewEventType.*
+import app.coinverse.feed.models.FeedViewEvents
+import app.coinverse.feed.viewmodels.FeedViewModel
 import app.coinverse.utils.ADAPTER_POSITION_KEY
 import app.coinverse.utils.livedata.Event
 import kotlinx.android.synthetic.main.cell_content.view.*
@@ -30,18 +30,18 @@ private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Content>() {
             oldContent == newContent
 }
 
-class ContentAdapter(val contentViewModel: ContentViewModel, val viewEvents: ContentViewEvents)
+class ContentAdapter(val feedViewModel: FeedViewModel, val viewEvents: FeedViewEvents)
     : PagedListAdapter<Content, ContentAdapter.ViewHolder>(DIFF_CALLBACK) {
 
     /**
-     * Observe [ContentSelected] event in View in order to calculate [app.coinverse.content.ContentFragment.getAdapterPosition].
+     * Observe [ContentSelected] event in View in order to calculate [app.coinverse.feed.ContentFragment.getAdapterPosition].
      */
     val contentSelected: LiveData<Event<ContentSelected>> get() = _contentSelected
     private val _contentSelected = MutableLiveData<Event<ContentSelected>>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
             ViewHolder(inflate(from(parent.context), parent, false).apply {
-                this.viewmodel = contentViewModel
+                this.viewmodel = feedViewModel
             })
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {

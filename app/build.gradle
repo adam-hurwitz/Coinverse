@@ -26,9 +26,9 @@ android {
     sourceSets { androidTest.assets.srcDirs += files("$projectDir/schemas".toString()) }
     buildTypes {
         release {
-            // TODO: Test minify
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro',
                     'proguard.cfg'
+            // TODO: FIXME
             /*minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),

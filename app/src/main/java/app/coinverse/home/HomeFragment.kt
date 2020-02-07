@@ -33,10 +33,10 @@ import app.coinverse.R
 import app.coinverse.R.drawable.ic_astronaut_color_accent_24dp
 import app.coinverse.R.string.*
 import app.coinverse.analytics.models.UserActionCount
-import app.coinverse.content.ContentDialogFragment
-import app.coinverse.content.ContentFragment
-import app.coinverse.content.models.ContentToPlay
 import app.coinverse.databinding.FragmentHomeBinding
+import app.coinverse.feed.models.ContentToPlay
+import app.coinverse.feed.views.ContentDialogFragment
+import app.coinverse.feed.views.FeedFragment
 import app.coinverse.firebase.ACCOUNT_DOCUMENT
 import app.coinverse.firebase.ACTIONS_DOCUMENT
 import app.coinverse.firebase.firebaseApp
@@ -75,7 +75,7 @@ private val LOG_TAG = HomeFragment::class.java.simpleName
 
 /**
  * TODO: Refactor
- *  1. Refactor with Unidirectional Data Flow. See [app.coinverse.content.ContentFragment].
+ *  1. Refactor with Unidirectional Data Flow. See [app.coinverse.feed.ContentFragment].
  *  https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
  *  2. Move Firebase calls to Repository.
  *  3. Move Firebase user calls to Cloud Functions.
@@ -156,7 +156,7 @@ class HomeFragment : Fragment() {
         if (savedInstanceState == null
                 && childFragmentManager.findFragmentByTag(PRICEGRAPH_FRAGMENT_TAG) == null) {
             childFragmentManager.beginTransaction()
-                    .replace(priceContainer.id, PriceFragment.newInstance(), PRICEGRAPH_FRAGMENT_TAG)
+                    .replace(priceContainer.id, PriceFragment().newInstance(), PRICEGRAPH_FRAGMENT_TAG)
                     .commit()
         }
     }
@@ -197,7 +197,7 @@ class HomeFragment : Fragment() {
                 && (homeViewModel.user.value == null || homeViewModel.user.value!!.isAnonymous))
             childFragmentManager.beginTransaction().replace(
                     R.id.savedContentContainer,
-                    SignInDialogFragment.newInstance(Bundle().apply {
+                    SignInDialogFragment().newInstance(Bundle().apply {
                         putString(SIGNIN_TYPE_KEY, FULLSCREEN.name)
                     })).commit()
         bottomSheetBehavior.setBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
@@ -247,7 +247,7 @@ class HomeFragment : Fragment() {
                 view.findNavController().navigate(R.id.action_homeFragment_to_userFragment,
                         actionHomeFragmentToUserFragment(user!!).apply { user = user }.arguments)
             else
-                SignInDialogFragment.newInstance(Bundle().apply {
+                SignInDialogFragment().newInstance(Bundle().apply {
                     putString(SIGNIN_TYPE_KEY, DIALOG.name)
                 }).show(childFragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
         }
@@ -349,7 +349,7 @@ class HomeFragment : Fragment() {
         if (homeViewModel.accountType.value == FREE) getLocationPermissionCheck()
         childFragmentManager.beginTransaction().replace(
                 contentContainer.id,
-                ContentFragment.newInstance(Bundle().apply {
+                FeedFragment().newInstance(Bundle().apply {
                     putString(FEED_TYPE_KEY, MAIN.name)
                     openFromNotificaitonFeedType?.let { if (it == MAIN) putAll(arguments) }
                 }), CONTENT_FEED_FRAGMENT_TAG
@@ -359,7 +359,7 @@ class HomeFragment : Fragment() {
     private fun initSavedContentFragment() {
         childFragmentManager.beginTransaction().replace(
                 savedContentContainer.id,
-                ContentFragment.newInstance(Bundle().apply {
+                FeedFragment().newInstance(Bundle().apply {
                     putString(FEED_TYPE_KEY, SAVED.name)
                     if (openFromNotificaitonFeedType == SAVED) {
                         bottomSheetBehavior.state = STATE_EXPANDED
@@ -381,7 +381,7 @@ class HomeFragment : Fragment() {
                     putBoolean(getString(first_open), false)
                     apply()
                 }
-                PermissionsDialogFragment.newInstance().show(childFragmentManager, null)
+                PermissionsDialogFragment().newInstance().show(childFragmentManager, null)
                 homeViewModel.showLocationPermission.observe(viewLifecycleOwner, EventObserver { showPermission ->
                     if (showPermission) requestPermissions(arrayOf(ACCESS_COARSE_LOCATION), REQUEST_CODE_LOC_PERMISSION)
                 })
@@ -400,7 +400,7 @@ class HomeFragment : Fragment() {
             if (homeViewModel.accountType.value == FREE) getLocationPermissionCheck()
             (childFragmentManager.findFragmentById(R.id.priceContainer) as PriceFragment)
                     .getPrices(homeViewModel.isRealtime.value!!, false)
-            (childFragmentManager.findFragmentById(R.id.contentContainer) as ContentFragment)
+            (childFragmentManager.findFragmentById(R.id.contentContainer) as FeedFragment)
                     .swipeToRefresh()
         }
     }

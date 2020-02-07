@@ -41,7 +41,7 @@ private val LOG_TAG = UserFragment::class.java.simpleName
 
 /**
  * TODO: Refactor
- *  1. Refactor with Unidirectional Data Flow. See [app.coinverse.content.ContentViewModel].
+ *  1. Refactor with Unidirectional Data Flow. See [app.coinverse.feed.FeedViewModel].
  *  https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
  *  2. Move Firebase calls to Repository.
  **/

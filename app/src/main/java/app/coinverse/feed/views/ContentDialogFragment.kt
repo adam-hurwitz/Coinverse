@@ -1,4 +1,4 @@
-package app.coinverse.content
+package app.coinverse.feed.views
 
 import android.content.Intent
 import android.content.res.Configuration
@@ -8,15 +8,16 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import app.coinverse.R.id.dialog_content
-import app.coinverse.content.models.ContentToPlay
 import app.coinverse.databinding.FragmentContentDialogBinding
+import app.coinverse.feed.AudioService
+import app.coinverse.feed.models.ContentToPlay
 import app.coinverse.utils.*
 import app.coinverse.utils.ContentType.*
 import app.coinverse.utils.PlayerActionType.STOP
 
 
 /**
- * TODO: Refactor with Unidirectional Data Flow. See [app.coinverse.content.ContentFragment].
+ * TODO: Refactor with Unidirectional Data Flow. See [app.coinverse.feed.ContentFragment].
  * See more: https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
  **/
 class ContentDialogFragment : DialogFragment() {

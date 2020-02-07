@@ -2,7 +2,7 @@ package app
 
 import android.app.Application
 import app.coinverse.analytics.Analytics
-import app.coinverse.content.room.CoinverseDatabase
+import app.coinverse.feed.room.CoinverseDatabase
 import app.coinverse.firebase.FirebaseHelper
 import app.coinverse.utils.AD_UNIT_ID
 import app.coinverse.utils.resourcesUtil

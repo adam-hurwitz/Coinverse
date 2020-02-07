@@ -1,4 +1,4 @@
-package app.coinverse.content.adapter
+package app.coinverse.feed.adapter
 
 import android.R.color.white
 import android.content.Context
@@ -15,9 +15,9 @@ import app.coinverse.R.dimen
 import app.coinverse.R.drawable.*
 import app.coinverse.R.string.dismiss
 import app.coinverse.R.string.save
-import app.coinverse.content.models.ContentViewEventType.ContentSwipeDrawed
-import app.coinverse.content.models.ContentViewEventType.ContentSwiped
-import app.coinverse.content.models.ContentViewEvents
+import app.coinverse.feed.models.FeedViewEventType.ContentSwipeDrawed
+import app.coinverse.feed.models.FeedViewEventType.ContentSwiped
+import app.coinverse.feed.models.FeedViewEvents
 import app.coinverse.utils.*
 import app.coinverse.utils.FeedType.*
 import app.coinverse.utils.PaymentStatus.FREE
@@ -29,7 +29,7 @@ import com.mopub.nativeads.MoPubRecyclerAdapter
 private val LOG_TAG = ItemTouchHelper::class.java.simpleName
 
 fun initItemTouchHelper(context: Context, paymentStatus: PaymentStatus, feedType: FeedType,
-                        moPubAdapter: MoPubRecyclerAdapter?, viewEvents: ContentViewEvents) = ItemTouchHelper(object : Callback() {
+                        moPubAdapter: MoPubRecyclerAdapter?, viewEvents: FeedViewEvents) = ItemTouchHelper(object : Callback() {
 
     /**
      * Enable RecyclerView content item swiping, disable ad item swiping.

@@ -1,4 +1,4 @@
-package app.coinverse.content
+package app.coinverse.feed
 
 import android.graphics.Bitmap.CompressFormat
 import android.graphics.BitmapFactory
@@ -9,9 +9,9 @@ import androidx.lifecycle.liveData
 import androidx.paging.toLiveData
 import app.coinverse.BuildConfig.BUILD_TYPE
 import app.coinverse.analytics.models.ContentAction
-import app.coinverse.content.models.*
-import app.coinverse.content.models.ContentViewEventType.ContentSelected
-import app.coinverse.content.room.CoinverseDatabase.database
+import app.coinverse.feed.models.*
+import app.coinverse.feed.models.FeedViewEventType.ContentSelected
+import app.coinverse.feed.room.CoinverseDatabase.database
 import app.coinverse.firebase.*
 import app.coinverse.utils.*
 import app.coinverse.utils.FeedType.*
@@ -44,8 +44,8 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.net.URL
 
-object ContentRepository {
-    private val LOG_TAG = ContentRepository::class.java.simpleName
+object FeedRepository {
+    private val LOG_TAG = FeedRepository::class.java.simpleName
 
     fun getMainFeedList(isRealtime: Boolean, timeframe: Timestamp) = flow<Lce<PagedListResult>> {
         emit(Loading())

@@ -1,4 +1,4 @@
-package app.coinverse.content.room
+package app.coinverse.feed.room
 
 import android.content.Context
 

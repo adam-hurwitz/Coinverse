@@ -7,7 +7,7 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:theme="@style/ToolbarTheme"
-        android:visibility="@{viewmodel.feedViewState.toolbar.visibility}">
+        android:visibility="@{viewmodel.viewState.toolbar.visibility}">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
@@ -21,8 +21,8 @@
                 android:layout_gravity="center"
                 android:textColor="@color/colorAccent"
                 android:textSize="@dimen/text_size_medium"
-                android:visibility="@{viewmodel.feedViewState.toolbar.visibility}"
-                app:title="@{viewmodel.feedViewState.toolbar.titleRes}" />
+                android:visibility="@{viewmodel.viewState.toolbar.visibility}"
+                app:title="@{viewmodel.viewState.toolbar.titleRes}" />
 
         </androidx.appcompat.widget.Toolbar>
 
@@ -32,7 +32,7 @@
 
         <variable
             name="viewmodel"
-            type="app.coinverse.content.ContentViewModel" />
+            type="app.coinverse.feed.viewmodels.FeedViewModel" />
 
         <variable
             name="view"

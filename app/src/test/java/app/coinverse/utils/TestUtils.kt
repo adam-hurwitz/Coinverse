@@ -9,8 +9,9 @@ import androidx.paging.LivePagedListBuilder
 import androidx.room.RoomDatabase
 import androidx.room.RoomSQLiteQuery
 import androidx.room.paging.LimitOffsetDataSource
-import app.coinverse.content.ContentViewModel
 import app.coinverse.contentviewmodel.LabelContentTest
+import app.coinverse.feed.viewmodels.AudioViewModel
+import app.coinverse.feed.viewmodels.FeedViewModel
 import app.coinverse.utils.livedata.Event
 import com.google.firebase.auth.FirebaseAuth
 import io.mockk.every
@@ -22,15 +23,17 @@ import java.util.concurrent.TimeoutException
 
 val TEST_COROUTINE_DISPATCHER_NAMESPACE =
         ExtensionContext.Namespace.create(TEST_COROUTINE_DISPATCHER_NAMESPACE_STRING)
-val VIEWMODEL_NAMESPACE =
-        ExtensionContext.Namespace.create(VIEWMODEL_NAMESPACE_STRING)
+val FEED_VIEWMODEL_NAMESPACE =
+        ExtensionContext.Namespace.create(FEED_VIEWMODEL_NAMESPACE_STRING)
+val AUDIO_VIEWMODEL_NAMESPACE =
+        ExtensionContext.Namespace.create(AUDIO_VIEWMODEL_NAMESPACE_STRING)
 
 fun LabelContentTest.mockUser() =
         if (this.isUserSignedIn) FirebaseAuth.getInstance().currentUser else null
 
-fun ContentViewModel.feedViewState() = this.feedViewState.getOrAwaitValue()
-fun ContentViewModel.playerViewState() = this.playerViewState.getOrAwaitValue()
-fun ContentViewModel.viewEffects() = this.viewEffect.getOrAwaitValue()
+fun FeedViewModel.feedViewState() = this.viewState.getOrAwaitValue()
+fun AudioViewModel.playerViewState() = this.playerViewState.getOrAwaitValue()
+fun FeedViewModel.viewEffects() = this.viewEffect.getOrAwaitValue()
 fun <T> LiveData<Event<T>>.observe() = this.getOrAwaitValue().peekEvent()
 
 /**

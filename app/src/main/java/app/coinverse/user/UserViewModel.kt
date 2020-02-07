@@ -13,7 +13,7 @@ import kotlinx.coroutines.tasks.await
 private val LOG_TAG = UserViewModel::class.java.simpleName
 
 /**
- * TODO: Refactor with Unidirectional Data Flow. See [ContentViewModel].
+ * TODO: Refactor with Unidirectional Data Flow. See [app.coinverse.feed.viewmodels.FeedViewModel].
  * See more: https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
  **/
 
