@@ -79,7 +79,6 @@ class FeedFragment : Fragment() {
 
     fun newInstance(contentBundle: Bundle) = FeedFragment().apply {
         arguments = contentBundle
-        getFeedType()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -92,6 +91,11 @@ class FeedFragment : Fragment() {
         super.onViewStateRestored(savedInstanceState)
         savedRecyclerPosition = feedViewModel.feedPosition
         if (homeViewModel.accountType.value == FREE) viewEvents.updateAds(UpdateAds())
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        getFeedType()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
