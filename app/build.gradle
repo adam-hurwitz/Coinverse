@@ -15,8 +15,8 @@ android {
         applicationId "app.coinverse"
         minSdkVersion 24
         targetSdkVersion 29
-        versionCode 50
-        versionName "0.50"
+        versionCode 51
+        versionName "0.51"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
