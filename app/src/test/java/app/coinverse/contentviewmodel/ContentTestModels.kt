@@ -6,7 +6,7 @@ import app.coinverse.utils.LCE_STATE
 import app.coinverse.utils.Timeframe
 import app.coinverse.utils.UserActionType
 
-data class FeedLoadContentTest(
+data class FeedLoadTest(
         val isRealtime: Boolean,
         val feedType: FeedType,
         val timeframe: Timeframe,

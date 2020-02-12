@@ -3,24 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <data>
-
-        <variable
-            name="viewmodel"
-            type="app.coinverse.home.HomeViewModel" />
-
-        <variable
-            name="user"
-            type="com.google.firebase.auth.FirebaseUser" />
-    </data>
-
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/profileFragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context="app.coinverse.user.UserFragment">
 
-        <include layout="@layout/toolbar" />
+        <include layout="@layout/toolbar_app" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -40,8 +29,7 @@
                 android:contentDescription="@string/profile_image"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="@id/guideline"
-                app:profileImageUrl="@{user.photoUrl.toString()}" />
+                app:layout_constraintTop_toTopOf="@id/guideline" />
 
             <TextView
                 android:id="@+id/dismissedContent"

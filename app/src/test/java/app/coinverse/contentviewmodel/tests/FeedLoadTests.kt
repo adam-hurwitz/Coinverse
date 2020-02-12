@@ -4,18 +4,18 @@ import android.widget.ProgressBar.GONE
 import android.widget.ProgressBar.VISIBLE
 import androidx.lifecycle.SavedStateHandle
 import app.coinverse.R.string.*
-import app.coinverse.contentviewmodel.FeedLoadContentTest
+import app.coinverse.contentviewmodel.FeedLoadTest
 import app.coinverse.contentviewmodel.mockGetMainFeedList
 import app.coinverse.contentviewmodel.mockQueryMainContentListFlow
 import app.coinverse.contentviewmodel.mockQueryMainContentListLiveData
 import app.coinverse.contentviewmodel.testCases.feedLoadTestCases
-import app.coinverse.feed.FeedRepository
-import app.coinverse.feed.FeedRepository.getMainFeedList
-import app.coinverse.feed.FeedRepository.queryLabeledContentList
-import app.coinverse.feed.FeedRepository.queryMainContentList
 import app.coinverse.feed.models.FeedViewEffectType.*
 import app.coinverse.feed.models.FeedViewEventType.FeedLoadComplete
 import app.coinverse.feed.models.FeedViewEventType.SwipeToRefresh
+import app.coinverse.feed.network.FeedRepository
+import app.coinverse.feed.network.FeedRepository.getLabeledFeedRoom
+import app.coinverse.feed.network.FeedRepository.getMainFeedNetwork
+import app.coinverse.feed.network.FeedRepository.getMainFeedRoom
 import app.coinverse.feed.viewmodels.FeedViewModel
 import app.coinverse.utils.*
 import app.coinverse.utils.FEED_EVENT_TYPE.FEED_LOAD
@@ -35,7 +35,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
 @ExtendWith(ContentTestExtension::class)
-class FeedLoadContentTests(val testDispatcher: TestCoroutineDispatcher) {
+class FeedLoadTests(val testDispatcher: TestCoroutineDispatcher) {
 
     private fun FeedLoad() = feedLoadTestCases()
     private lateinit var feedViewModel: FeedViewModel
@@ -49,7 +49,7 @@ class FeedLoadContentTests(val testDispatcher: TestCoroutineDispatcher) {
 
     @ParameterizedTest
     @MethodSource("FeedLoad")
-    fun `Feed Load`(test: FeedLoadContentTest) = testDispatcher.runBlockingTest {
+    fun `Feed Load`(test: FeedLoadTest) = testDispatcher.runBlockingTest {
         mockComponents(test)
         feedViewModel = FeedViewModel(SavedStateHandle(), test.feedType, test.timeframe, test.isRealtime)
         assertThatToolbarState(test)
@@ -59,14 +59,14 @@ class FeedLoadContentTests(val testDispatcher: TestCoroutineDispatcher) {
 
     @ParameterizedTest
     @MethodSource("FeedLoad")
-    fun `Swipe-to-Refresh`(test: FeedLoadContentTest) = testDispatcher.runBlockingTest {
+    fun `Swipe-to-Refresh`(test: FeedLoadTest) = testDispatcher.runBlockingTest {
         mockComponents(test)
         feedViewModel = FeedViewModel(SavedStateHandle(), test.feedType, test.timeframe, test.isRealtime)
         assertContentList(test, FEED_LOAD)
         SwipeToRefresh(test.feedType, test.timeframe, false).also { event ->
             feedViewModel.swipeToRefresh(event)
             assertContentList(test, SWIPE_TO_REFRESH)
-            feedViewModel.feedViewState().contentList.getOrAwaitValue().also { pagedList ->
+            feedViewModel.state.feedList.getOrAwaitValue().also { pagedList ->
                 assertThat(pagedList).isEqualTo(test.mockFeedList)
                 if (test.feedType == MAIN) assertSwipeToRefresh(test)
             }
@@ -74,7 +74,7 @@ class FeedLoadContentTests(val testDispatcher: TestCoroutineDispatcher) {
         verifyTests(test)
     }
 
-    private fun mockComponents(test: FeedLoadContentTest) {
+    private fun mockComponents(test: FeedLoadTest) {
 
         // Android libraries
         every { FirebaseRemoteConfig.getInstance() } returns mockk(relaxed = true)
@@ -84,11 +84,11 @@ class FeedLoadContentTests(val testDispatcher: TestCoroutineDispatcher) {
 
         // ContentRepository
         coEvery {
-            getMainFeedList(test.isRealtime, any())
+            getMainFeedNetwork(test.isRealtime, any())
         } returns mockGetMainFeedList(test.mockFeedList, test.lceState)
-        every { queryMainContentList(any()) } returns mockQueryMainContentListLiveData(test.mockFeedList)
+        every { getMainFeedRoom(any()) } returns mockQueryMainContentListLiveData(test.mockFeedList)
         every {
-            queryLabeledContentList(test.feedType)
+            getLabeledFeedRoom(test.feedType)
         } returns mockQueryMainContentListFlow(test.mockFeedList)
 
         // FirebaseRemoteConfig - Constant values
@@ -99,8 +99,8 @@ class FeedLoadContentTests(val testDispatcher: TestCoroutineDispatcher) {
         } returns MOCK_CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR
     }
 
-    private fun assertThatToolbarState(test: FeedLoadContentTest) {
-        assertThat(feedViewModel.feedViewState().toolbar).isEqualTo(ToolbarState(
+    private fun assertThatToolbarState(test: FeedLoadTest) {
+        assertThat(feedViewModel.state.toolbarState).isEqualTo(ToolbarState(
                 when (test.feedType) {
                     MAIN -> GONE
                     SAVED, DISMISSED -> VISIBLE
@@ -117,15 +117,14 @@ class FeedLoadContentTests(val testDispatcher: TestCoroutineDispatcher) {
         ))
     }
 
-    private fun assertContentList(test: FeedLoadContentTest, eventType: FEED_EVENT_TYPE) {
-        feedViewModel.feedViewState().contentList.getOrAwaitValue().also { pagedList ->
+    private fun assertContentList(test: FeedLoadTest, eventType: FEED_EVENT_TYPE) {
+        feedViewModel.state.feedList.getOrAwaitValue().also { pagedList ->
             assertThat(pagedList).isEqualTo(test.mockFeedList)
-            assertThat(feedViewModel.feedViewState().timeframe).isEqualTo(test.timeframe)
-            feedViewModel.viewEffects().updateAds.observe().also { effect ->
+            feedViewModel.effects.updateAds.getOrAwaitValue().also { effect ->
                 assertThat(effect.javaClass).isEqualTo(UpdateAdsEffect::class.java)
             }
             if (test.feedType == MAIN && test.lceState == ERROR) {
-                feedViewModel.viewEffects().snackBar.observe().also { effect ->
+                feedViewModel.effects.snackBar.getOrAwaitValue().also { effect ->
                     assertThat(effect).isEqualTo(SnackBarEffect(
                             if (eventType == FEED_LOAD) MOCK_CONTENT_REQUEST_NETWORK_ERROR
                             else MOCK_CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR))
@@ -133,37 +132,34 @@ class FeedLoadContentTests(val testDispatcher: TestCoroutineDispatcher) {
             }
             // ScreenEmptyEffect
             feedViewModel.feedLoadComplete(FeedLoadComplete(hasContent = pagedList.isNotEmpty()))
-            feedViewModel.viewEffects().screenEmpty.observe().also { effect ->
+            feedViewModel.effects.screenEmpty.getOrAwaitValue().also { effect ->
                 assertThat(effect).isEqualTo(ScreenEmptyEffect(pagedList.isEmpty()))
             }
         }
     }
 
-    private fun assertSwipeToRefresh(test: FeedLoadContentTest) {
+    private fun assertSwipeToRefresh(test: FeedLoadTest) {
         when (test.lceState) {
-            LOADING -> feedViewModel.viewEffects()
-                    .swipeToRefresh.observe().also { effect ->
+            LOADING -> feedViewModel.effects.swipeToRefresh.getOrAwaitValue().also { effect ->
                 assertThat(effect).isEqualTo(SwipeToRefreshEffect(true))
             }
-            CONTENT -> feedViewModel.viewEffects()
-                    .swipeToRefresh.observe().also { effect ->
+            CONTENT -> feedViewModel.effects.swipeToRefresh.getOrAwaitValue().also { effect ->
                 assertThat(effect).isEqualTo(SwipeToRefreshEffect(false))
             }
-            ERROR -> feedViewModel.viewEffects()
-                    .swipeToRefresh.observe().also { effect ->
+            ERROR -> feedViewModel.effects.swipeToRefresh.getOrAwaitValue().also { effect ->
                 assertThat(effect).isEqualTo(SwipeToRefreshEffect(false))
             }
         }
     }
 
-    private fun verifyTests(test: FeedLoadContentTest) {
+    private fun verifyTests(test: FeedLoadTest) {
         coVerify {
             when (test.feedType) {
                 MAIN -> {
-                    getMainFeedList(test.isRealtime, any())
-                    if (test.lceState == LOADING || test.lceState == ERROR) queryMainContentList(any())
+                    getMainFeedNetwork(test.isRealtime, any())
+                    if (test.lceState == LOADING || test.lceState == ERROR) getMainFeedRoom(any())
                 }
-                SAVED, DISMISSED -> queryLabeledContentList(test.feedType)
+                SAVED, DISMISSED -> getLabeledFeedRoom(test.feedType)
             }
         }
         confirmVerified(FeedRepository)

@@ -1,14 +1,13 @@
 package app.coinverse.contentviewmodel
 
 import android.net.Uri
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.liveData
 import app.coinverse.feed.models.*
 import app.coinverse.utils.*
 import app.coinverse.utils.ContentType.ARTICLE
 import app.coinverse.utils.ContentType.YOUTUBE
 import app.coinverse.utils.LCE_STATE.*
-import app.coinverse.utils.livedata.Event
 import app.coinverse.utils.models.Lce
 import app.coinverse.utils.models.Lce.Error
 import app.coinverse.utils.models.Lce.Loading
@@ -37,9 +36,10 @@ fun mockQueryMainContentListFlow(mockFeedList: List<Content>) = flow {
     emit(mockFeedList.asPagedList())
 }
 
+
 fun mockQueryMainContentListLiveData(mockFeedList: List<Content>) = liveData {
     emit(mockFeedList.asPagedList())
-}
+}.asFlow()
 
 fun mockGetAudiocast(test: PlayContentTest) = flow {
     when (test.lceState) {
@@ -91,5 +91,4 @@ fun mockEditContentLabels(test: LabelContentTest) = flow {
     })
 }
 
-fun mockGetContent(test: NavigateContentTest) =
-        MutableLiveData<Event<Content>>().apply { value = Event(test.mockContent) }
+fun mockGetContent(test: NavigateContentTest) = liveData { emit(test.mockContent) }

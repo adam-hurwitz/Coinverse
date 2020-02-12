@@ -2,7 +2,7 @@ package app.coinverse.utils
 
 import androidx.arch.core.executor.ArchTaskExecutor
 import androidx.arch.core.executor.TaskExecutor
-import app.coinverse.feed.FeedRepository
+import app.coinverse.feed.network.FeedRepository
 import app.coinverse.feed.viewmodels.AudioViewModel
 import app.coinverse.feed.viewmodels.FeedViewModel
 import io.mockk.mockkObject

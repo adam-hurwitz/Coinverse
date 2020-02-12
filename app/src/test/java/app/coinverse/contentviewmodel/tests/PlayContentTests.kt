@@ -6,12 +6,6 @@ import android.view.View.VISIBLE
 import androidx.lifecycle.SavedStateHandle
 import app.coinverse.contentviewmodel.*
 import app.coinverse.contentviewmodel.testCases.playContentTestCases
-import app.coinverse.feed.FeedRepository
-import app.coinverse.feed.FeedRepository.bitmapToByteArray
-import app.coinverse.feed.FeedRepository.getAudiocast
-import app.coinverse.feed.FeedRepository.getContentUri
-import app.coinverse.feed.FeedRepository.getMainFeedList
-import app.coinverse.feed.FeedRepository.queryLabeledContentList
 import app.coinverse.feed.models.AudioViewEventType.AudioPlayerLoad
 import app.coinverse.feed.models.Content
 import app.coinverse.feed.models.ContentPlayer
@@ -19,6 +13,13 @@ import app.coinverse.feed.models.ContentToPlay
 import app.coinverse.feed.models.FeedViewEffectType.NotifyItemChangedEffect
 import app.coinverse.feed.models.FeedViewEffectType.SnackBarEffect
 import app.coinverse.feed.models.FeedViewEventType.ContentSelected
+import app.coinverse.feed.network.ContentRepository
+import app.coinverse.feed.network.ContentRepository.bitmapToByteArray
+import app.coinverse.feed.network.ContentRepository.getContentUri
+import app.coinverse.feed.network.FeedRepository
+import app.coinverse.feed.network.FeedRepository.getAudiocast
+import app.coinverse.feed.network.FeedRepository.getLabeledFeedRoom
+import app.coinverse.feed.network.FeedRepository.getMainFeedNetwork
 import app.coinverse.feed.viewmodels.AudioViewModel
 import app.coinverse.feed.viewmodels.FeedViewModel
 import app.coinverse.home.HomeViewModel
@@ -52,6 +53,8 @@ class PlayContentTests(val testDispatcher: TestCoroutineDispatcher, val audioVie
         mockkStatic(FirebaseRemoteConfig::class)
         mockkStatic(Crashlytics::class)
         mockkStatic(Uri::class)
+
+        mockkObject(ContentRepository)
     }
 
     @ParameterizedTest
@@ -84,10 +87,10 @@ class PlayContentTests(val testDispatcher: TestCoroutineDispatcher, val audioVie
 
         // ContentRepository
         coEvery {
-            getMainFeedList(test.isRealtime, any())
+            getMainFeedNetwork(test.isRealtime, any())
         } returns mockGetMainFeedList(test.mockFeedList, CONTENT)
         every {
-            queryLabeledContentList(test.feedType)
+            getLabeledFeedRoom(test.feedType)
         } returns mockQueryMainContentListFlow(test.mockFeedList)
         every {
             getAudiocast(ContentSelected(test.mockPosition, test.mockContent))
@@ -105,7 +108,7 @@ class PlayContentTests(val testDispatcher: TestCoroutineDispatcher, val audioVie
     }
 
     private fun assertContentList(test: PlayContentTest) {
-        feedViewModel.feedViewState().contentList.getOrAwaitValue().also { pagedList ->
+        feedViewModel.state.feedList.getOrAwaitValue().also { pagedList ->
             assertThat(pagedList).isEqualTo(test.mockFeedList)
         }
     }
@@ -115,33 +118,30 @@ class PlayContentTests(val testDispatcher: TestCoroutineDispatcher, val audioVie
             ARTICLE -> when (test.feedType) {
                 MAIN, DISMISSED -> when (test.lceState) {
                     LOADING -> {
-                        assertThat(feedViewModel.feedViewState().contentToPlay.observe()).isNull()
                         assertThat(feedViewModel.getContentLoadingStatus(test.mockContent.id))
                                 .isEqualTo(VISIBLE)
-                        assertThat(feedViewModel.viewEffects().notifyItemChanged.observe())
+                        assertThat(feedViewModel.effects.notifyItemChanged.getOrAwaitValue())
                                 .isEqualTo(NotifyItemChangedEffect(test.mockPosition))
                     }
                     CONTENT -> {
-                        assertThat(feedViewModel.feedViewState().contentToPlay.observe())
-                                .isEqualTo(ContentToPlay(
-                                        position = test.mockPosition,
-                                        content = test.mockContent,
-                                        filePath = MOCK_TXT_FILE_PATH,
-                                        errorMessage = ""))
+                        assertThat(feedViewModel.state.contentToPlay.getOrAwaitValue()).isEqualTo(ContentToPlay(
+                                position = test.mockPosition,
+                                content = test.mockContent,
+                                filePath = MOCK_TXT_FILE_PATH,
+                                errorMessage = ""))
                         assertThat(feedViewModel.getContentLoadingStatus(test.mockContent.id))
                                 .isEqualTo(GONE)
-                        assertThat(feedViewModel.viewEffects().notifyItemChanged.observe())
+                        assertThat(feedViewModel.effects.notifyItemChanged.getOrAwaitValue())
                                 .isEqualTo(NotifyItemChangedEffect(test.mockPosition))
                     }
                     ERROR -> {
-                        assertThat(feedViewModel.feedViewState()
-                                .contentToPlay.observe()).isNull()
-                        assertThat(feedViewModel.viewEffects().notifyItemChanged.observe())
+                        assertThat(feedViewModel.state.contentToPlay.getOrAwaitValue()).isNull()
+                        assertThat(feedViewModel.effects.notifyItemChanged.getOrAwaitValue())
                                 .isEqualTo(NotifyItemChangedEffect(test.mockPosition))
                         if (test.mockFilePath.equals(TTS_CHAR_LIMIT_ERROR))
-                            assertThat(feedViewModel.viewEffects().snackBar.observe())
+                            assertThat(feedViewModel.effects.snackBar.getOrAwaitValue())
                                     .isEqualTo(SnackBarEffect(TTS_CHAR_LIMIT_ERROR_MESSAGE))
-                        else assertThat(feedViewModel.viewEffects().snackBar.observe())
+                        else assertThat(feedViewModel.effects.snackBar.getOrAwaitValue())
                                 .isEqualTo(SnackBarEffect(MOCK_CONTENT_PLAY_ERROR))
                     }
                 }
@@ -153,22 +153,21 @@ class PlayContentTests(val testDispatcher: TestCoroutineDispatcher, val audioVie
                             errorMessage = test.mockGetAudiocastError
                     ).also { mockContentToPlay ->
                         homeViewModel.setSavedContentToPlay(mockContentToPlay)
-                        assertThat(homeViewModel.savedContentToPlay.observe())
+                        assertThat(homeViewModel.savedContentToPlay.getOrAwaitValue())
                                 .isEqualTo(mockContentToPlay)
                     }
                 }
             }
             YOUTUBE -> when (test.feedType) {
                 MAIN, DISMISSED -> {
-                    assertThat(feedViewModel.feedViewState().contentToPlay.observe())
-                            .isEqualTo(ContentToPlay(
-                                    position = test.mockPosition,
-                                    content = test.mockContent,
-                                    filePath = test.mockFilePath,
-                                    errorMessage = ""))
+                    assertThat(feedViewModel.state.contentToPlay.getOrAwaitValue()).isEqualTo(ContentToPlay(
+                            position = test.mockPosition,
+                            content = test.mockContent,
+                            filePath = test.mockFilePath,
+                            errorMessage = ""))
                     assertThat(feedViewModel.getContentLoadingStatus(test.mockContent.id))
                             .isEqualTo(GONE)
-                    assertThat(feedViewModel.viewEffects().notifyItemChanged.observe())
+                    assertThat(feedViewModel.effects.notifyItemChanged.getOrAwaitValue())
                             .isEqualTo(NotifyItemChangedEffect(test.mockPosition))
                 }
                 SAVED -> {
@@ -180,7 +179,7 @@ class PlayContentTests(val testDispatcher: TestCoroutineDispatcher, val audioVie
                                 errorMessage = test.mockGetAudiocastError
                         ).also { mockContentToPlay ->
                             this.setSavedContentToPlay(mockContentToPlay)
-                            assertThat(this.savedContentToPlay.observe())
+                            assertThat(this.savedContentToPlay.getOrAwaitValue())
                                     .isEqualTo(mockContentToPlay)
                         }
                     }
@@ -201,12 +200,11 @@ class PlayContentTests(val testDispatcher: TestCoroutineDispatcher, val audioVie
     }
 
     private fun assertContentPlayer(test: PlayContentTest) {
-        assertThat(audioViewModel.playerViewState().contentPlayer.observe())
-                .isEqualToComparingFieldByField(ContentPlayer(
-                        uri = Uri.parse(""),
-                        image = test.mockPreviewImageByteArray,
-                        errorMessage = if (test.lceState != ERROR) "" else MOCK_GET_CONTENT_URI_ERROR
-                ))
+        assertThat(audioViewModel.contentPlayer.getOrAwaitValue()).isEqualToComparingFieldByField(ContentPlayer(
+                uri = Uri.parse(""),
+                image = test.mockPreviewImageByteArray,
+                errorMessage = if (test.lceState != ERROR) "" else MOCK_GET_CONTENT_URI_ERROR
+        ))
     }
 
     private fun assertContentPlayerChange(test: PlayContentTest) {
@@ -220,8 +218,8 @@ class PlayContentTests(val testDispatcher: TestCoroutineDispatcher, val audioVie
     private fun verifyTests(test: PlayContentTest) {
         coVerify {
             when (test.feedType) {
-                MAIN -> getMainFeedList(test.isRealtime, any())
-                SAVED, DISMISSED -> queryLabeledContentList(test.feedType)
+                MAIN -> getMainFeedNetwork(test.isRealtime, any())
+                SAVED, DISMISSED -> getLabeledFeedRoom(test.feedType)
             }
             if (test.mockContent.contentType == ARTICLE) {
                 getAudiocast(ContentSelected(test.mockPosition, test.mockContent))
@@ -232,5 +230,6 @@ class PlayContentTests(val testDispatcher: TestCoroutineDispatcher, val audioVie
             }
         }
         confirmVerified(FeedRepository)
+        confirmVerified(ContentRepository)
     }
 }

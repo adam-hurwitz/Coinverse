@@ -1,23 +1,22 @@
-package app.coinverse.feed
+package app.coinverse.feed.network
 
-import android.graphics.Bitmap.CompressFormat
-import android.graphics.BitmapFactory
-import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.liveData
 import androidx.paging.toLiveData
 import app.coinverse.BuildConfig.BUILD_TYPE
 import app.coinverse.analytics.models.ContentAction
-import app.coinverse.feed.models.*
+import app.coinverse.feed.models.Content
+import app.coinverse.feed.models.ContentLabeled
+import app.coinverse.feed.models.ContentToPlay
 import app.coinverse.feed.models.FeedViewEventType.ContentSelected
+import app.coinverse.feed.models.PagedListResult
 import app.coinverse.feed.room.CoinverseDatabase.database
 import app.coinverse.firebase.*
 import app.coinverse.utils.*
 import app.coinverse.utils.FeedType.*
 import app.coinverse.utils.UserActionType.DISMISS
 import app.coinverse.utils.UserActionType.SAVE
-import app.coinverse.utils.livedata.Event
 import app.coinverse.utils.models.Lce
 import app.coinverse.utils.models.Lce.Error
 import app.coinverse.utils.models.Lce.Loading
@@ -32,22 +31,15 @@ import com.google.firebase.firestore.Query.Direction.DESCENDING
 import com.google.firebase.firestore.Transaction
 import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.functions.FirebaseFunctionsException
-import com.google.firebase.storage.FirebaseStorage
-import com.google.firebase.storage.StorageException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.tasks.await
-import java.io.ByteArrayOutputStream
-import java.io.IOException
-import java.net.URL
 
 object FeedRepository {
     private val LOG_TAG = FeedRepository::class.java.simpleName
 
-    fun getMainFeedList(isRealtime: Boolean, timeframe: Timestamp) = flow<Lce<PagedListResult>> {
+    fun getMainFeedNetwork(isRealtime: Boolean, timeframe: Timestamp) = flow<Lce<PagedListResult>> {
         emit(Loading())
         val labeledSet = HashSet<String>()
         if (getInstance().currentUser != null && !getInstance().currentUser!!.isAnonymous) {
@@ -59,15 +51,15 @@ object FeedRepository {
         } else getLoggedOutNonRealtimeContent(timeframe, this)
     }
 
-    fun queryMainContentList(timestamp: Timestamp) =
-            database.contentDao().queryMainContentList(timestamp, MAIN).toLiveData(pagedListConfig)
+    fun getMainFeedRoom(timestamp: Timestamp) =
+            database.contentDao().getMainFeedRoom(timestamp, MAIN).toLiveData(pagedListConfig).asFlow()
 
 
-    fun queryLabeledContentList(feedType: FeedType) =
-            database.contentDao().queryLabeledContentList(feedType).toLiveData(pagedListConfig).asFlow()
+    fun getLabeledFeedRoom(feedType: FeedType) =
+            database.contentDao().getLabeledFeedRoom(feedType).toLiveData(pagedListConfig).asFlow()
 
     fun getContent(contentId: String) = liveData {
-        emit(Event(contentEnCollection.document(contentId).get().await()?.toObject(Content::class.java)!!))
+        emit(contentEnCollection.document(contentId).get().await()?.toObject(Content::class.java)!!)
     }
 
     fun getAudiocast(contentSelected: ContentSelected) = flow {
@@ -107,40 +99,6 @@ object FeedRepository {
             )))
         }
     }
-
-    fun getContentUri(contentId: String, filePath: String) = flow {
-        emit(Loading())
-        try {
-            val uri = FirebaseStorage.getInstance(firebaseApp(true))
-                    .reference.child(filePath).downloadUrl.await()
-            contentEnCollection.document(contentId) // Update content Audio Uri.
-                    .update(AUDIO_URL, Regex(AUDIO_URL_TOKEN_REGEX).replace(uri.toString(), "")).await()
-            emit(Lce.Content(ContentPlayer(
-                    uri = uri,
-                    image = ByteArray(0),
-                    errorMessage = "")))
-        } catch (error: StorageException) {
-            emit(Error(ContentPlayer(
-                    Uri.parse(""),
-                    ByteArray(0), "getContentUri error - ${error.localizedMessage}")))
-        }
-    }
-
-    fun bitmapToByteArray(url: String) = flow {
-        emit(Loading())
-        emit(Lce.Content(ContentBitmap(ByteArrayOutputStream().apply {
-            try {
-                BitmapFactory.decodeStream(URL(url).openConnection().apply {
-                    doInput = true
-                    connect()
-                }.getInputStream())
-            } catch (e: IOException) {
-                emit(Error(ContentBitmap(ByteArray(0),
-                        "bitmapToByteArray error or null - ${e.localizedMessage}")))
-                null
-            }?.compress(CompressFormat.JPEG, BITMAP_COMPRESSION_QUALITY, this)
-        }.toByteArray(), "")))
-    }.flowOn(Dispatchers.IO)
 
     fun editContentLabels(feedType: FeedType, actionType: UserActionType, content: Content?,
                           user: FirebaseUser, position: Int) = flow {
@@ -244,7 +202,7 @@ object FeedRepository {
                     labeledSet.add(content.id)
                 }
             }
-            database.contentDao().insertContentList(contentList)
+            database.contentDao().insertFeed(contentList)
         } else
             lce.emit(Error(PagedListResult(null,
                     "Error retrieving user save_collection: ${response.error?.localizedMessage}")))
@@ -260,8 +218,8 @@ object FeedRepository {
             val contentList = response.packet?.documentChanges
                     ?.map { change -> change.document.toObject(Content::class.java) }
                     ?.filter { content -> !labeledSet.contains(content.id) }
-            database.contentDao().insertContentList(contentList)
-            lce.emit(Lce.Content(PagedListResult(queryMainContentList(timeframe), "")))
+            database.contentDao().insertFeed(contentList)
+            lce.emit(Lce.Content(PagedListResult(getMainFeedRoom(timeframe), "")))
         } else lce.emit(Error(PagedListResult(null,
                 CONTENT_LOGGED_IN_REALTIME_ERROR + "${response.error.localizedMessage}")))
     }
@@ -275,8 +233,8 @@ object FeedRepository {
                         .documentChanges
                         ?.map { change -> change.document.toObject(Content::class.java) }
                         ?.filter { content -> !labeledSet.contains(content.id) }
-                database.contentDao().insertContentList(contentList)
-                lce.emit(Lce.Content(PagedListResult(queryMainContentList(timeframe), "")))
+                database.contentDao().insertFeed(contentList)
+                lce.emit(Lce.Content(PagedListResult(getMainFeedRoom(timeframe), "")))
             } catch (error: FirebaseFirestoreException) {
                 lce.emit(Error(PagedListResult(
                         null,
@@ -290,8 +248,8 @@ object FeedRepository {
                         .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe).get().await()
                         .documentChanges
                         ?.map { change -> change.document.toObject(Content::class.java) }
-                database.contentDao().insertContentList(contentList)
-                lce.emit(Lce.Content(PagedListResult(queryMainContentList(timeframe), "")))
+                database.contentDao().insertFeed(contentList)
+                lce.emit(Lce.Content(PagedListResult(getMainFeedRoom(timeframe), "")))
             } catch (error: FirebaseFirestoreException) {
                 lce.emit(Error(PagedListResult(
                         null,

@@ -17,7 +17,6 @@ import app.coinverse.feed.models.FeedViewEventType.*
 import app.coinverse.feed.models.FeedViewEvents
 import app.coinverse.feed.viewmodels.FeedViewModel
 import app.coinverse.utils.ADAPTER_POSITION_KEY
-import app.coinverse.utils.livedata.Event
 import kotlinx.android.synthetic.main.cell_content.view.*
 
 private val LOG_TAG = ContentAdapter::class.java.simpleName
@@ -36,8 +35,8 @@ class ContentAdapter(val feedViewModel: FeedViewModel, val viewEvents: FeedViewE
     /**
      * Observe [ContentSelected] event in View in order to calculate [app.coinverse.feed.ContentFragment.getAdapterPosition].
      */
-    val contentSelected: LiveData<Event<ContentSelected>> get() = _contentSelected
-    private val _contentSelected = MutableLiveData<Event<ContentSelected>>()
+    val contentSelected: LiveData<ContentSelected> get() = _contentSelected
+    private val _contentSelected = MutableLiveData<ContentSelected>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
             ViewHolder(inflate(from(parent.context), parent, false).apply {
@@ -52,8 +51,8 @@ class ContentAdapter(val feedViewModel: FeedViewModel, val viewEvents: FeedViewE
 
     private fun createOnClickListener(content: Content) = OnClickListener { view ->
         when (view.id) {
-            preview, contentTypeLogo -> _contentSelected.value =
-                    Event(ContentSelected(view.getTag(ADAPTER_POSITION_KEY) as Int, content))
+            preview, contentTypeLogo ->
+                _contentSelected.value = ContentSelected(view.getTag(ADAPTER_POSITION_KEY) as Int, content)
             share -> viewEvents.contentShared(ContentShared(content))
             openSource -> viewEvents.contentSourceOpened(ContentSourceOpened(content.url))
         }

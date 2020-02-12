@@ -1,32 +1,38 @@
 package app.coinverse.feed.models
 
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.liveData
+import androidx.lifecycle.MutableLiveData
 import androidx.paging.PagedList
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import app.coinverse.utils.ContentType
 import app.coinverse.utils.FeedType
 import app.coinverse.utils.FeedType.MAIN
-import app.coinverse.utils.Timeframe
-import app.coinverse.utils.Timeframe.DAY
-import app.coinverse.utils.livedata.Event
 import app.coinverse.utils.models.ToolbarState
 import com.google.firebase.Timestamp
+import kotlinx.coroutines.flow.Flow
 import java.util.*
 
 /** View state data for content feeds */
-data class FeedViewState(val feedType: FeedType = MAIN,
-                         val timeframe: Timeframe = DAY,
-                         val toolbar: ToolbarState,
-                         val contentList: LiveData<PagedList<Content>>,
-                         val contentToPlay: LiveData<Event<ContentToPlay?>> = liveData {},
-                         val contentLabeled: LiveData<Event<ContentLabeled?>> = liveData {},
-                         val notificationBitmap: LiveData<Event<Bitmap>> = liveData {})
+class _FeedViewState(
+        val _feedViewType: FeedType = MAIN,
+        val _toolbarState: ToolbarState = ToolbarState(),
+        val _feedList: MutableLiveData<PagedList<Content>> = MutableLiveData(),
+        val _feedPosition: Int,
+        val _contentToPlay: MutableLiveData<ContentToPlay?> = MutableLiveData(),
+        val _contentLabeled: MutableLiveData<ContentLabeled?> = MutableLiveData())
+
+class FeedViewState(_state: _FeedViewState) {
+    val feedType: FeedType = _state._feedViewType
+    val toolbarState: ToolbarState = _state._toolbarState
+    val feedList: LiveData<PagedList<Content>> = _state._feedList
+    val feedPosition: Int = _state._feedPosition
+    val contentToPlay: LiveData<ContentToPlay?> = _state._contentToPlay
+    val contentLabeled: LiveData<ContentLabeled?> = _state._contentLabeled
+}
 
 @Entity(tableName = "content")
 data class Content(@PrimaryKey var id: String = "",
@@ -147,7 +153,7 @@ data class ContentToPlay(var position: Int,
 }
 
 data class ContentLabeled(val position: Int, val errorMessage: String)
-data class PagedListResult(val pagedList: LiveData<PagedList<Content>>?, val errorMessage: String)
+data class PagedListResult(val pagedList: Flow<PagedList<Content>>?, val errorMessage: String)
 
 data class ContentPlayer(val uri: Uri, val image: ByteArray, val errorMessage: String) : Parcelable {
     constructor(parcel: Parcel) : this(

@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
 import app.coinverse.utils.Status.ERROR
 import app.coinverse.utils.Status.SUCCESS
-import app.coinverse.utils.livedata.Event
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.functions.FirebaseFunctionsException
 import kotlinx.coroutines.tasks.await
@@ -21,9 +20,9 @@ class UserViewModel : ViewModel() {
     fun deleteUser(user: FirebaseUser) = liveData {
         try {
             deleteUserCall(user).await()
-            emit(Event(SUCCESS))
+            emit(SUCCESS)
         } catch (e: FirebaseFunctionsException) {
-            emit(Event(ERROR))
+            emit(ERROR)
             Log.e(LOG_TAG, "Failed to delete user error: ${e?.localizedMessage}")
         }
     }

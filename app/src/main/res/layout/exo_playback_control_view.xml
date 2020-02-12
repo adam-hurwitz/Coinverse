@@ -25,7 +25,7 @@
     tools:targetApi="28">
 
     <TextView
-        android:id="@+id/title"
+        android:id="@+id/titleToolbar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@android:color/white"
@@ -42,7 +42,7 @@
         app:layout_constraintBottom_toTopOf="@id/controls"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/title" />
+        app:layout_constraintTop_toBottomOf="@id/titleToolbar" />
 
     <LinearLayout
         android:id="@+id/controls"

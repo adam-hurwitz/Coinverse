@@ -8,7 +8,6 @@ import app.coinverse.utils.DateAndTime
 import app.coinverse.utils.PaymentStatus
 import app.coinverse.utils.PaymentStatus.FREE
 import app.coinverse.utils.Timeframe
-import app.coinverse.utils.livedata.Event
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 
@@ -18,24 +17,24 @@ import com.google.firebase.auth.FirebaseUser
  **/
 class HomeViewModel : ViewModel() {
     val user: LiveData<FirebaseUser> get() = _user
-    val showLocationPermission: LiveData<Event<Boolean>> get() = _showLocationPermission
+    val showLocationPermission: LiveData<Boolean> get() = _showLocationPermission
     val isRealtime: LiveData<Boolean> get() = _isRealtime
     val accountType: LiveData<PaymentStatus> get() = _accountType
     val timeframe: LiveData<Timeframe> get() = _timeframe
     val isSwipeToRefreshEnabled: LiveData<Boolean> get() = _isSwipeToRefreshEnabled
     val isRefreshing: LiveData<Boolean> get() = _isRefreshing
     val bottomSheetState: LiveData<Int> get() = _bottomSheetState
-    val savedContentToPlay: LiveData<Event<ContentToPlay?>> get() = _savedContentToPlay
+    val savedContentToPlay: LiveData<ContentToPlay?> get() = _savedContentToPlay
 
     private val _user = MutableLiveData<FirebaseUser>()
-    private val _showLocationPermission = MutableLiveData<Event<Boolean>>()
+    private val _showLocationPermission = MutableLiveData<Boolean>()
     private val _isRealtime = MutableLiveData<Boolean>()
     private val _accountType = MutableLiveData<PaymentStatus>()
     private val _timeframe = MutableLiveData<Timeframe>()
     private val _isSwipeToRefreshEnabled = MutableLiveData<Boolean>()
     private val _isRefreshing = MutableLiveData<Boolean>()
     private val _bottomSheetState = MutableLiveData<Int>()
-    private val _savedContentToPlay = MutableLiveData<Event<ContentToPlay?>>()
+    private val _savedContentToPlay = MutableLiveData<ContentToPlay?>()
 
     init {
         //TODO: Toggle with button if paid user.
@@ -52,7 +51,7 @@ class HomeViewModel : ViewModel() {
     fun getCurrentUser() = FirebaseAuth.getInstance().currentUser
 
     fun setShowLocationPermission(toShow: Boolean) {
-        _showLocationPermission.value = Event(toShow)
+        _showLocationPermission.value = toShow
     }
 
     fun enableSwipeToRefresh(isEnabled: Boolean) {
@@ -68,7 +67,7 @@ class HomeViewModel : ViewModel() {
     }
 
     fun setSavedContentToPlay(contentToPlay: ContentToPlay?) {
-        _savedContentToPlay.value = Event(contentToPlay)
+        _savedContentToPlay.value = contentToPlay
     }
 
 }

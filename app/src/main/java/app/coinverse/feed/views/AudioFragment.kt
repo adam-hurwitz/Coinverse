@@ -20,7 +20,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.os.Build.VERSION
+import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
 import android.os.IBinder
@@ -39,8 +39,8 @@ import app.coinverse.feed.models.AudioViewEvents
 import app.coinverse.feed.models.ContentToPlay
 import app.coinverse.feed.viewmodels.AudioViewModel
 import app.coinverse.utils.*
-import app.coinverse.utils.PlayerActionType.*
-import app.coinverse.utils.livedata.EventObserver
+import app.coinverse.utils.PlayerActionType.PAUSE
+import app.coinverse.utils.PlayerActionType.PLAY
 import com.google.android.exoplayer2.SimpleExoPlayer
 import kotlinx.android.synthetic.main.exo_playback_control_view.*
 import kotlinx.android.synthetic.main.exo_playback_control_view.view.*
@@ -107,8 +107,8 @@ class AudioFragment : Fragment() {
 
     private fun setPlayerView() {
         playerView.requestFocus()
-        playerView.preview.setImageUrl(context!!, contentToPlay.content.previewImage)
-        playerView.title.text = contentToPlay.content.title
+        playerView.preview.setImageUrlRounded(context!!, contentToPlay.content.previewImage)
+        playerView.titleToolbar.text = contentToPlay.content.title
         playerView.showController()
     }
 
@@ -130,35 +130,33 @@ class AudioFragment : Fragment() {
     }
 
     private fun observeViewState() {
-        audioViewModel.playerViewState.observe(viewLifecycleOwner) { viewState ->
-            viewState.contentPlayer.observe(viewLifecycleOwner, EventObserver { contentPlayer ->
-                if (contentToPlay.content.id != audioViewModel.contentPlaying.id)
-                    if (VERSION.SDK_INT >= VERSION_CODES.O)
-                        context?.startService(Intent(context, AudioService::class.java).apply {
-                            action = PLAYER_ACTION
-                            if (!audioViewModel.contentPlaying.id.isNullOrEmpty())
-                                putExtra(PLAYER_KEY, STOP.name)
+        audioViewModel.contentPlayer.observe(viewLifecycleOwner) { contentPlayer ->
+            if (contentToPlay.content.id != audioViewModel.contentPlaying.id)
+                if (SDK_INT >= VERSION_CODES.O)
+                    context?.startService(Intent(context, AudioService::class.java).apply {
+                        action = PLAYER_ACTION
+                        if (!audioViewModel.contentPlaying.id.isNullOrEmpty())
+                            putExtra(PLAYER_KEY, PlayerActionType.STOP.name)
+                    })
+                else context?.stopService(Intent(context, AudioService::class.java))
+            audioViewModel.contentPlaying = contentToPlay.content
+            context?.bindService(
+                    Intent(context, AudioService::class.java).apply {
+                        action = CONTENT_SELECTED_ACTION
+                        putExtra(CONTENT_TO_PLAY_KEY, contentToPlay.apply {
+                            content.audioUrl = contentPlayer.uri.toString()
                         })
-                    else context?.stopService(Intent(context, AudioService::class.java))
-                audioViewModel.contentPlaying = contentToPlay.content
-                context?.bindService(
-                        Intent(context, AudioService::class.java).apply {
-                            action = CONTENT_SELECTED_ACTION
-                            putExtra(CONTENT_TO_PLAY_KEY, contentToPlay.apply {
-                                content.audioUrl = contentPlayer.uri.toString()
-                            })
-                            putExtra(CONTENT_SELECTED_BITMAP_KEY, contentPlayer.image)
-                        }, serviceConnection, Context.BIND_AUTO_CREATE)
-                ContextCompat.startForegroundService(
-                        context!!,
-                        Intent(context, AudioService::class.java).apply {
-                            action = CONTENT_SELECTED_ACTION
-                            putExtra(CONTENT_TO_PLAY_KEY, contentToPlay.apply {
-                                content.audioUrl = contentPlayer.uri.toString()
-                            })
-                            putExtra(CONTENT_SELECTED_BITMAP_KEY, contentPlayer.image)
+                        putExtra(CONTENT_SELECTED_BITMAP_KEY, contentPlayer.image)
+                    }, serviceConnection, Context.BIND_AUTO_CREATE)
+            ContextCompat.startForegroundService(
+                    context!!,
+                    Intent(context, AudioService::class.java).apply {
+                        action = CONTENT_SELECTED_ACTION
+                        putExtra(CONTENT_TO_PLAY_KEY, contentToPlay.apply {
+                            content.audioUrl = contentPlayer.uri.toString()
                         })
-            })
+                        putExtra(CONTENT_SELECTED_BITMAP_KEY, contentPlayer.image)
+                    })
         }
     }
 }

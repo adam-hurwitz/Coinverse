@@ -4,8 +4,8 @@ import android.app.Activity
 import android.os.Bundle
 import android.util.Log
 import app.coinverse.analytics.models.UserAction
-import app.coinverse.feed.FeedRepository
 import app.coinverse.feed.models.Content
+import app.coinverse.feed.network.FeedRepository
 import app.coinverse.feed.room.CoinverseDatabase.database
 import app.coinverse.firebase.*
 import app.coinverse.utils.*

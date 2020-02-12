@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.observe
 import androidx.navigation.findNavController
 import app.coinverse.R
 import app.coinverse.R.string.*
@@ -20,7 +21,7 @@ import app.coinverse.home.HomeViewModel
 import app.coinverse.utils.FeedType.DISMISSED
 import app.coinverse.utils.PROFILE_VIEW
 import app.coinverse.utils.Status.SUCCESS
-import app.coinverse.utils.livedata.EventObserver
+import app.coinverse.utils.setImageUrlCircle
 import app.coinverse.utils.snackbarWithText
 import com.crashlytics.android.Crashlytics
 import com.firebase.ui.auth.AuthUI
@@ -33,7 +34,7 @@ import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.android.synthetic.main.fragment_user.*
-import kotlinx.android.synthetic.main.toolbar.*
+import kotlinx.android.synthetic.main.toolbar_app.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -61,15 +62,14 @@ class UserFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         binding = FragmentUserBinding.inflate(inflater, container, false)
-        binding.viewmodel = homeViewModel
         user = UserFragmentArgs.fromBundle(arguments!!).user
-        binding.user = user
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setToolbar()
+        profieImage.setImageUrlCircle(context!!, user.photoUrl.toString())
         setClickListeners()
     }
 
@@ -113,7 +113,7 @@ class UserFragment : Fragment() {
         }
         delete.setOnClickListener { view: View ->
             FirebaseAuth.getInstance().currentUser?.let { user ->
-                userViewModel.deleteUser(user).observe(viewLifecycleOwner, EventObserver { status ->
+                userViewModel.deleteUser(user).observe(viewLifecycleOwner) { status ->
                     if (status == SUCCESS)
                         lifecycleScope.launch {
                             try {
@@ -130,7 +130,7 @@ class UserFragment : Fragment() {
                             }
                         }
                     else make(view, getString(unable_to_delete), LENGTH_SHORT).show()
-                })
+                }
             }
         }
     }

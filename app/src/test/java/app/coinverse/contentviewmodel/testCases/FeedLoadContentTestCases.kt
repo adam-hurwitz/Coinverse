@@ -1,6 +1,6 @@
 package app.coinverse.contentviewmodel.testCases
 
-import app.coinverse.contentviewmodel.FeedLoadContentTest
+import app.coinverse.contentviewmodel.FeedLoadTest
 import app.coinverse.contentviewmodel.mockDbContentListForAll
 import app.coinverse.contentviewmodel.mockDbContentListForDay
 import app.coinverse.utils.FeedType
@@ -11,25 +11,25 @@ import java.util.stream.Stream
 fun feedLoadTestCases() = Stream.of(
         // MAIN
         // DAY
-        FeedLoadContentTest(
+        FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.MAIN,
                 timeframe = Timeframe.DAY,
                 lceState = LCE_STATE.LOADING,
                 mockFeedList = mockDbContentListForDay),
-        FeedLoadContentTest(
+        FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.MAIN,
                 timeframe = Timeframe.DAY,
                 lceState = LCE_STATE.CONTENT,
                 mockFeedList = mockDbContentListForDay),
-        FeedLoadContentTest(
+        FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.MAIN,
                 timeframe = Timeframe.DAY,
                 lceState = LCE_STATE.CONTENT,
                 mockFeedList = listOf()),
-        FeedLoadContentTest(
+        FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.MAIN,
                 timeframe = Timeframe.DAY,
@@ -37,19 +37,19 @@ fun feedLoadTestCases() = Stream.of(
                 mockFeedList = mockDbContentListForDay),
 
         // ALL
-        FeedLoadContentTest(
+        FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.MAIN,
                 timeframe = Timeframe.ALL,
                 lceState = LCE_STATE.LOADING,
                 mockFeedList = mockDbContentListForAll),
-        FeedLoadContentTest(
+        FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.MAIN,
                 timeframe = Timeframe.ALL,
                 lceState = LCE_STATE.CONTENT,
                 mockFeedList = mockDbContentListForAll),
-        FeedLoadContentTest(
+        FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.MAIN,
                 timeframe = Timeframe.ALL,
@@ -58,25 +58,25 @@ fun feedLoadTestCases() = Stream.of(
 
         // SAVED
         // DAY
-        FeedLoadContentTest(
+        FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.SAVED,
                 timeframe = Timeframe.DAY,
                 lceState = LCE_STATE.LOADING,
                 mockFeedList = mockDbContentListForDay),
-        FeedLoadContentTest(
+        FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.SAVED,
                 timeframe = Timeframe.DAY,
                 lceState = LCE_STATE.CONTENT,
                 mockFeedList = mockDbContentListForDay),
-        FeedLoadContentTest(
+        FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.SAVED,
                 timeframe = Timeframe.DAY,
                 lceState = LCE_STATE.CONTENT,
                 mockFeedList = listOf()),
-        FeedLoadContentTest(
+        FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.SAVED,
                 timeframe = Timeframe.DAY,
@@ -85,25 +85,25 @@ fun feedLoadTestCases() = Stream.of(
 
         // DISMISSED
         // DAY
-        FeedLoadContentTest(
+        FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.DISMISSED,
                 timeframe = Timeframe.DAY,
                 lceState = LCE_STATE.LOADING,
                 mockFeedList = mockDbContentListForDay),
-        FeedLoadContentTest(
+        FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.DISMISSED,
                 timeframe = Timeframe.DAY,
                 lceState = LCE_STATE.CONTENT,
                 mockFeedList = mockDbContentListForDay),
-        FeedLoadContentTest(
+        FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.DISMISSED,
                 timeframe = Timeframe.DAY,
                 lceState = LCE_STATE.CONTENT,
                 mockFeedList = listOf()),
-        FeedLoadContentTest(
+        FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.DISMISSED,
                 timeframe = Timeframe.DAY,

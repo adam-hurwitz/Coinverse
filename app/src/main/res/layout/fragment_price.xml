@@ -2,21 +2,6 @@
 
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <data>
-
-        <variable
-            name="viewmodel"
-            type="app.coinverse.priceGraph.PriceViewModel" />
-
-        <variable
-            name="exchange"
-            type="app.coinverse.utils.Exchange" />
-
-        <variable
-            name="orderType"
-            type="app.coinverse.utils.OrderType" />
-    </data>
-
     <androidx.constraintlayout.widget.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/activity_main_constraint"
@@ -30,7 +15,6 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_small"
             android:padding="@dimen/padding_tiny"
-            android:text="@{String.format(@string/price_pair_format, viewmodel.pricePair.BASE_CURRENCY, viewmodel.pricePair.QUOTE_CURRENCY)}"
             android:textColor="@color/colorPrimaryDark"
             android:textSize="@dimen/text_size_small"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -84,7 +68,6 @@
         <TextView
             android:id="@+id/bidsToggle"
             style="@style/OrderToggleStyle"
-            android:onClick="@{() -> viewmodel.orderToggle(orderType.BID)}"
             android:text="@string/bids"
             android:textStyle="bold"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -93,7 +76,6 @@
         <TextView
             android:id="@+id/asksToggle"
             style="@style/OrderToggleStyle"
-            android:onClick="@{() -> viewmodel.orderToggle(orderType.ASK)}"
             android:text="@string/asks"
             app:layout_constraintBottom_toBottomOf="@id/bidsToggle"
             app:layout_constraintLeft_toRightOf="@id/bidsToggle" />
@@ -132,7 +114,6 @@
                 <TextView
                     android:id="@+id/coinbaseToggle"
                     style="@style/ButtonStyle"
-                    android:onClick="@{() -> viewmodel.exchangeToggle(exchange.COINBASE)}"
                     android:text="@string/coinbase"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toLeftOf="@id/binanceToggle"
@@ -141,7 +122,6 @@
                 <TextView
                     android:id="@+id/binanceToggle"
                     style="@style/ButtonStyle"
-                    android:onClick="@{() -> viewmodel.exchangeToggle(exchange.BINANCE)}"
                     android:text="@string/binance"
                     app:layout_constraintLeft_toRightOf="@+id/coinbaseToggle"
                     app:layout_constraintRight_toLeftOf="@id/geminiToggle"
@@ -150,7 +130,6 @@
                 <TextView
                     android:id="@+id/geminiToggle"
                     style="@style/ButtonStyle"
-                    android:onClick="@{() -> viewmodel.exchangeToggle(exchange.GEMINI)}"
                     android:text="@string/gemini"
                     app:layout_constraintLeft_toRightOf="@id/binanceToggle"
                     app:layout_constraintRight_toLeftOf="@id/krakenToggle"
@@ -159,7 +138,6 @@
                 <TextView
                     android:id="@+id/krakenToggle"
                     style="@style/ButtonStyle"
-                    android:onClick="@{() -> viewmodel.exchangeToggle(exchange.KRAKEN)}"
                     android:text="@string/kraken"
                     app:layout_constraintLeft_toRightOf="@+id/geminiToggle"
                     app:layout_constraintRight_toRightOf="parent"

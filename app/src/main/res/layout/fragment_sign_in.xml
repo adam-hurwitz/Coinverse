@@ -22,7 +22,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/title"
+                android:id="@+id/titleToolbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
@@ -52,7 +52,7 @@
                 android:textSize="@dimen/text_size_normal"
                 app:layout_constraintLeft_toRightOf="@id/left_guideline"
                 app:layout_constraintRight_toLeftOf="@id/right_guideline"
-                app:layout_constraintTop_toBottomOf="@id/title" />
+                app:layout_constraintTop_toBottomOf="@id/titleToolbar" />
 
             <TextView
                 android:id="@+id/community"

@@ -2,27 +2,18 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <data>
-
-        <variable
-            name="viewmodel"
-            type="app.coinverse.feed.viewmodels.FeedViewModel" />
-
-    </data>
-
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/contentFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!--//TODO: Refactor to ConstraintLayout. Troubleshoot nested layouts not following constraints.-->
-        <RelativeLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
             <include
-                android:id="@+id/actionbar"
-                layout="@layout/toolbar"
+                android:id="@+id/appbar"
+                layout="@layout/toolbar_app"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -30,17 +21,18 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/contentRecyclerView"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_below="@id/actionbar" />
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/appbar" />
 
             <include
                 android:id="@+id/emptyContent"
-                layout="@layout/empty_content"
+                layout="@layout/empty_feed"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_below="@id/actionbar" />
-
-        </RelativeLayout>
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/appbar" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

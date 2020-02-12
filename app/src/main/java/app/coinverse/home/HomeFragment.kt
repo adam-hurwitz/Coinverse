@@ -53,9 +53,6 @@ import app.coinverse.utils.FeedType.SAVED
 import app.coinverse.utils.PaymentStatus.FREE
 import app.coinverse.utils.SignInType.DIALOG
 import app.coinverse.utils.SignInType.FULLSCREEN
-import app.coinverse.utils.livedata.EventObserver
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions.circleCropTransform
 import com.crashlytics.android.Crashlytics
 import com.firebase.ui.auth.IdpResponse
 import com.google.android.material.appbar.AppBarLayout
@@ -103,8 +100,8 @@ class HomeFragment : Fragment() {
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
         if (savedInstanceState != null) {
-            if (savedInstanceState.getBoolean(APP_BAR_EXPANDED_KEY)) appBar.setExpanded(true)
-            else appBar.setExpanded(false)
+            if (savedInstanceState.getBoolean(APP_BAR_EXPANDED_KEY)) appBarLayout.setExpanded(true)
+            else appBarLayout.setExpanded(false)
             if (savedInstanceState.getBoolean(SAVED_CONTENT_EXPANDED_KEY)) {
                 swipeToRefresh.isEnabled = false
                 bottomSheetBehavior.state = STATE_EXPANDED
@@ -135,7 +132,6 @@ class HomeFragment : Fragment() {
                               savedInstanceState: Bundle?): View? {
         binding = FragmentHomeBinding.inflate(inflater, container, false)
         binding.lifecycleOwner = this
-        binding.viewmodel = homeViewModel
         return binding.root
     }
 
@@ -162,15 +158,15 @@ class HomeFragment : Fragment() {
     }
 
     private fun initCollapsingToolbarStates() {
-        appBar.addOnOffsetChangedListener(object : AppBarLayout.OnOffsetChangedListener {
+        appBarLayout.addOnOffsetChangedListener(object : AppBarLayout.OnOffsetChangedListener {
             override fun onOffsetChanged(appBarLayout: AppBarLayout, verticalOffset: Int) {
-                // appBar expanded.
+                //Appbar expanded.
                 if (Math.abs(verticalOffset) - appBarLayout.totalScrollRange != 0) {
                     isAppBarExpanded = true
                     swipeToRefresh.isEnabled = true
                     bottomSheetBehavior.isHideable = true
                     bottomSheetBehavior.state = STATE_HIDDEN
-                } else { // appBar collapsed.
+                } else { //Appbar collapsed.
                     isAppBarExpanded = false
                     swipeToRefresh.isEnabled = false
                     if (bottomSheetBehavior.state == STATE_HIDDEN) {
@@ -183,8 +179,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun initProfileButton(isLoggedIn: Boolean) {
-        if (isLoggedIn) Glide.with(this).load(user?.photoUrl.toString())
-                .apply(circleCropTransform()).into(profileButton)
+        if (isLoggedIn) profileButton.setImageUrlCircle(context!!, user?.photoUrl.toString())
         else profileButton.setImageResource(ic_astronaut_color_accent_24dp)
     }
 
@@ -208,7 +203,7 @@ class HomeFragment : Fragment() {
                 }
                 if (newState == STATE_COLLAPSED) {
                     isSavedContentExpanded = false
-                    appBar.visibility = VISIBLE
+                    appBarLayout.visibility = VISIBLE
                     bottom_handle_logo.visibility = VISIBLE
                     bottom_handle.visibility = VISIBLE
                     bottom_handle_elevation.visibility = VISIBLE
@@ -222,7 +217,7 @@ class HomeFragment : Fragment() {
 
     private fun setBottomSheetExpanded() {
         isSavedContentExpanded = true
-        appBar.visibility = GONE
+        appBarLayout.visibility = GONE
         bottom_handle_logo.visibility = GONE
         bottom_handle.visibility = GONE
         bottom_handle_elevation.visibility = GONE
@@ -382,9 +377,9 @@ class HomeFragment : Fragment() {
                     apply()
                 }
                 PermissionsDialogFragment().newInstance().show(childFragmentManager, null)
-                homeViewModel.showLocationPermission.observe(viewLifecycleOwner, EventObserver { showPermission ->
+                homeViewModel.showLocationPermission.observe(viewLifecycleOwner) { showPermission ->
                     if (showPermission) requestPermissions(arrayOf(ACCESS_COARSE_LOCATION), REQUEST_CODE_LOC_PERMISSION)
-                })
+                }
             } else requestPermissions(arrayOf(ACCESS_COARSE_LOCATION), REQUEST_CODE_LOC_PERMISSION)
         }
     }
@@ -406,11 +401,11 @@ class HomeFragment : Fragment() {
     }
 
     private fun observeSavedContentSelected() {
-        homeViewModel.savedContentToPlay.observe(viewLifecycleOwner, EventObserver { contentToPlay ->
+        homeViewModel.savedContentToPlay.observe(viewLifecycleOwner) { contentToPlay ->
             if (childFragmentManager.findFragmentByTag(CONTENT_DIALOG_FRAGMENT_TAG) == null)
                 ContentDialogFragment().newInstance(Bundle().apply {
                     putParcelable(CONTENT_TO_PLAY_KEY, contentToPlay)
                 }).show(childFragmentManager, CONTENT_DIALOG_FRAGMENT_TAG)
-        })
+        }
     }
 }

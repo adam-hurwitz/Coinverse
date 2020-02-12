@@ -9,12 +9,12 @@ import app.coinverse.contentviewmodel.mockEditContentLabels
 import app.coinverse.contentviewmodel.mockGetMainFeedList
 import app.coinverse.contentviewmodel.mockQueryMainContentListFlow
 import app.coinverse.contentviewmodel.testCases.labelContentTestCases
-import app.coinverse.feed.FeedRepository
-import app.coinverse.feed.FeedRepository.editContentLabels
-import app.coinverse.feed.FeedRepository.getMainFeedList
-import app.coinverse.feed.FeedRepository.queryLabeledContentList
 import app.coinverse.feed.models.FeedViewEffectType.*
 import app.coinverse.feed.models.FeedViewEventType.*
+import app.coinverse.feed.network.FeedRepository
+import app.coinverse.feed.network.FeedRepository.editContentLabels
+import app.coinverse.feed.network.FeedRepository.getLabeledFeedRoom
+import app.coinverse.feed.network.FeedRepository.getMainFeedNetwork
 import app.coinverse.feed.viewmodels.FeedViewModel
 import app.coinverse.home.HomeViewModel
 import app.coinverse.utils.*
@@ -69,21 +69,20 @@ class LabelContentTests(val testDispatcher: TestCoroutineDispatcher) {
     }
 
     private fun assertContentList(test: LabelContentTest) {
-        feedViewModel.feedViewState().contentList.getOrAwaitValue().also { pagedList ->
+        feedViewModel.state.feedList.getOrAwaitValue().also { pagedList ->
             assertThat(pagedList).isEqualTo(test.mockFeedList)
         }
     }
 
     private fun assertEnableSwipeToRefresh() {
         HomeViewModel().apply {
-            enableSwipeToRefresh(
-                    feedViewModel.viewEffects().enableSwipeToRefresh.observe().isEnabled)
+            enableSwipeToRefresh(feedViewModel.effects.enableSwipeToRefresh.getOrAwaitValue().isEnabled)
             assertThat(isSwipeToRefreshEnabled.getOrAwaitValue()).isEqualTo(false)
         }
     }
 
     private fun assertContentLabeled(test: LabelContentTest) {
-        feedViewModel.viewEffects().contentSwiped.observe().also { contentSwipedEffect ->
+        feedViewModel.effects.contentSwiped.getOrAwaitValue().also { contentSwipedEffect ->
             assertThat(contentSwipedEffect).isEqualTo(ContentSwipedEffect(
                     feedType = test.feedType,
                     actionType = test.actionType,
@@ -99,24 +98,23 @@ class LabelContentTests(val testDispatcher: TestCoroutineDispatcher) {
                 if (test.isUserSignedIn) {
                     when (test.lceState) {
                         CONTENT -> {
-                            assertThat(feedViewModel.feedViewState().contentLabeled.observe())
+                            assertThat(feedViewModel.state.contentLabeled.getOrAwaitValue())
                                     .isEqualTo(app.coinverse.feed.models.ContentLabeled(
                                             position = test.adapterPosition, errorMessage = ""))
-                            assertThat(feedViewModel.viewEffects().notifyItemChanged.observe())
+                            assertThat(feedViewModel.effects.notifyItemChanged.getOrAwaitValue())
                                     .isEqualTo(NotifyItemChangedEffect(position = test.adapterPosition))
                         }
                         ERROR -> {
-                            assertThat(feedViewModel.feedViewState().contentLabeled.observe()).isNull()
-                            assertThat(feedViewModel.viewEffects().snackBar.observe())
+                            assertThat(feedViewModel.state.contentLabeled.getOrAwaitValue()).isNull()
+                            assertThat(feedViewModel.effects.snackBar.getOrAwaitValue())
                                     .isEqualTo(SnackBarEffect(text = MOCK_CONTENT_LABEL_ERROR))
                         }
                     }
                 } else {
-                    feedViewModel.feedViewState().contentLabeled.observe()
-                    assertThat(feedViewModel.viewEffects().notifyItemChanged.observe())
+                    feedViewModel.state.contentLabeled.getOrAwaitValue()
+                    assertThat(feedViewModel.effects.notifyItemChanged.getOrAwaitValue())
                             .isEqualTo(NotifyItemChangedEffect(test.adapterPosition))
-                    assertThat(feedViewModel.viewEffects().signIn.observe())
-                            .isEqualTo(SignInEffect(true))
+                    assertThat(feedViewModel.effects.signIn.getOrAwaitValue()).isEqualTo(SignInEffect(true))
                 }
             }
         }
@@ -132,7 +130,7 @@ class LabelContentTests(val testDispatcher: TestCoroutineDispatcher) {
         // Coinverse
 
         // ContentRepository
-        coEvery { getMainFeedList(test.isRealtime, any()) } returns mockGetMainFeedList(
+        coEvery { getMainFeedNetwork(test.isRealtime, any()) } returns mockGetMainFeedList(
                 test.mockFeedList, CONTENT)
         every {
             editContentLabels(test.feedType, test.actionType, test.mockContent, any(), test.adapterPosition)
@@ -142,7 +140,7 @@ class LabelContentTests(val testDispatcher: TestCoroutineDispatcher) {
             updateActionAnalytics(test.actionType, test.mockContent, any())
         } returns mockk(relaxed = true)
         every {
-            queryLabeledContentList(test.feedType)
+            getLabeledFeedRoom(test.feedType)
         } returns mockQueryMainContentListFlow(test.mockFeedList)
 
         // FirebaseRemoteConfig - Constant values
@@ -155,8 +153,8 @@ class LabelContentTests(val testDispatcher: TestCoroutineDispatcher) {
             if (test.isUserSignedIn)
                 editContentLabels(test.feedType, test.actionType, test.mockContent, any(), test.adapterPosition)
             when (test.feedType) {
-                MAIN -> getMainFeedList(test.isRealtime, any())
-                SAVED, DISMISSED -> queryLabeledContentList(test.feedType)
+                MAIN -> getMainFeedNetwork(test.isRealtime, any())
+                SAVED, DISMISSED -> getLabeledFeedRoom(test.feedType)
             }
         }
         confirmVerified(FeedRepository)

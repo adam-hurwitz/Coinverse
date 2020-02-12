@@ -10,13 +10,13 @@ import com.google.firebase.Timestamp
 interface ContentDao {
 
     @Query("SELECT * FROM content WHERE timestamp >= :timeframe AND feedType = :feedType ORDER BY timestamp DESC")
-    fun queryMainContentList(timeframe: Timestamp, feedType: FeedType): DataSource.Factory<Int, Content>
+    fun getMainFeedRoom(timeframe: Timestamp, feedType: FeedType): DataSource.Factory<Int, Content>
 
     @Query("SELECT * FROM content WHERE feedType = :feedType ORDER BY timestamp DESC")
-    fun queryLabeledContentList(feedType: FeedType): DataSource.Factory<Int, Content>
+    fun getLabeledFeedRoom(feedType: FeedType): DataSource.Factory<Int, Content>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertContentList(users: List<Content>?)
+    suspend fun insertFeed(users: List<Content>?)
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun updateContent(content: Content)

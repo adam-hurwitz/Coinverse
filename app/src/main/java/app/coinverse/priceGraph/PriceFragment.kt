@@ -69,13 +69,13 @@ class PriceFragment : Fragment() {
                               savedInstanceState: Bundle?): View? {
         binding = FragmentPriceBinding.inflate(inflater, container, false)
         binding.lifecycleOwner = this
-        binding.viewmodel = priceViewModel
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setPriceGraphStyle()
+        setClickListeners()
         setGraphVisibility(GONE)
         observeOrderTypesEnabled()
         observeExchangesEnabled()
@@ -90,6 +90,7 @@ class PriceFragment : Fragment() {
     }
 
     private fun setPriceGraphStyle() {
+        pricePair.text = String.format(getString(price_pair_format), priceViewModel.pricePair.BASE_CURRENCY, priceViewModel.pricePair.QUOTE_CURRENCY)
         graph.viewport.isXAxisBoundsManual = true
         val graphLabels = graph.gridLabelRenderer
         graphLabels.gridStyle = GridLabelRenderer.GridStyle.NONE
@@ -102,6 +103,15 @@ class PriceFragment : Fragment() {
                 else -> timeframe.text = resources.getString(timeframe_last_day)
             }
         }
+    }
+
+    private fun setClickListeners() {
+        bidsToggle.setOnClickListener { priceViewModel.orderToggle(BID) }
+        asksToggle.setOnClickListener { priceViewModel.orderToggle(ASK) }
+        coinbaseToggle.setOnClickListener { priceViewModel.exchangeToggle(COINBASE) }
+        binanceToggle.setOnClickListener { priceViewModel.exchangeToggle(BINANCE) }
+        geminiToggle.setOnClickListener { priceViewModel.exchangeToggle(BINANCE) }
+        krakenToggle.setOnClickListener { priceViewModel.exchangeToggle(KRAKEN) }
     }
 
     private fun observeOrderTypesEnabled() {

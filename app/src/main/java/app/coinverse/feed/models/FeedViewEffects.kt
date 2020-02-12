@@ -2,24 +2,37 @@ package app.coinverse.feed.models
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.liveData
 import app.coinverse.feed.models.FeedViewEffectType.*
 import app.coinverse.utils.FeedType
 import app.coinverse.utils.UserActionType
-import app.coinverse.utils.livedata.Event
 
 /** View state effects for content feeds */
-data class FeedViewEffects(
-        val signIn: LiveData<Event<SignInEffect>> = liveData {},
-        val notifyItemChanged: LiveData<Event<NotifyItemChangedEffect>> = liveData {},
-        val enableSwipeToRefresh: LiveData<Event<EnableSwipeToRefreshEffect>> = liveData {},
-        val swipeToRefresh: LiveData<Event<SwipeToRefreshEffect>> = liveData {},
-        val contentSwiped: LiveData<Event<ContentSwipedEffect>> = liveData {},
-        val snackBar: LiveData<Event<SnackBarEffect>> = liveData {},
-        val shareContentIntent: LiveData<Event<ShareContentIntentEffect>> = liveData {},
-        val openContentSourceIntent: LiveData<Event<OpenContentSourceIntentEffect>> = liveData {},
-        val screenEmpty: LiveData<Event<ScreenEmptyEffect>> = liveData {},
-        val updateAds: LiveData<Event<UpdateAdsEffect>> = liveData {})
+class _FeedViewEffects(
+        val _signIn: MutableLiveData<SignInEffect> = MutableLiveData(),
+        val _notifyItemChanged: MutableLiveData<NotifyItemChangedEffect> = MutableLiveData(),
+        val _contentLoadingIds: HashSet<String> = hashSetOf(),
+        val _enableSwipeToRefresh: MutableLiveData<EnableSwipeToRefreshEffect> = MutableLiveData(),
+        val _swipeToRefresh: MutableLiveData<SwipeToRefreshEffect> = MutableLiveData(),
+        val _contentSwiped: MutableLiveData<ContentSwipedEffect> = MutableLiveData(),
+        val _snackBar: MutableLiveData<SnackBarEffect> = MutableLiveData(),
+        val _shareContentIntent: MutableLiveData<ShareContentIntentEffect> = MutableLiveData(),
+        val _openContentSourceIntent: MutableLiveData<OpenContentSourceIntentEffect> = MutableLiveData(),
+        val _screenEmpty: MutableLiveData<ScreenEmptyEffect> = MutableLiveData(),
+        val _updateAds: MutableLiveData<UpdateAdsEffect> = MutableLiveData())
+
+class FeedViewEffects(_effects: _FeedViewEffects) {
+    val signIn: LiveData<SignInEffect> = _effects._signIn
+    val notifyItemChanged: LiveData<NotifyItemChangedEffect> = _effects._notifyItemChanged
+    val contentLoadingIds: HashSet<String> = _effects._contentLoadingIds
+    val enableSwipeToRefresh: LiveData<EnableSwipeToRefreshEffect> = _effects._enableSwipeToRefresh
+    val swipeToRefresh: LiveData<SwipeToRefreshEffect> = _effects._swipeToRefresh
+    val contentSwiped: LiveData<ContentSwipedEffect> = _effects._contentSwiped
+    val snackBar: LiveData<SnackBarEffect> = _effects._snackBar
+    val shareContentIntent: LiveData<ShareContentIntentEffect> = _effects._shareContentIntent
+    val openContentSourceIntent: LiveData<OpenContentSourceIntentEffect> = _effects._openContentSourceIntent
+    val screenEmpty: LiveData<ScreenEmptyEffect> = _effects._screenEmpty
+    val updateAds: LiveData<UpdateAdsEffect> = _effects._updateAds
+}
 
 sealed class FeedViewEffectType {
 
@@ -33,40 +46,9 @@ sealed class FeedViewEffectType {
 
     data class SnackBarEffect(val text: String) : FeedViewEffectType()
     data class ShareContentIntentEffect(
-            val contentRequest: LiveData<Event<Content>> = MutableLiveData()) : FeedViewEffectType()
+            val contentRequest: LiveData<Content> = MutableLiveData()) : FeedViewEffectType()
 
     data class OpenContentSourceIntentEffect(val url: String) : FeedViewEffectType()
     data class ScreenEmptyEffect(val isEmpty: Boolean) : FeedViewEffectType()
     class UpdateAdsEffect : FeedViewEffectType()
-}
-
-/**
- * Updates [FeedViewEffects] effect state.
- *
- * @receiver MutableLiveData<ContentEffects> view effect state
- * @param effect ContentEffectType
- */
-fun MutableLiveData<FeedViewEffects>.send(effect: FeedViewEffectType) {
-    this.value = when (effect) {
-        is SignInEffect ->
-            this.value?.copy(signIn = liveData { emit(Event(effect)) })
-        is NotifyItemChangedEffect ->
-            this.value?.copy(notifyItemChanged = liveData { emit(Event(effect)) })
-        is EnableSwipeToRefreshEffect ->
-            this.value?.copy(enableSwipeToRefresh = liveData { emit(Event(effect)) })
-        is SwipeToRefreshEffect ->
-            this.value?.copy(swipeToRefresh = liveData { emit(Event(effect)) })
-        is ContentSwipedEffect ->
-            this.value?.copy(contentSwiped = liveData { emit(Event(effect)) })
-        is SnackBarEffect ->
-            this.value?.copy(snackBar = liveData { emit(Event(effect)) })
-        is ShareContentIntentEffect ->
-            this.value?.copy(shareContentIntent = liveData { emit(Event(effect)) })
-        is OpenContentSourceIntentEffect ->
-            this.value?.copy(openContentSourceIntent = liveData { emit(Event(effect)) })
-        is ScreenEmptyEffect ->
-            this.value?.copy(screenEmpty = liveData { emit(Event(effect)) })
-        is UpdateAdsEffect ->
-            this.value?.copy(updateAds = liveData { emit(Event(effect)) })
-    }
 }
