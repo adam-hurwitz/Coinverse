@@ -2,7 +2,7 @@ package app.coinverse.contentviewmodel
 
 import app.coinverse.feed.models.Content
 import app.coinverse.utils.FeedType
-import app.coinverse.utils.LCE_STATE
+import app.coinverse.utils.Status
 import app.coinverse.utils.Timeframe
 import app.coinverse.utils.UserActionType
 
@@ -10,14 +10,14 @@ data class FeedLoadTest(
         val isRealtime: Boolean,
         val feedType: FeedType,
         val timeframe: Timeframe,
-        val lceState: LCE_STATE,
+        val status: Status,
         val mockFeedList: List<Content>)
 
 data class PlayContentTest(
         val isRealtime: Boolean,
         val feedType: FeedType,
         val timeframe: Timeframe,
-        val lceState: LCE_STATE,
+        val status: Status,
         val mockFeedList: List<Content>,
         val mockContent: Content,
         val mockPosition: Int,
@@ -31,7 +31,7 @@ data class LabelContentTest(
         val isRealtime: Boolean,
         val feedType: FeedType,
         val timeframe: Timeframe,
-        val lceState: LCE_STATE,
+        val status: Status,
         val mockFeedList: List<Content>,
         val mockContent: Content,
         val isDrawed: Boolean,

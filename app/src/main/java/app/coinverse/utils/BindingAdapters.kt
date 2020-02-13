@@ -8,7 +8,6 @@ import app.coinverse.utils.ContentType.ARTICLE
 import app.coinverse.utils.ContentType.YOUTUBE
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 
-
 @BindingAdapter("imageUrl")
 fun ImageView.setImageUrlRounded(url: String?) {
     GlideApp.with(context)
@@ -30,5 +29,5 @@ fun ImageView.setContentTypeIcon(contentType: ContentType) {
 
 @BindingAdapter("timePostedAgo")
 fun TextView.setTimePostedAgo(time: Long) {
-    this.text = DateAndTime.getTimeAgo(context, time, false)
+    this.text = getTimeAgo(context, time, false)
 }

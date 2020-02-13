@@ -2,11 +2,16 @@ package app.coinverse.feed.viewmodels
 
 import android.util.Log
 import androidx.lifecycle.*
-import app.coinverse.feed.models.*
 import app.coinverse.feed.models.AudioViewEventType.AudioPlayerLoad
+import app.coinverse.feed.models.AudioViewEvents
+import app.coinverse.feed.models.Content
+import app.coinverse.feed.models.ContentPlayer
 import app.coinverse.feed.network.ContentRepository
 import app.coinverse.feed.views.AudioFragment
-import app.coinverse.utils.models.Lce
+import app.coinverse.utils.Resource.Companion.error
+import app.coinverse.utils.Resource.Companion.success
+import app.coinverse.utils.Status.ERROR
+import app.coinverse.utils.Status.SUCCESS
 import com.crashlytics.android.Crashlytics
 import kotlinx.coroutines.flow.collect
 
@@ -31,7 +36,7 @@ class AudioViewModel : ViewModel(), AudioViewEvents {
         _contentPlayer = getAudioPlayer(event.contentId, event.filePath, event.previewImageUrl)
     }
 
-    // TODO: Refactor MediatorLiveData to Coroutine Flow - https://kotlinlang.org/docs/reference/coroutines/flow.html
+    //TODO: Refactor MediatorLiveData to Coroutine Flow - https://kotlinlang.org/docs/reference/coroutines/flow.html
     /**
      * Get audiocast player for PlayerNotificationManager in [AudioService].
      *
@@ -42,10 +47,7 @@ class AudioViewModel : ViewModel(), AudioViewEvents {
      */
     private fun getAudioPlayer(contentId: String, filePath: String, imageUrl: String) =
             getContentUri(contentId, filePath).combinePlayerData(bitmapToByteArray(imageUrl)) { a, b ->
-                ContentPlayer(
-                        uri = a.uri,
-                        image = b.image,
-                        errorMessage = getAudioPlayerErrors(a, b))
+                ContentPlayer(uri = a.data!!, image = b.data!!)
             }
 
     /**
@@ -86,12 +88,12 @@ class AudioViewModel : ViewModel(), AudioViewEvents {
      * @return LiveData<(Event<ContentUri>?)> content mp3 file
      */
     private fun getContentUri(contentId: String, filePath: String) = liveData {
-        ContentRepository.getContentUri(contentId, filePath).collect { lce ->
-            when (lce) {
-                is Lce.Content -> emit(ContentUri(lce.packet.uri, ""))
-                is Lce.Error -> {
-                    Crashlytics.log(Log.ERROR, LOG_TAG, lce.packet.errorMessage)
-                    emit(ContentUri(lce.packet.uri, lce.packet.errorMessage))
+        ContentRepository.getContentUri(contentId, filePath).collect { resource ->
+            when (resource.status) {
+                SUCCESS -> emit(success(resource.data!!.uri))
+                ERROR -> {
+                    Crashlytics.log(Log.ERROR, LOG_TAG, resource.message)
+                    emit(error(resource.message!!, null))
                 }
             }
         }
@@ -104,30 +106,15 @@ class AudioViewModel : ViewModel(), AudioViewEvents {
      * @return LiveData<(Event<ContentBitmap>?)> content preview image as ByteArray
      */
     private fun bitmapToByteArray(url: String) = liveData {
-        ContentRepository.bitmapToByteArray(url).collect { lce ->
-            when (lce) {
-                is Lce.Content -> emit(ContentBitmap(lce.packet.image, lce.packet.errorMessage))
-                is Lce.Error -> {
-                    Crashlytics.log(Log.WARN, LOG_TAG,
-                            "bitmapToByteArray error or null - ${lce.packet.errorMessage}")
-                    emit(ContentBitmap(lce.packet.image, lce.packet.errorMessage))
+        ContentRepository.bitmapToByteArray(url).collect { resource ->
+            when (resource.status) {
+                SUCCESS -> emit(success(resource.data))
+                ERROR -> {
+                    Crashlytics.log(Log.WARN, LOG_TAG, "bitmapToByteArray error or null - ${resource.message}")
+                    emit(error(resource.message!!, null))
                 }
             }
         }
     }
-
-    /**
-     * Collects and combines errors from building the audio player.
-     *
-     * @param a Event<ContentUri> content mp3 file
-     * @param b Event<ContentBitmap> content preview image
-     * @return String combined error message
-     */
-    private fun getAudioPlayerErrors(a: ContentUri, b: ContentBitmap) =
-            a.errorMessage.apply { if (this.isNotEmpty()) this }.apply {
-                b.errorMessage.also {
-                    if (it.isNotEmpty()) this.plus(" " + it)
-                }
-            }
 
 }

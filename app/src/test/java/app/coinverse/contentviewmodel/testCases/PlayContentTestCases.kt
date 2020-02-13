@@ -5,6 +5,9 @@ import app.coinverse.contentviewmodel.mockArticleContent
 import app.coinverse.contentviewmodel.mockDbContentListForDay
 import app.coinverse.contentviewmodel.mockYouTubeContent
 import app.coinverse.utils.*
+import app.coinverse.utils.FeedType.MAIN
+import app.coinverse.utils.Status.LOADING
+import app.coinverse.utils.Timeframe.DAY
 import java.util.stream.Stream
 
 fun playContentTestCases() = Stream.of(
@@ -12,9 +15,9 @@ fun playContentTestCases() = Stream.of(
         // MAIN
         PlayContentTest(
                 isRealtime = false,
-                feedType = FeedType.MAIN,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.LOADING,
+                feedType = MAIN,
+                timeframe = DAY,
+                status = LOADING,
                 mockFeedList = mockDbContentListForDay,
                 mockContent = mockArticleContent,
                 mockPosition = 0,
@@ -24,9 +27,9 @@ fun playContentTestCases() = Stream.of(
                 mockPreviewImageByteArray = ByteArray(0)),
         PlayContentTest(
                 isRealtime = false,
-                feedType = FeedType.MAIN,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.CONTENT,
+                feedType = MAIN,
+                timeframe = DAY,
+                status = Status.SUCCESS,
                 mockFeedList = mockDbContentListForDay,
                 mockContent = mockArticleContent,
                 mockPosition = 0,
@@ -36,9 +39,9 @@ fun playContentTestCases() = Stream.of(
                 mockPreviewImageByteArray = ByteArray(1)),
         PlayContentTest(
                 isRealtime = false,
-                feedType = FeedType.MAIN,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.ERROR,
+                feedType = MAIN,
+                timeframe = DAY,
+                status = Status.ERROR,
                 mockFeedList = mockDbContentListForDay,
                 mockContent = mockArticleContent,
                 mockPosition = 0,
@@ -48,9 +51,9 @@ fun playContentTestCases() = Stream.of(
                 mockPreviewImageByteArray = ByteArray(0)),
         PlayContentTest(
                 isRealtime = false,
-                feedType = FeedType.MAIN,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.ERROR,
+                feedType = MAIN,
+                timeframe = DAY,
+                status = Status.ERROR,
                 mockFeedList = mockDbContentListForDay,
                 mockContent = mockArticleContent,
                 mockPosition = 0,
@@ -62,8 +65,8 @@ fun playContentTestCases() = Stream.of(
         PlayContentTest(
                 isRealtime = false,
                 feedType = FeedType.SAVED,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.LOADING,
+                timeframe = DAY,
+                status = LOADING,
                 mockFeedList = mockDbContentListForDay,
                 mockContent = mockArticleContent,
                 mockPosition = 0,
@@ -74,8 +77,8 @@ fun playContentTestCases() = Stream.of(
         PlayContentTest(
                 isRealtime = false,
                 feedType = FeedType.SAVED,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.CONTENT,
+                timeframe = DAY,
+                status = Status.SUCCESS,
                 mockFeedList = mockDbContentListForDay,
                 mockContent = mockArticleContent,
                 mockPosition = 0, mockFilePath = MOCK_TXT_FILE_PATH,
@@ -85,8 +88,8 @@ fun playContentTestCases() = Stream.of(
         PlayContentTest(
                 isRealtime = false,
                 feedType = FeedType.SAVED,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.ERROR,
+                timeframe = DAY,
+                status = Status.ERROR,
                 mockFeedList = mockDbContentListForDay,
                 mockContent = mockArticleContent,
                 mockPosition = 0,
@@ -97,8 +100,8 @@ fun playContentTestCases() = Stream.of(
         PlayContentTest(
                 isRealtime = false,
                 feedType = FeedType.SAVED,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.ERROR,
+                timeframe = DAY,
+                status = Status.ERROR,
                 mockFeedList = mockDbContentListForDay,
                 mockContent = mockArticleContent,
                 mockPosition = 0,
@@ -110,8 +113,8 @@ fun playContentTestCases() = Stream.of(
         PlayContentTest(
                 isRealtime = false,
                 feedType = FeedType.DISMISSED,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.LOADING,
+                timeframe = DAY,
+                status = LOADING,
                 mockFeedList = mockDbContentListForDay,
                 mockContent = mockArticleContent,
                 mockPosition = 0,
@@ -122,8 +125,8 @@ fun playContentTestCases() = Stream.of(
         PlayContentTest(
                 isRealtime = false,
                 feedType = FeedType.DISMISSED,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.CONTENT,
+                timeframe = DAY,
+                status = Status.SUCCESS,
                 mockFeedList = mockDbContentListForDay,
                 mockContent = mockArticleContent,
                 mockPosition = 0,
@@ -133,8 +136,8 @@ fun playContentTestCases() = Stream.of(
                 mockPreviewImageByteArray = ByteArray(1)),
         PlayContentTest(
                 isRealtime = false,
-                feedType = FeedType.DISMISSED, timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.ERROR,
+                feedType = FeedType.DISMISSED, timeframe = DAY,
+                status = Status.ERROR,
                 mockFeedList = mockDbContentListForDay,
                 mockContent = mockArticleContent,
                 mockPosition = 0,
@@ -145,8 +148,8 @@ fun playContentTestCases() = Stream.of(
         PlayContentTest(
                 isRealtime = false,
                 feedType = FeedType.DISMISSED,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.ERROR,
+                timeframe = DAY,
+                status = Status.ERROR,
                 mockFeedList = mockDbContentListForDay,
                 mockContent = mockArticleContent,
                 mockPosition = 0, mockFilePath = "",
@@ -157,9 +160,9 @@ fun playContentTestCases() = Stream.of(
         // YOUTUBE
         PlayContentTest(
                 isRealtime = false,
-                feedType = FeedType.MAIN,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.CONTENT,
+                feedType = MAIN,
+                timeframe = DAY,
+                status = Status.SUCCESS,
                 mockFeedList = mockDbContentListForDay,
                 mockContent = mockYouTubeContent,
                 mockPosition = 0,
@@ -170,8 +173,8 @@ fun playContentTestCases() = Stream.of(
         PlayContentTest(
                 isRealtime = false,
                 feedType = FeedType.SAVED,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.CONTENT,
+                timeframe = DAY,
+                status = Status.SUCCESS,
                 mockFeedList = mockDbContentListForDay,
                 mockContent = mockYouTubeContent,
                 mockPosition = 0,
@@ -182,8 +185,8 @@ fun playContentTestCases() = Stream.of(
         PlayContentTest(
                 isRealtime = false,
                 feedType = FeedType.DISMISSED,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.CONTENT,
+                timeframe = DAY,
+                status = Status.SUCCESS,
                 mockFeedList = mockDbContentListForDay,
                 mockContent = mockYouTubeContent,
                 mockPosition = 0,

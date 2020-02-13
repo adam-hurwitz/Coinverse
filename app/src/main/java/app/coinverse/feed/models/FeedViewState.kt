@@ -11,9 +11,8 @@ import androidx.room.PrimaryKey
 import app.coinverse.utils.ContentType
 import app.coinverse.utils.FeedType
 import app.coinverse.utils.FeedType.MAIN
-import app.coinverse.utils.models.ToolbarState
+import app.coinverse.utils.ToolbarState
 import com.google.firebase.Timestamp
-import kotlinx.coroutines.flow.Flow
 import java.util.*
 
 /** View state data for content feeds */
@@ -23,7 +22,7 @@ class _FeedViewState(
         val _feedList: MutableLiveData<PagedList<Content>> = MutableLiveData(),
         val _feedPosition: Int,
         val _contentToPlay: MutableLiveData<ContentToPlay?> = MutableLiveData(),
-        val _contentLabeled: MutableLiveData<ContentLabeled?> = MutableLiveData())
+        val _contentLabeledPosition: MutableLiveData<Int> = MutableLiveData())
 
 class FeedViewState(_state: _FeedViewState) {
     val feedType: FeedType = _state._feedViewType
@@ -31,7 +30,7 @@ class FeedViewState(_state: _FeedViewState) {
     val feedList: LiveData<PagedList<Content>> = _state._feedList
     val feedPosition: Int = _state._feedPosition
     val contentToPlay: LiveData<ContentToPlay?> = _state._contentToPlay
-    val contentLabeled: LiveData<ContentLabeled?> = _state._contentLabeled
+    val contentLabeledPosition: LiveData<Int> = _state._contentLabeledPosition
 }
 
 @Entity(tableName = "content")
@@ -122,19 +121,16 @@ data class Content(@PrimaryKey var id: String = "",
 
 data class ContentToPlay(var position: Int,
                          var content: Content,
-                         var filePath: String?,
-                         val errorMessage: String) : Parcelable {
+                         var filePath: String?) : Parcelable {
     constructor(parcel: Parcel) : this(
             parcel.readInt(),
             parcel.readParcelable(Content::class.java.classLoader)!!,
-            parcel.readString(),
-            parcel.readString()!!)
+            parcel.readString())
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeInt(position)
         parcel.writeParcelable(content, flags)
         parcel.writeString(filePath)
-        parcel.writeString(errorMessage)
     }
 
     override fun describeContents(): Int {
@@ -152,19 +148,14 @@ data class ContentToPlay(var position: Int,
     }
 }
 
-data class ContentLabeled(val position: Int, val errorMessage: String)
-data class PagedListResult(val pagedList: Flow<PagedList<Content>>?, val errorMessage: String)
-
-data class ContentPlayer(val uri: Uri, val image: ByteArray, val errorMessage: String) : Parcelable {
+data class ContentPlayer(val uri: Uri, val image: ByteArray) : Parcelable {
     constructor(parcel: Parcel) : this(
             parcel.readParcelable(Uri::class.java.classLoader)!!,
-            parcel.createByteArray()!!,
-            parcel.readString()!!)
+            parcel.createByteArray()!!)
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeParcelable(uri, flags)
         parcel.writeByteArray(image)
-        parcel.writeString(errorMessage)
     }
 
     override fun describeContents() = 0

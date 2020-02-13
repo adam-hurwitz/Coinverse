@@ -4,10 +4,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import app.coinverse.feed.models.ContentToPlay
-import app.coinverse.utils.DateAndTime
 import app.coinverse.utils.PaymentStatus
 import app.coinverse.utils.PaymentStatus.FREE
 import app.coinverse.utils.Timeframe
+import app.coinverse.utils.buildTypeTimescale
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 
@@ -40,7 +40,7 @@ class HomeViewModel : ViewModel() {
         //TODO: Toggle with button if paid user.
         _isRealtime.value = false
         _accountType.value = FREE
-        _timeframe.value = DateAndTime.buildTypeTimescale
+        _timeframe.value = buildTypeTimescale
         _user.value = getCurrentUser()
     }
 

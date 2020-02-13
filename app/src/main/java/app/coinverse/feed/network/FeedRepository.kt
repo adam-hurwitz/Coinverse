@@ -3,23 +3,24 @@ package app.coinverse.feed.network
 import android.util.Log
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.liveData
+import androidx.paging.PagedList
 import androidx.paging.toLiveData
-import app.coinverse.BuildConfig.BUILD_TYPE
+import app.coinverse.BuildConfig
 import app.coinverse.analytics.models.ContentAction
 import app.coinverse.feed.models.Content
-import app.coinverse.feed.models.ContentLabeled
 import app.coinverse.feed.models.ContentToPlay
-import app.coinverse.feed.models.FeedViewEventType.ContentSelected
-import app.coinverse.feed.models.PagedListResult
+import app.coinverse.feed.models.FeedViewEventType
 import app.coinverse.feed.room.CoinverseDatabase.database
 import app.coinverse.firebase.*
 import app.coinverse.utils.*
 import app.coinverse.utils.FeedType.*
+import app.coinverse.utils.Resource.Companion.error
+import app.coinverse.utils.Resource.Companion.loading
+import app.coinverse.utils.Resource.Companion.success
+import app.coinverse.utils.Status.ERROR
+import app.coinverse.utils.Status.SUCCESS
 import app.coinverse.utils.UserActionType.DISMISS
 import app.coinverse.utils.UserActionType.SAVE
-import app.coinverse.utils.models.Lce
-import app.coinverse.utils.models.Lce.Error
-import app.coinverse.utils.models.Lce.Loading
 import com.google.firebase.Timestamp
 import com.google.firebase.Timestamp.now
 import com.google.firebase.auth.FirebaseAuth.getInstance
@@ -31,6 +32,7 @@ import com.google.firebase.firestore.Query.Direction.DESCENDING
 import com.google.firebase.firestore.Transaction
 import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.functions.FirebaseFunctionsException
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
@@ -39,8 +41,8 @@ import kotlinx.coroutines.tasks.await
 object FeedRepository {
     private val LOG_TAG = FeedRepository::class.java.simpleName
 
-    fun getMainFeedNetwork(isRealtime: Boolean, timeframe: Timestamp) = flow<Lce<PagedListResult>> {
-        emit(Loading())
+    fun getMainFeedNetwork(isRealtime: Boolean, timeframe: Timestamp) = flow<Resource<Flow<PagedList<Content>>>> {
+        emit(loading(null))
         val labeledSet = HashSet<String>()
         if (getInstance().currentUser != null && !getInstance().currentUser!!.isAnonymous) {
             val user = usersDocument.collection(getInstance().currentUser!!.uid)
@@ -62,41 +64,32 @@ object FeedRepository {
         emit(contentEnCollection.document(contentId).get().await()?.toObject(Content::class.java)!!)
     }
 
-    fun getAudiocast(contentSelected: ContentSelected) = flow {
-        emit(Loading())
+    fun getAudiocast(contentSelected: FeedViewEventType.ContentSelected) = flow {
+        emit(loading(null))
         try {
             val content = contentSelected.content
             FirebaseFunctions.getInstance(firebaseApp(true))
                     .getHttpsCallable(GET_AUDIOCAST_FUNCTION).call(
                             hashMapOf(
-                                    BUILD_TYPE_PARAM to BUILD_TYPE,
+                                    BUILD_TYPE_PARAM to BuildConfig.BUILD_TYPE,
                                     CONTENT_ID_PARAM to content.id,
                                     CONTENT_TITLE_PARAM to content.title,
                                     CONTENT_PREVIEW_IMAGE_PARAM to content.previewImage))
                     .continueWith { task -> (task.result?.data as HashMap<String, String>) }
                     .await().also { response ->
                         if (response?.get(ERROR_PATH_PARAM).isNullOrEmpty())
-                            emit(Lce.Content(ContentToPlay(
+                            emit(success((ContentToPlay(
                                     position = contentSelected.position,
                                     content = contentSelected.content,
-                                    filePath = response?.get(FILE_PATH_PARAM),
-                                    errorMessage = "")))
-                        else emit(Error(ContentToPlay(
-                                position = contentSelected.position,
-                                content = contentSelected.content,
-                                filePath = "",
-                                errorMessage = response?.get(ERROR_PATH_PARAM)!!)))
+                                    filePath = response?.get(FILE_PATH_PARAM)))))
+                        else emit(error(response?.get(ERROR_PATH_PARAM)!!, null))
                     }
         } catch (error: FirebaseFunctionsException) {
-            emit(Error(ContentToPlay(
-                    position = contentSelected.position,
-                    content = contentSelected.content,
-                    filePath = "",
-                    errorMessage = if (error is FirebaseFunctionsException)
-                        "$GET_AUDIOCAST_FUNCTION exception: " +
-                                "${error.code.name} details: ${error.details.toString()}"
-                    else "$GET_AUDIOCAST_FUNCTION exception: ${error?.localizedMessage}"
-            )))
+            val errorMessage = if (error is FirebaseFunctionsException)
+                "$GET_AUDIOCAST_FUNCTION exception: " +
+                        "${error.code.name} details: ${error.details.toString()}"
+            else "$GET_AUDIOCAST_FUNCTION exception: ${error?.localizedMessage}"
+            emit(error(errorMessage, null))
         }
     }
 
@@ -115,14 +108,14 @@ object FeedRepository {
                             DISMISS_COLLECTION else if (actionType == DISMISS && feedType == SAVED)
                             SAVE_COLLECTION else "",
                         content = content,
-                        position = position).collect { contentLabeled ->
-                    when (contentLabeled) {
-                        is Lce.Content -> addContentLabel(
+                        position = position).collect { resource ->
+                    when (resource.status) {
+                        SUCCESS -> addContentLabel(
                                 actionType = actionType,
                                 userCollection = userReference,
                                 content = content,
                                 position = position).collect { emit(it) }
-                        is Error -> emit(contentLabeled)
+                        ERROR -> emit(resource)
                     }
                 }
             } else addContentLabel(
@@ -181,16 +174,14 @@ object FeedRepository {
                     transaction.update(it, QUALITY_SCORE, newQualityScore)
                     /* Success */ return null
                 }
-            }).addOnSuccessListener({ Log.d(LOG_TAG, "Transaction success!") })
-                    .addOnFailureListener({ e ->
-                        Log.e(LOG_TAG, "Transaction failure updateQualityScore.", e)
-                    })
+            }).addOnSuccessListener { Log.d(LOG_TAG, "Transaction success!") }
+                    .addOnFailureListener { e -> Log.e(LOG_TAG, "Transaction failure updateQualityScore.", e) }
         }
     }
 
     private suspend fun syncLabeledContent(user: CollectionReference, timeframe: Timestamp,
                                            labeledSet: HashSet<String>, collection: String,
-                                           lce: FlowCollector<Lce<PagedListResult>>) {
+                                           flow: FlowCollector<Resource<Flow<PagedList<Content>>>>) {
         val response = user.document(COLLECTIONS_DOCUMENT)
                 .collection(collection)
                 .orderBy(TIMESTAMP, DESCENDING)
@@ -204,13 +195,12 @@ object FeedRepository {
             }
             database.contentDao().insertFeed(contentList)
         } else
-            lce.emit(Error(PagedListResult(null,
-                    "Error retrieving user save_collection: ${response.error?.localizedMessage}")))
+            flow.emit(error("Error retrieving user save_collection: " + response.error.localizedMessage, null))
     }
 
     private suspend fun getLoggedInAndRealtimeContent(timeframe: Timestamp,
                                                       labeledSet: HashSet<String>,
-                                                      lce: FlowCollector<Lce<PagedListResult>>) {
+                                                      flow: FlowCollector<Resource<Flow<PagedList<Content>>>>) {
         val response = contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
                 .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe)
                 .awaitRealtime()
@@ -219,46 +209,41 @@ object FeedRepository {
                     ?.map { change -> change.document.toObject(Content::class.java) }
                     ?.filter { content -> !labeledSet.contains(content.id) }
             database.contentDao().insertFeed(contentList)
-            lce.emit(Lce.Content(PagedListResult(getMainFeedRoom(timeframe), "")))
-        } else lce.emit(Error(PagedListResult(null,
-                CONTENT_LOGGED_IN_REALTIME_ERROR + "${response.error.localizedMessage}")))
+            flow.emit(success(getMainFeedRoom(timeframe)))
+        } else flow.emit(error(CONTENT_LOGGED_IN_REALTIME_ERROR + response.error.localizedMessage, null))
     }
 
     private suspend fun getLoggedInNonRealtimeContent(timeframe: Timestamp,
                                                       labeledSet: HashSet<String>,
-                                                      lce: FlowCollector<Lce<PagedListResult>>) =
+                                                      flow: FlowCollector<Resource<Flow<PagedList<Content>>>>) =
             try {
                 val contentList = contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
                         .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe).get().await()
                         .documentChanges
-                        ?.map { change -> change.document.toObject(Content::class.java) }
-                        ?.filter { content -> !labeledSet.contains(content.id) }
+                        .map { change -> change.document.toObject(Content::class.java) }
+                        .filter { content -> !labeledSet.contains(content.id) }
                 database.contentDao().insertFeed(contentList)
-                lce.emit(Lce.Content(PagedListResult(getMainFeedRoom(timeframe), "")))
+                flow.emit(success(getMainFeedRoom(timeframe)))
             } catch (error: FirebaseFirestoreException) {
-                lce.emit(Error(PagedListResult(
-                        null,
-                        CONTENT_LOGGED_IN_NON_REALTIME_ERROR + "${error.localizedMessage}")))
+                flow.emit(error("CONTENT_LOGGED_IN_NON_REALTIME_ERROR ${error.localizedMessage}", null))
             }
 
     private suspend fun getLoggedOutNonRealtimeContent(timeframe: Timestamp,
-                                                       lce: FlowCollector<Lce<PagedListResult>>) =
+                                                       flow: FlowCollector<Resource<Flow<PagedList<Content>>>>) =
             try {
                 val contentList = contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
                         .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe).get().await()
                         .documentChanges
-                        ?.map { change -> change.document.toObject(Content::class.java) }
+                        .map { change -> change.document.toObject(Content::class.java) }
                 database.contentDao().insertFeed(contentList)
-                lce.emit(Lce.Content(PagedListResult(getMainFeedRoom(timeframe), "")))
+                flow.emit(success(getMainFeedRoom(timeframe)))
             } catch (error: FirebaseFirestoreException) {
-                lce.emit(Error(PagedListResult(
-                        null,
-                        CONTENT_LOGGED_OUT_NON_REALTIME_ERROR + "${error.localizedMessage}")))
+                flow.emit(error(CONTENT_LOGGED_OUT_NON_REALTIME_ERROR + error.localizedMessage, null))
             }
 
     private fun addContentLabel(actionType: UserActionType, userCollection: CollectionReference,
                                 content: Content?, position: Int) = flow {
-        emit(Loading())
+        emit(loading(null))
         val collection =
                 if (actionType == SAVE) SAVE_COLLECTION
                 else if (actionType == DISMISS) DISMISS_COLLECTION
@@ -268,27 +253,23 @@ object FeedRepository {
                     .document(content!!.id)
                     .set(content).await()
             database.contentDao().updateContent(content)
-            emit(Lce.Content(ContentLabeled(position, "")))
+            emit(success(position))
         } catch (error: FirebaseFirestoreException) {
-            emit(Error(ContentLabeled(
-                    position,
-                    "'${content?.title}' failed to be added to collection $collection")))
+            emit(error("'${content?.title}' failed to be added to collection $collection", null))
         }
     }
 
     private fun removeContentLabel(userReference: CollectionReference, collection: String,
                                    content: Content?, position: Int) = flow {
-        emit(Loading())
+        emit(loading(null))
         try {
             userReference.document(COLLECTIONS_DOCUMENT)
                     .collection(collection)
                     .document(content!!.id)
                     .delete().await()
-            emit(Lce.Content(ContentLabeled(position, "")))
+            emit(success(position))
         } catch (error: FirebaseFirestoreException) {
-            emit(Error(ContentLabeled(
-                    position,
-                    "Content failed to be deleted from ${collection}: ${error.localizedMessage}")))
+            emit(error("Content failed to be deleted from ${collection}: ${error.localizedMessage}", null))
         }
     }
 }

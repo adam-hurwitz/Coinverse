@@ -38,7 +38,7 @@ class PriceViewModel : ViewModel() {
     private val _priceSelected = MutableLiveData<Pair<Exchange, String>>()
 
     init {
-        _timeframe.value = DateAndTime.buildTypeTimescale
+        _timeframe.value = buildTypeTimescale
         _enabledOrderTypes.value = arrayListOf(BID)
         _enabledExchanges.value = arrayListOf(COINBASE)
         val _priceDifferenceLiveData = PriceRepository.priceDifferenceDetailsLiveData

@@ -18,11 +18,10 @@ import app.coinverse.feed.network.FeedRepository.getMainFeedNetwork
 import app.coinverse.feed.network.FeedRepository.getMainFeedRoom
 import app.coinverse.feed.viewmodels.FeedViewModel
 import app.coinverse.utils.*
-import app.coinverse.utils.FEED_EVENT_TYPE.FEED_LOAD
-import app.coinverse.utils.FEED_EVENT_TYPE.SWIPE_TO_REFRESH
+import app.coinverse.utils.FeedEventType.FEED_LOAD
+import app.coinverse.utils.FeedEventType.SWIPE_TO_REFRESH
 import app.coinverse.utils.FeedType.*
-import app.coinverse.utils.LCE_STATE.*
-import app.coinverse.utils.models.ToolbarState
+import app.coinverse.utils.Status.*
 import com.crashlytics.android.Crashlytics
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import io.mockk.*
@@ -85,7 +84,7 @@ class FeedLoadTests(val testDispatcher: TestCoroutineDispatcher) {
         // ContentRepository
         coEvery {
             getMainFeedNetwork(test.isRealtime, any())
-        } returns mockGetMainFeedList(test.mockFeedList, test.lceState)
+        } returns mockGetMainFeedList(test.mockFeedList, test.status)
         every { getMainFeedRoom(any()) } returns mockQueryMainContentListLiveData(test.mockFeedList)
         every {
             getLabeledFeedRoom(test.feedType)
@@ -117,13 +116,13 @@ class FeedLoadTests(val testDispatcher: TestCoroutineDispatcher) {
         ))
     }
 
-    private fun assertContentList(test: FeedLoadTest, eventType: FEED_EVENT_TYPE) {
+    private fun assertContentList(test: FeedLoadTest, eventType: FeedEventType) {
         feedViewModel.state.feedList.getOrAwaitValue().also { pagedList ->
             assertThat(pagedList).isEqualTo(test.mockFeedList)
             feedViewModel.effects.updateAds.getOrAwaitValue().also { effect ->
                 assertThat(effect.javaClass).isEqualTo(UpdateAdsEffect::class.java)
             }
-            if (test.feedType == MAIN && test.lceState == ERROR) {
+            if (test.feedType == MAIN && test.status == ERROR) {
                 feedViewModel.effects.snackBar.getOrAwaitValue().also { effect ->
                     assertThat(effect).isEqualTo(SnackBarEffect(
                             if (eventType == FEED_LOAD) MOCK_CONTENT_REQUEST_NETWORK_ERROR
@@ -139,11 +138,11 @@ class FeedLoadTests(val testDispatcher: TestCoroutineDispatcher) {
     }
 
     private fun assertSwipeToRefresh(test: FeedLoadTest) {
-        when (test.lceState) {
+        when (test.status) {
             LOADING -> feedViewModel.effects.swipeToRefresh.getOrAwaitValue().also { effect ->
                 assertThat(effect).isEqualTo(SwipeToRefreshEffect(true))
             }
-            CONTENT -> feedViewModel.effects.swipeToRefresh.getOrAwaitValue().also { effect ->
+            SUCCESS -> feedViewModel.effects.swipeToRefresh.getOrAwaitValue().also { effect ->
                 assertThat(effect).isEqualTo(SwipeToRefreshEffect(false))
             }
             ERROR -> feedViewModel.effects.swipeToRefresh.getOrAwaitValue().also { effect ->
@@ -157,7 +156,7 @@ class FeedLoadTests(val testDispatcher: TestCoroutineDispatcher) {
             when (test.feedType) {
                 MAIN -> {
                     getMainFeedNetwork(test.isRealtime, any())
-                    if (test.lceState == LOADING || test.lceState == ERROR) getMainFeedRoom(any())
+                    if (test.status == LOADING || test.status == ERROR) getMainFeedRoom(any())
                 }
                 SAVED, DISMISSED -> getLabeledFeedRoom(test.feedType)
             }

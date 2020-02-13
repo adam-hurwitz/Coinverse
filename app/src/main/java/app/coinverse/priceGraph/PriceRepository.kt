@@ -4,12 +4,8 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import app.coinverse.firebase.contentEthBtcCollection
 import app.coinverse.priceGraph.models.*
-import app.coinverse.utils.DateAndTime.getTimeframe
-import app.coinverse.utils.Exchange
+import app.coinverse.utils.*
 import app.coinverse.utils.Exchange.*
-import app.coinverse.utils.TIMESTAMP
-import app.coinverse.utils.Timeframe
-import app.coinverse.utils.awaitRealtime
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query.Direction.ASCENDING

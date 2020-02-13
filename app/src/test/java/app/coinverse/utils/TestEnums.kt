@@ -1,5 +1,5 @@
 package app.coinverse.utils
 
-enum class LCE_STATE { LOADING, CONTENT, ERROR }
+enum class Status { LOADING, SUCCESS, ERROR }
 
-enum class FEED_EVENT_TYPE { FEED_LOAD, SWIPE_TO_REFRESH }
+enum class FeedEventType { FEED_LOAD, SWIPE_TO_REFRESH }

@@ -1,6 +1,6 @@
 package app.coinverse.feed.viewmodels
 
-import android.util.Log
+import android.util.Log.ERROR
 import android.view.View
 import android.widget.ProgressBar.GONE
 import android.widget.ProgressBar.VISIBLE
@@ -15,7 +15,6 @@ import app.coinverse.analytics.Analytics.updateFeedEmptiedActionsAndAnalytics
 import app.coinverse.feed.models.*
 import app.coinverse.feed.models.FeedViewEffectType.*
 import app.coinverse.feed.models.FeedViewEventType.*
-import app.coinverse.feed.models.FeedViewEventType.ContentLabeled
 import app.coinverse.feed.network.FeedRepository.editContentLabels
 import app.coinverse.feed.network.FeedRepository.getAudiocast
 import app.coinverse.feed.network.FeedRepository.getContent
@@ -25,12 +24,9 @@ import app.coinverse.feed.network.FeedRepository.getMainFeedRoom
 import app.coinverse.feed.views.FeedFragment
 import app.coinverse.utils.*
 import app.coinverse.utils.ContentType.*
-import app.coinverse.utils.DateAndTime.getTimeframe
 import app.coinverse.utils.FeedType.*
-import app.coinverse.utils.models.Lce
-import app.coinverse.utils.models.Lce.Error
-import app.coinverse.utils.models.Lce.Loading
-import app.coinverse.utils.models.ToolbarState
+import app.coinverse.utils.Status.LOADING
+import app.coinverse.utils.Status.SUCCESS
 import com.crashlytics.android.Crashlytics
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.flow.collect
@@ -79,25 +75,24 @@ class FeedViewModel(private val stateHandle: SavedStateHandle,
         val contentSelected = ContentSelected(event.position, event.content)
         when (contentSelected.content.contentType) {
             ARTICLE -> viewModelScope.launch {
-                getAudiocast(contentSelected).collect { lce ->
-                    when (lce) {
-                        is Loading -> {
+                getAudiocast(contentSelected).collect { resource ->
+                    when (resource.status) {
+                        LOADING -> {
                             setContentLoadingStatus(contentSelected.content.id, VISIBLE)
                             _effects._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
                         }
-                        is Lce.Content -> {
+                        SUCCESS -> {
                             setContentLoadingStatus(contentSelected.content.id, GONE)
                             _effects._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
-                            _state._contentToPlay.value = lce.packet
+                            _state._contentToPlay.value = resource.data
                         }
-                        is Error -> {
+                        Status.ERROR -> {
                             setContentLoadingStatus(contentSelected.content.id, GONE)
                             _effects._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
                             _effects._snackBar.value = SnackBarEffect(
-                                    if (lce.packet.filePath.equals(TTS_CHAR_LIMIT_ERROR))
+                                    if (resource.message.equals(TTS_CHAR_LIMIT_ERROR))
                                         TTS_CHAR_LIMIT_ERROR_MESSAGE
                                     else CONTENT_PLAY_ERROR)
-                            _state._contentToPlay.value = null
                         }
                     }
                 }
@@ -106,7 +101,7 @@ class FeedViewModel(private val stateHandle: SavedStateHandle,
                 setContentLoadingStatus(contentSelected.content.id, View.GONE)
                 _effects._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
                 _state._contentToPlay.value =
-                        ContentToPlay(contentSelected.position, contentSelected.content, "", "")
+                        ContentToPlay(contentSelected.position, contentSelected.content, "")
             }
             NONE -> throw IllegalArgumentException("contentType expected, contentType is 'NONE'")
         }
@@ -128,9 +123,9 @@ class FeedViewModel(private val stateHandle: SavedStateHandle,
                         actionType = event.actionType,
                         content = event.content,
                         user = event.user,
-                        position = event.position).collect { lce ->
-                    when (lce) {
-                        is Lce.Content -> {
+                        position = event.position).collect { resource ->
+                    when (resource.status) {
+                        SUCCESS -> {
                             if (event.feedType == MAIN) {
                                 labelContentFirebaseAnalytics(event.content!!)
                                 //TODO: Move to Cloud Function.
@@ -141,19 +136,18 @@ class FeedViewModel(private val stateHandle: SavedStateHandle,
                                     updateFeedEmptiedActionsAndAnalytics(event.user.uid)
                             }
                             _effects._notifyItemChanged.value = NotifyItemChangedEffect(event.position)
-                            _state._contentLabeled.value = app.coinverse.feed.models.ContentLabeled(event.position, "")
+                            _state._contentLabeledPosition.value = event.position
                         }
-                        is Error -> {
+                        Status.ERROR -> {
                             _effects._snackBar.value = SnackBarEffect(CONTENT_LABEL_ERROR)
-                            Crashlytics.log(Log.ERROR, LOG_TAG, lce.packet.errorMessage)
-                            _state._contentLabeled.value = null
+                            Crashlytics.log(ERROR, LOG_TAG, resource.message)
+                            _state._contentLabeledPosition.value = null
                         }
                     }
                 }
             } else {
                 _effects._notifyItemChanged.value = NotifyItemChangedEffect(event.position)
                 _effects._signIn.value = SignInEffect(true)
-                _state._contentLabeled.value = null
             }
         }
     }
@@ -198,22 +192,22 @@ class FeedViewModel(private val stateHandle: SavedStateHandle,
                 if (event is FeedLoad) getTimeframe(event.timeframe)
                 else if (event is SwipeToRefresh) getTimeframe(event.timeframe)
                 else null
-        if (feedType == MAIN) getMainFeedNetwork(isRealtime, timeframe!!).collect { lce ->
-            when (lce) {
-                is Loading -> {
+        if (feedType == MAIN) getMainFeedNetwork(isRealtime, timeframe!!).collect { resource ->
+            when (resource.status) {
+                LOADING -> {
                     if (event is SwipeToRefresh)
                         _effects._swipeToRefresh.value = SwipeToRefreshEffect(true)
                     getMainFeedLocal(timeframe)
                 }
-                is Lce.Content -> {
+                SUCCESS -> {
                     if (event is SwipeToRefresh)
                         _effects._swipeToRefresh.value = SwipeToRefreshEffect(false)
-                    lce.packet.pagedList!!.collect { pagedList ->
+                    resource.data?.collect { pagedList ->
                         _state._feedList.value = pagedList
                     }
                 }
-                is Error -> {
-                    Crashlytics.log(Log.ERROR, LOG_TAG, lce.packet.errorMessage)
+                Status.ERROR -> {
+                    Crashlytics.log(ERROR, LOG_TAG, resource.message)
                     if (event is SwipeToRefresh)
                         _effects._swipeToRefresh.value = SwipeToRefreshEffect(false)
                     _effects._snackBar.value = SnackBarEffect(

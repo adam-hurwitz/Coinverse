@@ -3,14 +3,16 @@ package app.coinverse.contentviewmodel
 import android.net.Uri
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.liveData
-import app.coinverse.feed.models.*
+import app.coinverse.feed.models.Content
+import app.coinverse.feed.models.ContentPlayer
+import app.coinverse.feed.models.ContentToPlay
 import app.coinverse.utils.*
 import app.coinverse.utils.ContentType.ARTICLE
 import app.coinverse.utils.ContentType.YOUTUBE
-import app.coinverse.utils.LCE_STATE.*
-import app.coinverse.utils.models.Lce
-import app.coinverse.utils.models.Lce.Error
-import app.coinverse.utils.models.Lce.Loading
+import app.coinverse.utils.Resource.Companion.error
+import app.coinverse.utils.Resource.Companion.loading
+import app.coinverse.utils.Resource.Companion.success
+import app.coinverse.utils.Status.*
 import kotlinx.coroutines.flow.flow
 
 val mockArticleContent = Content(id = "1", contentType = ARTICLE, url = MOCK_URL)
@@ -20,15 +22,11 @@ val mockDbContentListForDay = listOf(Content(id = "1"), Content(id = "2"),
 val mockDbContentListForAll = listOf(Content(id = "1"), Content(id = "2"),
         Content(id = "3"), Content(id = "4"), Content(id = "5"), Content(id = "6"))
 
-fun mockGetMainFeedList(mockFeedList: List<Content>, lceState: LCE_STATE) = flow {
-    when (lceState) {
-        LOADING -> emit(Loading())
-        CONTENT -> emit(Lce.Content(PagedListResult(
-                pagedList = mockQueryMainContentListLiveData(mockFeedList),
-                errorMessage = "")))
-        ERROR -> emit(Error(PagedListResult(
-                pagedList = null,
-                errorMessage = MOCK_GET_MAIN_FEED_LIST_ERROR)))
+fun mockGetMainFeedList(mockFeedList: List<Content>, status: Status) = flow {
+    when (status) {
+        LOADING -> emit(loading(null))
+        SUCCESS -> emit(success(mockQueryMainContentListLiveData(mockFeedList)))
+        ERROR -> emit(error(MOCK_GET_MAIN_FEED_LIST_ERROR, null))
     }
 }
 
@@ -42,52 +40,41 @@ fun mockQueryMainContentListLiveData(mockFeedList: List<Content>) = liveData {
 }.asFlow()
 
 fun mockGetAudiocast(test: PlayContentTest) = flow {
-    when (test.lceState) {
-        LOADING -> emit(Loading())
-        CONTENT -> emit(Lce.Content(ContentToPlay(
+    when (test.status) {
+        LOADING -> emit(loading(null))
+        SUCCESS -> emit(success(ContentToPlay(
                 position = test.mockPosition,
                 content = test.mockContent,
-                filePath = test.mockFilePath,
-                errorMessage = "")))
-        ERROR -> emit(Error(ContentToPlay(
-                position = test.mockPosition,
-                content = test.mockContent,
-                filePath = test.mockFilePath,
-                errorMessage = test.mockGetAudiocastError)))
+                filePath = test.mockFilePath)))
+        ERROR -> emit(error(test.mockGetAudiocastError, null))
     }
 }
 
 fun mockGetContentUri(test: PlayContentTest) = flow {
-    when (test.lceState) {
-        LOADING -> emit(Loading())
-        CONTENT -> emit(Lce.Content(ContentPlayer(
+    when (test.status) {
+        LOADING -> emit(loading(null))
+        SUCCESS -> emit(success(ContentPlayer(
                 uri = Uri.parse(""),
-                image = test.mockPreviewImageByteArray,
-                errorMessage = "")))
-        ERROR -> emit(Error(ContentPlayer(
-                uri = Uri.parse(""),
-                image = ByteArray(0),
-                errorMessage = MOCK_GET_CONTENT_URI_ERROR)))
+                image = test.mockPreviewImageByteArray)))
+        ERROR -> emit(error(
+                MOCK_GET_CONTENT_URI_ERROR,
+                ContentPlayer(uri = Uri.parse(""), image = ByteArray(0))))
     }
 }
 
 fun mockBitmapToByteArray(test: PlayContentTest) = flow {
-    when (test.lceState) {
-        LOADING -> emit(Loading())
-        CONTENT -> emit(Lce.Content(ContentBitmap(
-                image = test.mockPreviewImageByteArray,
-                errorMessage = "")))
-        ERROR -> emit(Error(ContentBitmap(
-                image = ByteArray(0),
-                errorMessage = MOCK_GET_BITMAP_TO_BYTEARRAY_ERROR)))
+    when (test.status) {
+        LOADING -> emit(loading(null))
+        SUCCESS -> emit(success(test.mockPreviewImageByteArray))
+        ERROR -> emit(error(MOCK_GET_BITMAP_TO_BYTEARRAY_ERROR, ByteArray(0)))
     }
 }
 
 fun mockEditContentLabels(test: LabelContentTest) = flow {
-    emit(when (test.lceState) {
-        LOADING -> Loading()
-        CONTENT -> Lce.Content(ContentLabeled(test.adapterPosition, ""))
-        ERROR -> Error(ContentLabeled(test.adapterPosition, MOCK_CONTENT_LABEL_ERROR))
+    emit(when (test.status) {
+        LOADING -> loading(null)
+        SUCCESS -> success(test.adapterPosition)
+        ERROR -> error(MOCK_CONTENT_LABEL_ERROR, null)
     })
 }
 

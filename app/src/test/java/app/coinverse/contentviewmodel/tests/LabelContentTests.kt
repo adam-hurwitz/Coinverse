@@ -19,8 +19,8 @@ import app.coinverse.feed.viewmodels.FeedViewModel
 import app.coinverse.home.HomeViewModel
 import app.coinverse.utils.*
 import app.coinverse.utils.FeedType.*
-import app.coinverse.utils.LCE_STATE.CONTENT
-import app.coinverse.utils.LCE_STATE.ERROR
+import app.coinverse.utils.Status.ERROR
+import app.coinverse.utils.Status.SUCCESS
 import com.crashlytics.android.Crashlytics
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
@@ -96,22 +96,19 @@ class LabelContentTests(val testDispatcher: TestCoroutineDispatcher) {
                     isMainFeedEmptied = false).also { event ->
                 feedViewModel.contentLabeled(event)
                 if (test.isUserSignedIn) {
-                    when (test.lceState) {
-                        CONTENT -> {
-                            assertThat(feedViewModel.state.contentLabeled.getOrAwaitValue())
-                                    .isEqualTo(app.coinverse.feed.models.ContentLabeled(
-                                            position = test.adapterPosition, errorMessage = ""))
+                    when (test.status) {
+                        SUCCESS -> {
+                            assertThat(feedViewModel.state.contentLabeledPosition.getOrAwaitValue())
+                                    .isEqualTo(test.adapterPosition)
                             assertThat(feedViewModel.effects.notifyItemChanged.getOrAwaitValue())
                                     .isEqualTo(NotifyItemChangedEffect(position = test.adapterPosition))
                         }
                         ERROR -> {
-                            assertThat(feedViewModel.state.contentLabeled.getOrAwaitValue()).isNull()
                             assertThat(feedViewModel.effects.snackBar.getOrAwaitValue())
                                     .isEqualTo(SnackBarEffect(text = MOCK_CONTENT_LABEL_ERROR))
                         }
                     }
                 } else {
-                    feedViewModel.state.contentLabeled.getOrAwaitValue()
                     assertThat(feedViewModel.effects.notifyItemChanged.getOrAwaitValue())
                             .isEqualTo(NotifyItemChangedEffect(test.adapterPosition))
                     assertThat(feedViewModel.effects.signIn.getOrAwaitValue()).isEqualTo(SignInEffect(true))
@@ -131,7 +128,7 @@ class LabelContentTests(val testDispatcher: TestCoroutineDispatcher) {
 
         // ContentRepository
         coEvery { getMainFeedNetwork(test.isRealtime, any()) } returns mockGetMainFeedList(
-                test.mockFeedList, CONTENT)
+                test.mockFeedList, SUCCESS)
         every {
             editContentLabels(test.feedType, test.actionType, test.mockContent, any(), test.adapterPosition)
         } returns mockEditContentLabels(test)

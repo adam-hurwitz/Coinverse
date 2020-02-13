@@ -42,7 +42,6 @@ import app.coinverse.utils.ContentType.YOUTUBE
 import app.coinverse.utils.FeedType.*
 import app.coinverse.utils.PaymentStatus.FREE
 import app.coinverse.utils.SignInType.DIALOG
-import app.coinverse.utils.models.ToolbarState
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
 import com.google.firebase.auth.FirebaseAuth
@@ -224,11 +223,11 @@ class FeedFragment : Fragment() {
                 }
             }
         }
-        feedViewModel.state.contentLabeled.observe(viewLifecycleOwner) { contentLabeled ->
+        feedViewModel.state.contentLabeledPosition.observe(viewLifecycleOwner) { position ->
             //TODO: Undo feature
             if (homeViewModel.accountType.value == FREE) {
-                contentLabeled?.let {
-                    val moPubPosition = moPubAdapter.getAdjustedPosition(contentLabeled.position)
+                position?.let {
+                    val moPubPosition = moPubAdapter.getAdjustedPosition(position)
                     if ((moPubAdapter.isAd(moPubPosition - 1) && moPubAdapter.isAd(moPubPosition + 1))) {
                         clearAdjacentAds = true
                         moPubAdapter.refreshAds(AD_UNIT_ID, RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build())

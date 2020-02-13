@@ -1,4 +1,4 @@
-package app.coinverse.utils.models
+package app.coinverse.utils
 
 import android.view.View.GONE
 

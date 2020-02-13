@@ -4,8 +4,11 @@ import app.coinverse.contentviewmodel.FeedLoadTest
 import app.coinverse.contentviewmodel.mockDbContentListForAll
 import app.coinverse.contentviewmodel.mockDbContentListForDay
 import app.coinverse.utils.FeedType
-import app.coinverse.utils.LCE_STATE
+import app.coinverse.utils.FeedType.MAIN
+import app.coinverse.utils.Status
+import app.coinverse.utils.Status.LOADING
 import app.coinverse.utils.Timeframe
+import app.coinverse.utils.Timeframe.DAY
 import java.util.stream.Stream
 
 fun feedLoadTestCases() = Stream.of(
@@ -13,47 +16,47 @@ fun feedLoadTestCases() = Stream.of(
         // DAY
         FeedLoadTest(
                 isRealtime = false,
-                feedType = FeedType.MAIN,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.LOADING,
+                feedType = MAIN,
+                timeframe = DAY,
+                status = LOADING,
                 mockFeedList = mockDbContentListForDay),
         FeedLoadTest(
                 isRealtime = false,
-                feedType = FeedType.MAIN,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.CONTENT,
+                feedType = MAIN,
+                timeframe = DAY,
+                status = Status.SUCCESS,
                 mockFeedList = mockDbContentListForDay),
         FeedLoadTest(
                 isRealtime = false,
-                feedType = FeedType.MAIN,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.CONTENT,
+                feedType = MAIN,
+                timeframe = DAY,
+                status = Status.SUCCESS,
                 mockFeedList = listOf()),
         FeedLoadTest(
                 isRealtime = false,
-                feedType = FeedType.MAIN,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.ERROR,
+                feedType = MAIN,
+                timeframe = DAY,
+                status = Status.ERROR,
                 mockFeedList = mockDbContentListForDay),
 
         // ALL
         FeedLoadTest(
                 isRealtime = false,
-                feedType = FeedType.MAIN,
+                feedType = MAIN,
                 timeframe = Timeframe.ALL,
-                lceState = LCE_STATE.LOADING,
+                status = LOADING,
                 mockFeedList = mockDbContentListForAll),
         FeedLoadTest(
                 isRealtime = false,
-                feedType = FeedType.MAIN,
+                feedType = MAIN,
                 timeframe = Timeframe.ALL,
-                lceState = LCE_STATE.CONTENT,
+                status = Status.SUCCESS,
                 mockFeedList = mockDbContentListForAll),
         FeedLoadTest(
                 isRealtime = false,
-                feedType = FeedType.MAIN,
+                feedType = MAIN,
                 timeframe = Timeframe.ALL,
-                lceState = LCE_STATE.ERROR,
+                status = Status.ERROR,
                 mockFeedList = mockDbContentListForAll),
 
         // SAVED
@@ -61,26 +64,26 @@ fun feedLoadTestCases() = Stream.of(
         FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.SAVED,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.LOADING,
+                timeframe = DAY,
+                status = LOADING,
                 mockFeedList = mockDbContentListForDay),
         FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.SAVED,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.CONTENT,
+                timeframe = DAY,
+                status = Status.SUCCESS,
                 mockFeedList = mockDbContentListForDay),
         FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.SAVED,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.CONTENT,
+                timeframe = DAY,
+                status = Status.SUCCESS,
                 mockFeedList = listOf()),
         FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.SAVED,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.ERROR,
+                timeframe = DAY,
+                status = Status.ERROR,
                 mockFeedList = mockDbContentListForDay),
 
         // DISMISSED
@@ -88,24 +91,24 @@ fun feedLoadTestCases() = Stream.of(
         FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.DISMISSED,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.LOADING,
+                timeframe = DAY,
+                status = LOADING,
                 mockFeedList = mockDbContentListForDay),
         FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.DISMISSED,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.CONTENT,
+                timeframe = DAY,
+                status = Status.SUCCESS,
                 mockFeedList = mockDbContentListForDay),
         FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.DISMISSED,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.CONTENT,
+                timeframe = DAY,
+                status = Status.SUCCESS,
                 mockFeedList = listOf()),
         FeedLoadTest(
                 isRealtime = false,
                 feedType = FeedType.DISMISSED,
-                timeframe = Timeframe.DAY,
-                lceState = LCE_STATE.ERROR,
+                timeframe = DAY,
+                status = Status.ERROR,
                 mockFeedList = mockDbContentListForDay))

@@ -15,7 +15,7 @@ import app.coinverse.feed.network.FeedRepository.getMainFeedNetwork
 import app.coinverse.feed.viewmodels.FeedViewModel
 import app.coinverse.utils.ContentTestExtension
 import app.coinverse.utils.FeedType.*
-import app.coinverse.utils.LCE_STATE.CONTENT
+import app.coinverse.utils.Status.SUCCESS
 import app.coinverse.utils.getOrAwaitValue
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -60,7 +60,7 @@ class NavigateContentTests(val testDispatcher: TestCoroutineDispatcher) {
     private fun mockComponents(test: NavigateContentTest) {
         // Coinverse - ContentRepository
         coEvery { getMainFeedNetwork(test.isRealtime, any()) } returns mockGetMainFeedList(
-                test.mockFeedList, CONTENT)
+                test.mockFeedList, SUCCESS)
         every {
             getLabeledFeedRoom(test.feedType)
         } returns mockQueryMainContentListFlow(test.mockFeedList)
