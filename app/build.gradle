@@ -57,7 +57,7 @@ dependencies {
     def nav_version = '1.0.0'
     def play_services_version = '17.0.0'
     def exoplayer_version = '2.11.1'
-    def room_version = '2.2.3'
+    def room_version = '2.2.4'
     def glide_version = '4.9.0'
     def mopub_version = '5.11.0@aar'
     def junit_version = '5.5.1'
@@ -65,6 +65,8 @@ dependencies {
     def fragment_version = '1.2.0'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.google.dagger:dagger:2.26'
+    kapt 'com.google.dagger:dagger-compiler:2.26'
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
     implementation "androidx.room:room-runtime:$room_version"

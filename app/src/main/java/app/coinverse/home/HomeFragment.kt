@@ -33,10 +33,10 @@ import app.coinverse.R
 import app.coinverse.R.drawable.ic_astronaut_color_accent_24dp
 import app.coinverse.R.string.*
 import app.coinverse.analytics.models.UserActionCount
+import app.coinverse.content.views.ContentDialogFragment
 import app.coinverse.databinding.FragmentHomeBinding
+import app.coinverse.feed.FeedFragment
 import app.coinverse.feed.models.ContentToPlay
-import app.coinverse.feed.views.ContentDialogFragment
-import app.coinverse.feed.views.FeedFragment
 import app.coinverse.firebase.ACCOUNT_DOCUMENT
 import app.coinverse.firebase.ACTIONS_DOCUMENT
 import app.coinverse.firebase.firebaseApp
@@ -331,7 +331,7 @@ class HomeFragment : Fragment() {
                         Crashlytics.log(Log.VERBOSE, LOG_TAG, "observeSignIn anonymous success")
                     } catch (exception: FirebaseAuthException) {
                         Crashlytics.log(Log.ERROR, LOG_TAG, "observeSignIn ${exception.localizedMessage}")
-                        snackbarWithText(getString(error_sign_in_anonymously), contentContainer)
+                        snackbarWithText(resources, getString(error_sign_in_anonymously), contentContainer)
                         makeText(context, "Authentication failed.", LENGTH_SHORT).show()
                     }
                     initMainFeedFragment()

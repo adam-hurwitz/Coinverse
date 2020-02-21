@@ -9,7 +9,7 @@ import androidx.paging.LivePagedListBuilder
 import androidx.room.RoomDatabase
 import androidx.room.RoomSQLiteQuery
 import androidx.room.paging.LimitOffsetDataSource
-import app.coinverse.contentviewmodel.LabelContentTest
+import app.coinverse.feedViewModel.LabelContentTest
 import com.google.firebase.auth.FirebaseAuth
 import io.mockk.every
 import io.mockk.mockk
@@ -20,8 +20,6 @@ import java.util.concurrent.TimeoutException
 
 val TEST_COROUTINE_DISPATCHER_NAMESPACE =
         ExtensionContext.Namespace.create(TEST_COROUTINE_DISPATCHER_NAMESPACE_STRING)
-val AUDIO_VIEWMODEL_NAMESPACE =
-        ExtensionContext.Namespace.create(AUDIO_VIEWMODEL_NAMESPACE_STRING)
 
 fun LabelContentTest.mockUser() =
         if (this.isUserSignedIn) FirebaseAuth.getInstance().currentUser else null

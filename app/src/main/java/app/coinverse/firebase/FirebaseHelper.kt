@@ -13,15 +13,19 @@ import com.google.firebase.FirebaseOptions
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigException
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
+import javax.inject.Inject
+import javax.inject.Singleton
 
-private val LOG_TAG = FirebaseHelper.javaClass.simpleName
+@Singleton
+class FirebaseHelper @Inject constructor(context: Context) {
+    private val LOG_TAG = FirebaseHelper::class.java.simpleName
 
-object FirebaseHelper {
-    fun init(context: Context) {
+    init {
         if (BuildConfig.BUILD_TYPE == open.name) {
             var openSharedStatus = false
             FirebaseApp.getApps(context).map { app ->
-                if (app.name.equals(open.name)) openSharedStatus = true
+                if (app.name.equals(open.name))
+                    openSharedStatus = true
             }
             if (!openSharedStatus)
                 FirebaseApp.initializeApp(

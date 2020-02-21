@@ -20,13 +20,16 @@ import io.reactivex.functions.Function4
 import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers.io
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
+import javax.inject.Singleton
 
 private val LOG_TAG = PriceRepository::class.java.simpleName
 
 /**
  * TODO: Remove price graphs and replace with content search bar.
  */
-object PriceRepository {
+@Singleton
+class PriceRepository @Inject constructor() {
 
     val compositeDisposable = CompositeDisposable()
     var graphLiveData = MutableLiveData<HashMap<Exchange, PriceGraphData>>()

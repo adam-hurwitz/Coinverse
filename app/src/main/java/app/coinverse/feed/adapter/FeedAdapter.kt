@@ -15,7 +15,7 @@ import app.coinverse.databinding.CellContentBinding.inflate
 import app.coinverse.feed.models.Content
 import app.coinverse.feed.models.FeedViewEventType.*
 import app.coinverse.feed.models.FeedViewEvents
-import app.coinverse.feed.viewmodels.FeedViewModel
+import app.coinverse.feed.viewmodel.FeedViewModel
 import app.coinverse.utils.ADAPTER_POSITION_KEY
 import kotlinx.android.synthetic.main.cell_content.view.*
 

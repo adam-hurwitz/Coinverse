@@ -12,7 +12,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 
 /**
- * TODO: Refactor with Unidirectional Data Flow. See [app.coinverse.feed.viewmodels.FeedViewModel].
+ * TODO: Refactor with Unidirectional Data Flow. See [app.coinverse.feed.viewmodel.FeedViewModel].
  * See more: https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
  **/
 class HomeViewModel : ViewModel() {

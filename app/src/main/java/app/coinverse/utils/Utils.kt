@@ -24,8 +24,6 @@ import com.google.firebase.firestore.QuerySnapshot
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
-lateinit var resourcesUtil: Resources
-
 data class QueryResponse(val packet: QuerySnapshot?, val error: FirebaseFirestoreException?)
 
 suspend fun Query.awaitRealtime() = suspendCancellableCoroutine<QueryResponse> { continuation ->
@@ -42,7 +40,7 @@ val pagedListConfig = Config(
         prefetchDistance = PREFETCH_DISTANCE,
         pageSize = PAGE_SIZE)
 
-fun convertDpToPx(dp: Int) = Math.round(dp * (resourcesUtil.displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT))
+fun convertDpToPx(resources: Resources, dp: Int) = Math.round(dp * (resources.displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT))
 
 fun getDisplayWidth(context: Context) = context.resources.displayMetrics.widthPixels
 
@@ -75,11 +73,11 @@ fun getDialogDisplayHeight(context: Context) =
             getDisplayHeight(context) / CONTENT_DIALOG_PORTRAIT_HEIGHT_DIVISOR
         else (getDisplayHeight(context) / CONTENT_DIALOG_LANDSCAPE_HEIGHT_DIVISOR).toInt()
 
-fun snackbarWithText(res: String, rootView: View) {
+fun snackbarWithText(resources: Resources, res: String, rootView: View) {
     Snackbar.make(rootView, res, Snackbar.LENGTH_LONG).apply {
         this.view.fitsSystemWindows = true
         (this.view.findViewById(snackbar_text) as TextView)
-                .setTextColor(resourcesUtil.getColor(color.colorPrimary, null))
+                .setTextColor(resources.getColor(color.colorPrimary, null))
     }.show()
 }
 

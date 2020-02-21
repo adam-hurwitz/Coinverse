@@ -2,6 +2,7 @@ package app.coinverse.feed.adapter
 
 import android.R.color.white
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.drawable.ColorDrawable
@@ -28,8 +29,9 @@ import com.mopub.nativeads.MoPubRecyclerAdapter
 
 private val LOG_TAG = ItemTouchHelper::class.java.simpleName
 
-fun initItemTouchHelper(context: Context, paymentStatus: PaymentStatus, feedType: FeedType,
-                        moPubAdapter: MoPubRecyclerAdapter?, viewEvents: FeedViewEvents) = ItemTouchHelper(object : Callback() {
+fun initItemTouchHelper(context: Context, resources: Resources, paymentStatus: PaymentStatus,
+                        feedType: FeedType, moPubAdapter: MoPubRecyclerAdapter?,
+                        viewEvents: FeedViewEvents) = ItemTouchHelper(object : Callback() {
 
     /**
      * Enable RecyclerView content item swiping, disable ad item swiping.
@@ -68,7 +70,7 @@ fun initItemTouchHelper(context: Context, paymentStatus: PaymentStatus, feedType
             val iconRight: Int
             val background: ColorDrawable
             val itemView = viewHolder.itemView
-            val margin = convertDpToPx(CELL_CONTENT_MARGIN)
+            val margin = convertDpToPx(resources, CELL_CONTENT_MARGIN)
             val iconWidth = icon!!.intrinsicWidth
             val iconHeight = icon.intrinsicHeight
             val cellHeight = itemView.bottom - itemView.top
@@ -96,7 +98,7 @@ fun initItemTouchHelper(context: Context, paymentStatus: PaymentStatus, feedType
                 action = context.getString(save)
                 val actionTextLength = paint.measureText(action)
                 xTextPosition = (margin + ((iconWidth - actionTextLength) / 2))
-                yTextPosition = (iconBottom + convertDpToPx(SWIPE_CONTENT_Y_MARGIN_DP)).toFloat()
+                yTextPosition = (iconBottom + convertDpToPx(resources, SWIPE_CONTENT_Y_MARGIN_DP)).toFloat()
                 c.drawText(action, xTextPosition, yTextPosition, paint)
             } else if (dX < 0 && feedType != DISMISSED) { // Dismissed
                 // Draw icon.
@@ -113,7 +115,7 @@ fun initItemTouchHelper(context: Context, paymentStatus: PaymentStatus, feedType
                 action = context.getString(dismiss)
                 val actionTextLength = paint.measureText(action)
                 xTextPosition = (itemView.right - margin - ((iconWidth + actionTextLength) / 2))
-                yTextPosition = (iconBottom + convertDpToPx(SWIPE_CONTENT_Y_MARGIN_DP)).toFloat()
+                yTextPosition = (iconBottom + convertDpToPx(resources, SWIPE_CONTENT_Y_MARGIN_DP)).toFloat()
                 c.drawText(action, xTextPosition, yTextPosition, paint)
             }
         }

@@ -1,5 +1,6 @@
 package app.coinverse.priceGraph
 
+import android.content.Context
 import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.O
 import android.os.Bundle
@@ -17,6 +18,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.observe
+import app.App
 import app.coinverse.R.color.colorAccent
 import app.coinverse.R.color.colorPrimaryDark
 import app.coinverse.R.dimen.data_point_radius
@@ -26,6 +28,8 @@ import app.coinverse.databinding.FragmentPriceBinding
 import app.coinverse.home.HomeViewModel
 import app.coinverse.priceGraph.models.PriceGraphData
 import app.coinverse.priceGraph.models.PriceGraphXAndYConstraints
+import app.coinverse.priceGraph.viewmodel.PriceViewModel
+import app.coinverse.priceGraph.viewmodel.PriceViewModelFactory
 import app.coinverse.utils.Exchange
 import app.coinverse.utils.Exchange.*
 import app.coinverse.utils.OrderType
@@ -38,6 +42,7 @@ import com.jjoe64.graphview.GridLabelRenderer
 import com.jjoe64.graphview.series.DataPoint
 import com.jjoe64.graphview.series.LineGraphSeries
 import kotlinx.android.synthetic.main.fragment_price.*
+import javax.inject.Inject
 
 private val dataPointRadiusValue = TypedValue()
 
@@ -45,9 +50,14 @@ private val dataPointRadiusValue = TypedValue()
  * TODO: Remove price graphs and replace with content search bar.
  */
 class PriceFragment : Fragment() {
+    @Inject
+    lateinit var repository: PriceRepository
+
     private val LOG_TAG = PriceFragment::class.java.simpleName
     private val homeViewModel: HomeViewModel by activityViewModels()
-    private val priceViewModel: PriceViewModel by viewModels()
+    private val priceViewModel: PriceViewModel by viewModels {
+        PriceViewModelFactory(owner = this, repository = repository)
+    }
 
     private lateinit var binding: FragmentPriceBinding
 
@@ -55,6 +65,11 @@ class PriceFragment : Fragment() {
     private var enabledExchangeList: ArrayList<Exchange?>? = ArrayList()
 
     fun newInstance() = PriceFragment()
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (context.applicationContext as App).appComponent.inject(this)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

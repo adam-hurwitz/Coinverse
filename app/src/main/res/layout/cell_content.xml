@@ -11,7 +11,7 @@
 
         <variable
             name="viewmodel"
-            type="app.coinverse.feed.viewmodels.FeedViewModel" />
+            type="app.coinverse.feed.viewmodel.FeedViewModel" />
 
         <variable
             name="contentType"

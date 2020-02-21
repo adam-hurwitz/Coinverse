@@ -1,5 +1,6 @@
 package app.coinverse.user
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -12,12 +13,15 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.observe
 import androidx.navigation.findNavController
+import app.App
 import app.coinverse.R
 import app.coinverse.R.string.*
-import app.coinverse.analytics.Analytics.setCurrentScreen
+import app.coinverse.analytics.Analytics
 import app.coinverse.databinding.FragmentUserBinding
 import app.coinverse.firebase.firebaseApp
 import app.coinverse.home.HomeViewModel
+import app.coinverse.user.viewmodel.UserViewModel
+import app.coinverse.user.viewmodel.UserViewModelFactory
 import app.coinverse.utils.FeedType.DISMISSED
 import app.coinverse.utils.PROFILE_VIEW
 import app.coinverse.utils.Status.SUCCESS
@@ -37,6 +41,7 @@ import kotlinx.android.synthetic.main.fragment_user.*
 import kotlinx.android.synthetic.main.toolbar_app.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
 private val LOG_TAG = UserFragment::class.java.simpleName
 
@@ -48,15 +53,27 @@ private val LOG_TAG = UserFragment::class.java.simpleName
  **/
 
 class UserFragment : Fragment() {
+    @Inject
+    lateinit var analytics: Analytics
+    @Inject
+    lateinit var userRepository: UserRepository
+
     private val homeViewModel: HomeViewModel by activityViewModels()
-    private val userViewModel: UserViewModel by activityViewModels()
+    private val userViewModel: UserViewModel by activityViewModels {
+        UserViewModelFactory(owner = this, repository = userRepository)
+    }
 
     private lateinit var binding: FragmentUserBinding
     private lateinit var user: FirebaseUser
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (context.applicationContext as App).appComponent.inject(this)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setCurrentScreen(activity!!, PROFILE_VIEW)
+        analytics.setCurrentScreen(activity!!, PROFILE_VIEW)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -103,7 +120,7 @@ class UserFragment : Fragment() {
                 } catch (exception: FirebaseAuthException) {
                     //TODO: Add retry.
                     Crashlytics.log(Log.ERROR, LOG_TAG, "observeSignIn ${exception.localizedMessage}")
-                    snackbarWithText(getString(error_sign_in_anonymously), contentContainer)
+                    snackbarWithText(resources, getString(error_sign_in_anonymously), contentContainer)
                     Toast.makeText(context, "Authentication failed.", Toast.LENGTH_SHORT).show()
                 }
             } else {
@@ -125,7 +142,7 @@ class UserFragment : Fragment() {
                                 Crashlytics.log(Log.VERBOSE, LOG_TAG, "observeSignIn anonymous success")
                             } catch (e: FirebaseAuthException) {
                                 Crashlytics.log(Log.ERROR, LOG_TAG, "observeSignIn ${e.localizedMessage}")
-                                snackbarWithText(getString(error_sign_in_anonymously), contentContainer)
+                                snackbarWithText(resources, getString(error_sign_in_anonymously), contentContainer)
                                 Toast.makeText(context, "Authentication failed.", Toast.LENGTH_SHORT).show()
                             }
                         }

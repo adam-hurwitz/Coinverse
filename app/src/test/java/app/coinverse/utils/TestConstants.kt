@@ -1,11 +1,7 @@
 package app.coinverse.utils
 
 const val TEST_COROUTINE_DISPATCHER_NAMESPACE_STRING = "extensionNamespace"
-const val FEED_VIEWMODEL_NAMESPACE_STRING = "feedViewmodelExtensionNamespace"
-const val AUDIO_VIEWMODEL_NAMESPACE_STRING = "audioViewmodelExtensionNamespace"
 const val TEST_COROUTINE_DISPATCHER_KEY = 1132019
-const val FEED_VIEWMODEL_KEY = 1162019
-const val AUDIO_VIEWMODEL_KEY = 2062020
 const val CONSTANTS_CLASS_COMPILED_JAVA = "app.coinverse.utils.ConstantsKt"
 const val MOCK_CONTENT_REQUEST_NETWORK_ERROR = "Unable to update feed. Please try again later!"
 const val MOCK_CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR = "Unable to update feed. Swipe to refresh to try again!"

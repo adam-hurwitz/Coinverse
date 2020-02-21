@@ -10,13 +10,12 @@ import android.net.Uri
 import android.os.Binder
 import android.os.Handler
 import android.util.Log
+import app.App
 import app.coinverse.MainActivity
 import app.coinverse.R.drawable.ic_coinverse_notification_24dp
 import app.coinverse.R.string.app_name
 import app.coinverse.R.string.notification_channel_description
-import app.coinverse.analytics.Analytics.getWatchPercent
-import app.coinverse.analytics.Analytics.updateActionsAndAnalytics
-import app.coinverse.analytics.Analytics.updateStartActionsAndAnalytics
+import app.coinverse.analytics.Analytics
 import app.coinverse.feed.models.Content
 import app.coinverse.feed.models.ContentToPlay
 import app.coinverse.utils.*
@@ -40,10 +39,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 private val LOG_TAG = AudioService::class.java.simpleName
 
 class AudioService : Service() {
+    @Inject
+    lateinit var analytics: Analytics
+
     private var player: SimpleExoPlayer? = null
     private var playerNotificationManager: PlayerNotificationManager? = null
     private var content = Content()
@@ -52,6 +55,11 @@ class AudioService : Service() {
     private var startPosition: Long = 0
     private var seekToPositionMillis = 0
     private var playOrPausePressed = false
+
+    override fun onCreate() {
+        super.onCreate()
+        (applicationContext as App).appComponent.inject(this)
+    }
 
     // Called first time audiocast is loaded.
     override fun onBind(intent: Intent?) = AudioServiceBinder().apply {
@@ -78,7 +86,7 @@ class AudioService : Service() {
                     if (!contentToPlay?.content?.equals(content)!!) {
                         content = contentToPlay.content
                         seekToPositionMillis = 0
-                        updateStartActionsAndAnalytics(content)
+                        analytics.updateStartActionsAndAnalytics(content)
                         player?.prepare(ProgressiveMediaSource.Factory(
                                 DefaultDataSourceFactory(
                                         applicationContext,
@@ -181,9 +189,9 @@ class AudioService : Service() {
                 seekToPositionMillis = newSeekPositionMillis.toInt()
             val job = CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    updateActionsAndAnalytics(
+                    analytics.updateActionsAndAnalytics(
                             content = content,
-                            watchPercent = getWatchPercent(player?.currentPosition!!.toDouble(),
+                            watchPercent = analytics.getWatchPercent(player?.currentPosition!!.toDouble(),
                                     seekToPositionMillis.toDouble(), player?.duration!!.toDouble()))
                 } catch (error: Exception) {
                     this.cancel()

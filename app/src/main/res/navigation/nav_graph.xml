@@ -45,7 +45,7 @@
     </fragment>
     <fragment
         android:id="@+id/savedContentFragment"
-        android:name="app.coinverse.feed.views.FeedFragment"
+        android:name="app.coinverse.feed.FeedFragment"
         android:label="SavedContentFragment">
         <argument
             android:name="feedType"
@@ -54,7 +54,7 @@
     </fragment>
     <fragment
         android:id="@+id/dismissedContentFragment"
-        android:name="app.coinverse.feed.views.FeedFragment"
+        android:name="app.coinverse.feed.FeedFragment"
         android:label="DismissedContentFragment">
         <argument
             android:name="feedType"

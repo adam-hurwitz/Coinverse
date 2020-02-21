@@ -3,7 +3,7 @@
     package="app.coinverse">
 
     <application
-        android:name="app.CoinverseApplication"
+        android:name="app.App"
         android:allowBackup="true"
         android:icon="@mipmap/ic_coinverse_launcher"
         android:label="@string/app_name"
