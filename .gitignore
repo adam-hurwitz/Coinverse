@@ -79,3 +79,5 @@ gradlew
 gradlew.bat
 app.aab
 /app/schemas/app.coinverse.content.room.CoinverseDatabaseBuilder/
+/app/schemas/app.coinverse.feed.room.CoinverseDatabaseBuilder/3.json
+/app/schemas/app.coinverse.feed.room.FeedDatabase/3.json

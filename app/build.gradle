@@ -62,7 +62,7 @@ dependencies {
     def mopub_version = '5.11.0@aar'
     def junit_version = '5.5.1'
     def test_rules_core_version = '1.2.0'
-    def fragment_version = '1.2.0'
+    def fragment_version = '1.2.2'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.google.dagger:dagger:2.26'
