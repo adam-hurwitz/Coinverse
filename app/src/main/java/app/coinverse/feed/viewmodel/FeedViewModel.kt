@@ -34,12 +34,7 @@ class FeedViewModel(private val stateHandle: SavedStateHandle,
                     private val isRealtime: Boolean) : ViewModel(), FeedViewEvents {
     private val LOG_TAG = FeedViewModel::class.java.simpleName
 
-    private val _state = _FeedViewState(
-            _feedViewType = feedType,
-            _toolbarState = setToolbar(feedType),
-            _feedPosition = stateHandle.get<Int>(FEED_POSITION_KEY).let { position ->
-                if (position == null) 0 else position
-            })
+    private val _state = _FeedViewState(feedType, setToolbar(feedType))
     val state = FeedViewState(_state)
     private val _effects = _FeedViewEffects()
     val effects = FeedViewEffects(_effects)

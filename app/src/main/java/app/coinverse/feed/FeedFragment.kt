@@ -31,7 +31,7 @@ import app.coinverse.R.string.*
 import app.coinverse.analytics.Analytics
 import app.coinverse.content.views.ContentDialogFragment
 import app.coinverse.databinding.FragmentFeedBinding
-import app.coinverse.feed.adapter.ContentAdapter
+import app.coinverse.feed.adapter.FeedAdapter
 import app.coinverse.feed.adapter.initItemTouchHelper
 import app.coinverse.feed.models.ContentToPlay
 import app.coinverse.feed.models.FeedViewEventType.*
@@ -76,7 +76,6 @@ class FeedFragment : Fragment() {
                 timeframe = homeViewModel.timeframe.value!!,
                 isRealtime = homeViewModel.isRealtime.value!!)
     }
-    private var savedRecyclerPosition: Int = 0
     private var clearAdjacentAds = false
     private var openContentFromNotification = false
     private var openContentFromNotificationContentToPlay: ContentToPlay? = null
@@ -84,7 +83,7 @@ class FeedFragment : Fragment() {
     private lateinit var viewEvents: FeedViewEvents
     private lateinit var feedType: FeedType
     private lateinit var binding: FragmentFeedBinding
-    private lateinit var adapter: ContentAdapter
+    private lateinit var adapter: FeedAdapter
     private lateinit var moPubAdapter: MoPubRecyclerAdapter
 
     fun newInstance(contentBundle: Bundle) = FeedFragment().apply {
@@ -99,7 +98,6 @@ class FeedFragment : Fragment() {
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
-        savedRecyclerPosition = feedViewModel.state.feedPosition
         if (homeViewModel.accountType.value == FREE) viewEvents.updateAds(UpdateAds())
     }
 
@@ -157,7 +155,7 @@ class FeedFragment : Fragment() {
     private fun initAdapters() {
         val paymentStatus = homeViewModel.accountType.value
         contentRecyclerView.layoutManager = LinearLayoutManager(context)
-        adapter = ContentAdapter(feedViewModel, viewEvents).apply {
+        adapter = FeedAdapter(feedViewModel, viewEvents).apply {
             this.contentSelected.observe(viewLifecycleOwner) { contentSelected ->
                 viewEvents.contentSelected(
                         ContentSelected(getAdapterPosition(contentSelected.position), contentSelected.content))
@@ -218,13 +216,6 @@ class FeedFragment : Fragment() {
         feedViewModel.state.feedList.observe(viewLifecycleOwner) { pagedList ->
             adapter.submitList(pagedList)
             viewEvents.feedLoadComplete(FeedLoadComplete(pagedList.isNotEmpty()))
-            if (pagedList.isNotEmpty())
-                if (savedRecyclerPosition != 0) {
-                    contentRecyclerView.layoutManager?.scrollToPosition(
-                            if (savedRecyclerPosition >= adapter.itemCount) adapter.itemCount - 1
-                            else savedRecyclerPosition)
-                    savedRecyclerPosition = 0
-                }
             openContentFromNotification()
         }
         feedViewModel.state.contentToPlay.observe(viewLifecycleOwner) { contentToPlay ->
@@ -282,7 +273,7 @@ class FeedFragment : Fragment() {
         }
         feedViewModel.effects.snackBar.observe(viewLifecycleOwner) {
             when (feedType) {
-                MAIN -> snackbarWithText(resources, it.text, this.parentFragment!!.requireView())
+                MAIN -> snackbarWithText(resources, it.text, this.requireParentFragment().requireView())
                 SAVED, DISMISSED -> snackbarWithText(resources, it.text, contentFragment)
             }
         }

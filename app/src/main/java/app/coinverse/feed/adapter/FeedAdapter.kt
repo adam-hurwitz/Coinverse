@@ -19,7 +19,7 @@ import app.coinverse.feed.viewmodel.FeedViewModel
 import app.coinverse.utils.ADAPTER_POSITION_KEY
 import kotlinx.android.synthetic.main.cell_content.view.*
 
-private val LOG_TAG = ContentAdapter::class.java.simpleName
+private val LOG_TAG = FeedAdapter::class.java.simpleName
 
 private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Content>() {
     override fun areItemsTheSame(oldContent: Content, newContent: Content): Boolean =
@@ -29,8 +29,8 @@ private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Content>() {
             oldContent == newContent
 }
 
-class ContentAdapter(val feedViewModel: FeedViewModel, val viewEvents: FeedViewEvents)
-    : PagedListAdapter<Content, ContentAdapter.ViewHolder>(DIFF_CALLBACK) {
+class FeedAdapter(val feedViewModel: FeedViewModel, val viewEvents: FeedViewEvents)
+    : PagedListAdapter<Content, FeedAdapter.ViewHolder>(DIFF_CALLBACK) {
 
     /**
      * Observe [ContentSelected] event in View in order to calculate [app.coinverse.feed.ContentFragment.getAdapterPosition].
