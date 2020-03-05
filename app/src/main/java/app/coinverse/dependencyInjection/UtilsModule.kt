@@ -1,4 +1,4 @@
-package app.coinverse.dependencyInjectionGraph
+package app.coinverse.dependencyInjection
 
 import android.app.Application
 import android.content.Context

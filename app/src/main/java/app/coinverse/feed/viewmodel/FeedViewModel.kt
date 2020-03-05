@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 
-class FeedViewModel(private val stateHandle: SavedStateHandle,
+class FeedViewModel(private val savedStateHandle: SavedStateHandle,
                     private val repository: FeedRepository,
                     private val analytics: Analytics,
                     private val feedType: FeedType,
@@ -156,7 +156,7 @@ class FeedViewModel(private val stateHandle: SavedStateHandle,
     }
 
     fun saveFeedPosition(position: Int) {
-        stateHandle.set(FEED_POSITION_KEY, position)
+        savedStateHandle.set(FEED_POSITION_KEY, position)
     }
 
     fun getContentLoadingStatus(contentId: String?) =

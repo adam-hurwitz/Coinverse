@@ -1,8 +1,8 @@
 package app
 
 import android.app.Application
-import app.coinverse.dependencyInjectionGraph.DaggerAppComponent
-import app.coinverse.dependencyInjectionGraph.UtilsModule
+import app.coinverse.dependencyInjection.DaggerAppComponent
+import app.coinverse.dependencyInjection.UtilsModule
 import app.coinverse.utils.AD_UNIT_ID
 import com.mopub.common.MoPub
 import com.mopub.common.SdkConfiguration

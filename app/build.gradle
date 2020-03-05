@@ -9,7 +9,6 @@ apply plugin: 'io.fabric'
 apply plugin: 'de.mannodermaus.android-junit5'
 
 android {
-    kotlinOptions { jvmTarget = '1.8' }
     compileSdkVersion 29
     defaultConfig {
         applicationId "app.coinverse"
@@ -17,6 +16,7 @@ android {
         targetSdkVersion 29
         versionCode 51
         versionName "0.51"
+        kotlinOptions { jvmTarget = '1.8' }
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]

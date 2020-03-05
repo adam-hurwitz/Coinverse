@@ -18,7 +18,7 @@ class FeedViewModelFactory(
         private val isRealtime: Boolean) : AbstractSavedStateViewModelFactory(owner, null) {
     override fun <T : ViewModel?> create(key: String, modelClass: Class<T>, state: SavedStateHandle) =
             FeedViewModel(
-                    stateHandle = state,
+                    savedStateHandle = state,
                     repository = repository,
                     analytics = analytics,
                     feedType = feedType,

@@ -1,4 +1,4 @@
-package app.coinverse.dependencyInjectionGraph
+package app.coinverse.dependencyInjection
 
 import android.content.Context
 import app.coinverse.analytics.Analytics
@@ -21,6 +21,13 @@ import javax.inject.Singleton
 @Singleton
 @Component(modules = [UtilsModule::class])
 interface AppComponent {
+    fun inject(userFragment: UserFragment)
+    fun inject(priceFragment: PriceFragment)
+    fun inject(feedFragment: FeedFragment)
+    fun inject(audioFragment: AudioFragment)
+    fun inject(audioService: AudioService)
+    fun inject(youTubeFragment: YouTubeFragment)
+
     fun context(): Context
     fun firebaseHelper(): FirebaseHelper
     fun firebaseAnalytics(): FirebaseAnalytics
@@ -30,11 +37,4 @@ interface AppComponent {
     fun priceRepository(): PriceRepository
     fun feedRepository(): FeedRepository
     fun contentRepository(): ContentRepository
-
-    fun inject(userFragment: UserFragment)
-    fun inject(priceFragment: PriceFragment)
-    fun inject(feedFragment: FeedFragment)
-    fun inject(audioFragment: AudioFragment)
-    fun inject(audioService: AudioService)
-    fun inject(youTubeFragment: YouTubeFragment)
 }
