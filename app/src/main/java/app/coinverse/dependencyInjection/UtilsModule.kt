@@ -17,15 +17,15 @@ class UtilsModule(private val app: Application) {
 
     @Provides
     @Singleton
-    fun providesAppContext(): Context = app
+    fun providesAppContext() = app as Context
 
     @Provides
     @Singleton
-    fun providesFirebaseAnalytics(): FirebaseAnalytics = FirebaseAnalytics.getInstance(app)
+    fun providesFirebaseAnalytics() = FirebaseAnalytics.getInstance(app)
 
     @Provides
     @Singleton
-    fun providesFeedDatabase(): FeedDatabase = Room.databaseBuilder(
+    fun providesFeedDatabase() = Room.databaseBuilder(
             app,
             FeedDatabase::class.java, DATABASE_NAME)
             .addMigrations(ROOM_MIGRATION_1_2, ROOM_MIGRATION_2_3)
