@@ -7,7 +7,7 @@ import app.coinverse.feed.models.Content
 
 @Database(entities = arrayOf(Content::class), version = 3)
 @TypeConverters(Converters::class)
-abstract class FeedDatabase : RoomDatabase() {
+abstract class CoinverseDatabase : RoomDatabase() {
 
     abstract fun feedDao(): FeedDao
 }

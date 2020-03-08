@@ -8,7 +8,7 @@ import app.coinverse.BuildConfig
 import app.coinverse.feed.models.Content
 import app.coinverse.feed.models.ContentToPlay
 import app.coinverse.feed.models.FeedViewEventType
-import app.coinverse.feed.room.FeedDatabase
+import app.coinverse.feed.room.CoinverseDatabase
 import app.coinverse.firebase.*
 import app.coinverse.utils.*
 import app.coinverse.utils.FeedType.*
@@ -36,7 +36,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class FeedRepository @Inject constructor(private val database: FeedDatabase) {
+class FeedRepository @Inject constructor(private val database: CoinverseDatabase) {
     private val LOG_TAG = FeedRepository::class.java.simpleName
 
     fun getMainFeedNetwork(isRealtime: Boolean, timeframe: Timestamp) = flow<Resource<Flow<PagedList<Content>>>> {

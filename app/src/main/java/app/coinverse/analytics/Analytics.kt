@@ -6,7 +6,7 @@ import android.util.Log
 import app.coinverse.analytics.models.ContentAction
 import app.coinverse.analytics.models.UserAction
 import app.coinverse.feed.models.Content
-import app.coinverse.feed.room.FeedDatabase
+import app.coinverse.feed.room.CoinverseDatabase
 import app.coinverse.firebase.*
 import app.coinverse.utils.*
 import com.google.firebase.Timestamp
@@ -21,7 +21,7 @@ import javax.inject.Singleton
 
 @Singleton
 class Analytics @Inject constructor(private val firebaseAnalytics: FirebaseAnalytics,
-                                    val database: FeedDatabase) {
+                                    val database: CoinverseDatabase) {
     private val LOG_TAG = Analytics::class.java.simpleName
 
     fun setCurrentScreen(activity: Activity, viewName: String) {
