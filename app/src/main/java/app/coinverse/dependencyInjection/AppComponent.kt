@@ -9,6 +9,7 @@ import app.coinverse.feed.AudioService
 import app.coinverse.feed.FeedFragment
 import app.coinverse.feed.FeedRepository
 import app.coinverse.feed.room.CoinverseDatabase
+import app.coinverse.feed.room.FeedDao
 import app.coinverse.firebase.FirebaseHelper
 import app.coinverse.priceGraph.PriceFragment
 import app.coinverse.priceGraph.PriceRepository
@@ -32,6 +33,7 @@ interface AppComponent {
     fun firebaseHelper(): FirebaseHelper
     fun firebaseAnalytics(): FirebaseAnalytics
     fun coinverseDatabase(): CoinverseDatabase
+    fun feedDao(): FeedDao
     fun analytics(): Analytics
     fun userRepository(): UserRepository
     fun priceRepository(): PriceRepository

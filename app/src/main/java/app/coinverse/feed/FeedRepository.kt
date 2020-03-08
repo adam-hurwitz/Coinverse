@@ -8,7 +8,7 @@ import app.coinverse.BuildConfig
 import app.coinverse.feed.models.Content
 import app.coinverse.feed.models.ContentToPlay
 import app.coinverse.feed.models.FeedViewEventType
-import app.coinverse.feed.room.CoinverseDatabase
+import app.coinverse.feed.room.FeedDao
 import app.coinverse.firebase.*
 import app.coinverse.utils.*
 import app.coinverse.utils.FeedType.*
@@ -36,7 +36,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class FeedRepository @Inject constructor(private val database: CoinverseDatabase) {
+class FeedRepository @Inject constructor(private val feedDao: FeedDao) {
+    //class FeedRepository @Inject constructor(private val database: CoinverseDatabase) {
     private val LOG_TAG = FeedRepository::class.java.simpleName
 
     fun getMainFeedNetwork(isRealtime: Boolean, timeframe: Timestamp) = flow<Resource<Flow<PagedList<Content>>>> {
@@ -52,11 +53,11 @@ class FeedRepository @Inject constructor(private val database: CoinverseDatabase
     }
 
     fun getMainFeedRoom(timestamp: Timestamp) =
-            database.feedDao().getMainFeedRoom(timestamp, MAIN).toLiveData(pagedListConfig).asFlow()
+            feedDao.getMainFeedRoom(timestamp, MAIN).toLiveData(pagedListConfig).asFlow()
 
 
     fun getLabeledFeedRoom(feedType: FeedType) =
-            database.feedDao().getLabeledFeedRoom(feedType).toLiveData(pagedListConfig).asFlow()
+            feedDao.getLabeledFeedRoom(feedType).toLiveData(pagedListConfig).asFlow()
 
     fun getContent(contentId: String) = liveData {
         emit(contentEnCollection.document(contentId).get().await()?.toObject(Content::class.java)!!)
@@ -138,7 +139,7 @@ class FeedRepository @Inject constructor(private val database: CoinverseDatabase
                     labeledSet.add(content.id)
                 }
             }
-            database.feedDao().insertFeed(contentList)
+            feedDao.insertFeed(contentList)
         } else
             flow.emit(error("Error retrieving user save_collection: " + response.error.localizedMessage, null))
     }
@@ -153,7 +154,7 @@ class FeedRepository @Inject constructor(private val database: CoinverseDatabase
             val contentList = response.packet?.documentChanges
                     ?.map { change -> change.document.toObject(Content::class.java) }
                     ?.filter { content -> !labeledSet.contains(content.id) }
-            database.feedDao().insertFeed(contentList)
+            feedDao.insertFeed(contentList)
             flow.emit(success(getMainFeedRoom(timeframe)))
         } else flow.emit(error(CONTENT_LOGGED_IN_REALTIME_ERROR + response.error.localizedMessage, null))
     }
@@ -167,7 +168,7 @@ class FeedRepository @Inject constructor(private val database: CoinverseDatabase
                         .documentChanges
                         .map { change -> change.document.toObject(Content::class.java) }
                         .filter { content -> !labeledSet.contains(content.id) }
-                database.feedDao().insertFeed(contentList)
+                feedDao.insertFeed(contentList)
                 flow.emit(success(getMainFeedRoom(timeframe)))
             } catch (error: FirebaseFirestoreException) {
                 flow.emit(error("CONTENT_LOGGED_IN_NON_REALTIME_ERROR ${error.localizedMessage}", null))
@@ -180,7 +181,7 @@ class FeedRepository @Inject constructor(private val database: CoinverseDatabase
                         .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe).get().await()
                         .documentChanges
                         .map { change -> change.document.toObject(Content::class.java) }
-                database.feedDao().insertFeed(contentList)
+                feedDao.insertFeed(contentList)
                 flow.emit(success(getMainFeedRoom(timeframe)))
             } catch (error: FirebaseFirestoreException) {
                 flow.emit(error(CONTENT_LOGGED_OUT_NON_REALTIME_ERROR + error.localizedMessage, null))
@@ -197,7 +198,7 @@ class FeedRepository @Inject constructor(private val database: CoinverseDatabase
             userCollection.document(COLLECTIONS_DOCUMENT).collection(collection)
                     .document(content!!.id)
                     .set(content).await()
-            database.feedDao().updateContent(content)
+            feedDao.updateContent(content)
             emit(success(position))
         } catch (error: FirebaseFirestoreException) {
             emit(error("'${content?.title}' failed to be added to collection $collection", null))

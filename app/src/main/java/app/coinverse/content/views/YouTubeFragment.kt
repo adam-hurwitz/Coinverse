@@ -1,5 +1,6 @@
 package app.coinverse.content.views
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -7,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import app.App
 import app.coinverse.BuildConfig
 import app.coinverse.R.id.dialog_content
 import app.coinverse.analytics.Analytics
@@ -42,6 +44,11 @@ class YouTubeFragment : Fragment() {
     private var seekToPositionMillis = 0
 
     fun newInstance(bundle: Bundle) = YouTubeFragment().apply { arguments = bundle }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (context.applicationContext as App).appComponent.inject(this)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
