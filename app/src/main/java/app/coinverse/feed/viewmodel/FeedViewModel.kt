@@ -22,8 +22,11 @@ import app.coinverse.utils.Status.LOADING
 import app.coinverse.utils.Status.SUCCESS
 import com.crashlytics.android.Crashlytics
 import com.google.firebase.Timestamp
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class FeedViewModel(private val savedStateHandle: SavedStateHandle,
@@ -61,11 +64,12 @@ class FeedViewModel(private val savedStateHandle: SavedStateHandle,
         }
     }
 
+    @ExperimentalCoroutinesApi
     override fun contentSelected(event: ContentSelected) {
         val contentSelected = ContentSelected(event.position, event.content)
         when (contentSelected.content.contentType) {
-            ARTICLE -> viewModelScope.launch {
-                repository.getAudiocast(contentSelected).collect { resource ->
+            ARTICLE ->
+                repository.getAudiocast(contentSelected).onEach { resource ->
                     when (resource.status) {
                         LOADING -> {
                             setContentLoadingStatus(contentSelected.content.id, VISIBLE)
@@ -85,8 +89,7 @@ class FeedViewModel(private val savedStateHandle: SavedStateHandle,
                                     else CONTENT_PLAY_ERROR)
                         }
                     }
-                }
-            }
+                }.launchIn(viewModelScope)
             YOUTUBE -> {
                 setContentLoadingStatus(contentSelected.content.id, View.GONE)
                 _effects._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
