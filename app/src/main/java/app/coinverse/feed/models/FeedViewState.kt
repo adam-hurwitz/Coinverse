@@ -16,14 +16,14 @@ import com.google.firebase.Timestamp
 import java.util.*
 
 /** View state data for content feeds */
-class _FeedViewState(
+data class _FeedViewState(
         val _feedType: FeedType = MAIN,
         val _toolbarState: ToolbarState = ToolbarState(),
         val _feedList: MutableLiveData<PagedList<Content>> = MutableLiveData(),
         val _contentToPlay: MutableLiveData<ContentToPlay?> = MutableLiveData(),
         val _contentLabeledPosition: MutableLiveData<Int> = MutableLiveData())
 
-class FeedViewState(_state: _FeedViewState) {
+data class FeedViewState(private val _state: _FeedViewState) {
     val feedType: FeedType = _state._feedType
     val toolbarState: ToolbarState = _state._toolbarState
     val feedList: LiveData<PagedList<Content>> = _state._feedList
