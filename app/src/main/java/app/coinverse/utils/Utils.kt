@@ -36,7 +36,6 @@ suspend fun Query.awaitRealtime() = suspendCancellableCoroutine<QueryResponse> {
 }
 
 val pagedListConfig = Config(
-        enablePlaceholders = true,
         prefetchDistance = PREFETCH_DISTANCE,
         pageSize = PAGE_SIZE)
 

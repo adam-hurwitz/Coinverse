@@ -106,7 +106,6 @@ const val PLAYER_ACTION = "playerAction"
 const val PLAYER_KEY = "playerKey"
 const val PLAY_OR_PAUSE_PRESSED_KEY = "playOrPausePressedKey"
 const val ADAPTER_POSITION_KEY = 122218133
-const val FEED_POSITION_KEY = "contentRecyclerViewPosition"
 const val OPEN_FROM_NOTIFICATION_ACTION = "openFromNotificationAction"
 const val OPEN_CONTENT_FROM_NOTIFICATION_KEY = "openContentFromNotificationKey"
 

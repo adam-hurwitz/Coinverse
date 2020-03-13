@@ -4,7 +4,6 @@ import android.util.Log.ERROR
 import android.view.View
 import android.widget.ProgressBar.GONE
 import android.widget.ProgressBar.VISIBLE
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagedList
@@ -29,8 +28,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
-class FeedViewModel(private val savedStateHandle: SavedStateHandle,
-                    private val repository: FeedRepository,
+class FeedViewModel(private val repository: FeedRepository,
                     private val analytics: Analytics,
                     private val feedType: FeedType,
                     private val timeframe: Timeframe,
@@ -156,10 +154,6 @@ class FeedViewModel(private val savedStateHandle: SavedStateHandle,
 
     override fun updateAds(event: UpdateAds) {
         _effects._updateAds.value = UpdateAdsEffect()
-    }
-
-    fun saveFeedPosition(position: Int) {
-        savedStateHandle.set(FEED_POSITION_KEY, position)
     }
 
     fun getContentLoadingStatus(contentId: String?) =

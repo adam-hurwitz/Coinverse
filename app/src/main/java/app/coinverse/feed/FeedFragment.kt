@@ -90,12 +90,6 @@ class FeedFragment : Fragment() {
         arguments = contentBundle
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        feedViewModel.saveFeedPosition((contentRecyclerView.layoutManager as LinearLayoutManager)
-                .findFirstVisibleItemPosition())
-    }
-
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
         if (homeViewModel.accountType.value == FREE) viewEvents.updateAds(UpdateAds())
@@ -155,6 +149,7 @@ class FeedFragment : Fragment() {
     private fun initAdapters() {
         val paymentStatus = homeViewModel.accountType.value
         contentRecyclerView.layoutManager = LinearLayoutManager(context)
+        contentRecyclerView.setHasFixedSize(true)
         adapter = FeedAdapter(feedViewModel, viewEvents).apply {
             this.contentSelected.observe(viewLifecycleOwner) { contentSelected ->
                 viewEvents.contentSelected(
