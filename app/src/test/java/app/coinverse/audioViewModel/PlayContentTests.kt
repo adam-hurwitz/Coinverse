@@ -59,7 +59,6 @@ class PlayContentTests(val testDispatcher: TestCoroutineDispatcher) {
     fun `Play Content`(test: PlayContentTest) = testDispatcher.runBlockingTest {
         mockComponents(test)
         feedViewModel = FeedViewModel(
-                savedStateHandle = SavedStateHandle(),
                 repository = feedRepository,
                 analytics = analytics,
                 feedType = test.feedType,

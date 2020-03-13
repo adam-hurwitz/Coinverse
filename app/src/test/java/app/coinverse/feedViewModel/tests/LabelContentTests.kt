@@ -50,7 +50,6 @@ class LabelContentTests(val testDispatcher: TestCoroutineDispatcher) {
     fun `Label Content`(test: LabelContentTest) = testDispatcher.runBlockingTest {
         mockComponents(test)
         feedViewModel = FeedViewModel(
-                savedStateHandle = SavedStateHandle(),
                 repository = repository,
                 analytics = analytics,
                 feedType = test.feedType,

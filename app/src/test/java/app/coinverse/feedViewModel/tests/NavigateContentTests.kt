@@ -40,7 +40,6 @@ class NavigateContentTests(val testDispatcher: TestCoroutineDispatcher) {
     fun `Navigate Content`(test: NavigateContentTest) = testDispatcher.runBlockingTest {
         mockComponents(test)
         feedViewModel = FeedViewModel(
-                savedStateHandle = SavedStateHandle(),
                 repository = repository,
                 analytics = analytics,
                 feedType = test.feedType,

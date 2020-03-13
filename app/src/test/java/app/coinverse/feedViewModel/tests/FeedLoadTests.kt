@@ -51,7 +51,6 @@ class FeedLoadTests(val testDispatcher: TestCoroutineDispatcher) {
     fun `Feed Load`(test: FeedLoadTest) = testDispatcher.runBlockingTest {
         mockComponents(test)
         feedViewModel = FeedViewModel(
-                savedStateHandle = SavedStateHandle(),
                 repository = repository,
                 analytics = analytics,
                 feedType = test.feedType,
@@ -67,7 +66,6 @@ class FeedLoadTests(val testDispatcher: TestCoroutineDispatcher) {
     fun `Swipe-to-Refresh`(test: FeedLoadTest) = testDispatcher.runBlockingTest {
         mockComponents(test)
         feedViewModel = FeedViewModel(
-                savedStateHandle = SavedStateHandle(),
                 repository = repository,
                 analytics = analytics,
                 feedType = test.feedType,
