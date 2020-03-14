@@ -64,30 +64,29 @@ class FeedViewModel(private val repository: FeedRepository,
 
     @ExperimentalCoroutinesApi
     override fun contentSelected(event: ContentSelected) {
-        val contentSelected = ContentSelected(event.position, event.content)
+        val contentSelected = ContentSelected(event.content, event.position)
         when (contentSelected.content.contentType) {
-            ARTICLE ->
-                repository.getAudiocast(contentSelected).onEach { resource ->
-                    when (resource.status) {
-                        LOADING -> {
-                            setContentLoadingStatus(contentSelected.content.id, VISIBLE)
-                            _effects._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
-                        }
-                        SUCCESS -> {
-                            setContentLoadingStatus(contentSelected.content.id, GONE)
-                            _effects._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
-                            _state._contentToPlay.value = resource.data
-                        }
-                        Status.ERROR -> {
-                            setContentLoadingStatus(contentSelected.content.id, GONE)
-                            _effects._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
-                            _effects._snackBar.value = SnackBarEffect(
-                                    if (resource.message.equals(TTS_CHAR_LIMIT_ERROR))
-                                        TTS_CHAR_LIMIT_ERROR_MESSAGE
-                                    else CONTENT_PLAY_ERROR)
-                        }
+            ARTICLE -> repository.getAudiocast(contentSelected).onEach { resource ->
+                when (resource.status) {
+                    LOADING -> {
+                        setContentLoadingStatus(contentSelected.content.id, VISIBLE)
+                        _effects._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
                     }
-                }.launchIn(viewModelScope)
+                    SUCCESS -> {
+                        setContentLoadingStatus(contentSelected.content.id, GONE)
+                        _effects._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
+                        _state._contentToPlay.value = resource.data
+                    }
+                    Status.ERROR -> {
+                        setContentLoadingStatus(contentSelected.content.id, GONE)
+                        _effects._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
+                        _effects._snackBar.value = SnackBarEffect(
+                                if (resource.message.equals(TTS_CHAR_LIMIT_ERROR))
+                                    TTS_CHAR_LIMIT_ERROR_MESSAGE
+                                else CONTENT_PLAY_ERROR)
+                    }
+                }
+            }.launchIn(viewModelScope)
             YOUTUBE -> {
                 setContentLoadingStatus(contentSelected.content.id, View.GONE)
                 _effects._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)

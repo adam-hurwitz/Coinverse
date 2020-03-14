@@ -26,8 +26,7 @@ sealed class FeedViewEventType {
     data class FeedLoadComplete(val hasContent: Boolean) : FeedViewEventType()
     data class SwipeToRefresh(val feedType: FeedType, val timeframe: Timeframe,
                               val isRealtime: Boolean) : FeedViewEventType()
-
-    data class ContentSelected(val position: Int, val content: Content) : FeedViewEventType()
+    data class ContentSelected(val content: Content, val position: Int) : FeedViewEventType()
     data class ContentSwipeDrawed(val isDrawed: Boolean) : FeedViewEventType()
     data class ContentSwiped(val feedType: FeedType, val actionType: UserActionType, val position: Int) : FeedViewEventType()
 

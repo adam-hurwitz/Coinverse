@@ -150,12 +150,7 @@ class FeedFragment : Fragment() {
         val paymentStatus = homeViewModel.accountType.value
         contentRecyclerView.layoutManager = LinearLayoutManager(context)
         contentRecyclerView.setHasFixedSize(true)
-        adapter = FeedAdapter(feedViewModel, viewEvents).apply {
-            this.contentSelected.observe(viewLifecycleOwner) { contentSelected ->
-                viewEvents.contentSelected(
-                        ContentSelected(getAdapterPosition(contentSelected.position), contentSelected.content))
-            }
-        }
+        adapter = FeedAdapter(feedViewModel, viewEvents)
         /** Free account */
         if (paymentStatus == FREE) {
             moPubAdapter = MoPubRecyclerAdapter(
@@ -406,7 +401,7 @@ class FeedFragment : Fragment() {
     private fun openContentFromNotification() {
         if (openContentFromNotification)
             openContentFromNotificationContentToPlay?.let {
-                viewEvents.contentSelected(ContentSelected(it.position, it.content))
+                viewEvents.contentSelected(ContentSelected(it.content, it.position))
                 contentRecyclerView.layoutManager?.scrollToPosition(it.position)
                 openContentFromNotification = false
             }
