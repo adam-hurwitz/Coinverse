@@ -6,7 +6,6 @@ import android.widget.ProgressBar.GONE
 import android.widget.ProgressBar.VISIBLE
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.PagedList
 import app.coinverse.R.string.*
 import app.coinverse.analytics.Analytics
 import app.coinverse.feed.FeedFragment
@@ -23,7 +22,6 @@ import com.crashlytics.android.Crashlytics
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -41,9 +39,7 @@ class FeedViewModel(private val repository: FeedRepository,
     val effects = FeedViewEffects(_effects)
 
     init {
-        viewModelScope.launch {
-            getFeed(FeedLoad(feedType, timeframe, isRealtime)).collect()
-        }
+        viewModelScope.launch { getFeed(FeedLoad(feedType, timeframe, isRealtime)) }
         _effects._updateAds.value = UpdateAdsEffect()
     }
 
@@ -57,9 +53,7 @@ class FeedViewModel(private val repository: FeedRepository,
     }
 
     override fun swipeToRefresh(event: SwipeToRefresh) {
-        viewModelScope.launch {
-            getFeed(SwipeToRefresh(feedType, timeframe, isRealtime)).collect()
-        }
+        viewModelScope.launch { getFeed(SwipeToRefresh(feedType, timeframe, isRealtime)) }
     }
 
     @ExperimentalCoroutinesApi
@@ -173,8 +167,7 @@ class FeedViewModel(private val repository: FeedRepository,
                 DISMISSED -> true
             })
 
-    //TODO: Optimize Flow scoping.
-    private fun getFeed(event: FeedViewEventType) = flow<PagedList<Content>> {
+    suspend private fun getFeed(event: FeedViewEventType) {
         val timeframe =
                 if (event is FeedLoad) getTimeframe(event.timeframe)
                 else if (event is SwipeToRefresh) getTimeframe(event.timeframe)
