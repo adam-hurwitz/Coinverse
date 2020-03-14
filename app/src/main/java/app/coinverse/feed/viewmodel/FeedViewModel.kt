@@ -24,7 +24,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 
 class FeedViewModel(private val repository: FeedRepository,
                     private val analytics: Analytics,
@@ -39,7 +38,7 @@ class FeedViewModel(private val repository: FeedRepository,
     val effects = FeedViewEffects(_effects)
 
     init {
-        viewModelScope.launch { getFeed(FeedLoad(feedType, timeframe, isRealtime)) }
+        getFeed(FeedLoad(feedType, timeframe, isRealtime))
         _effects._updateAds.value = UpdateAdsEffect()
     }
 
@@ -53,7 +52,7 @@ class FeedViewModel(private val repository: FeedRepository,
     }
 
     override fun swipeToRefresh(event: SwipeToRefresh) {
-        viewModelScope.launch { getFeed(SwipeToRefresh(feedType, timeframe, isRealtime)) }
+        getFeed(SwipeToRefresh(feedType, timeframe, isRealtime))
     }
 
     @ExperimentalCoroutinesApi
@@ -99,40 +98,39 @@ class FeedViewModel(private val repository: FeedRepository,
         _effects._contentSwiped.value = ContentSwipedEffect(event.feedType, event.actionType, event.position)
     }
 
+    @ExperimentalCoroutinesApi
     override fun contentLabeled(event: ContentLabeled) {
-        viewModelScope.launch {
-            if (event.user != null && !event.user.isAnonymous) {
-                repository.editContentLabels(
-                        feedType = event.feedType,
-                        actionType = event.actionType,
-                        content = event.content,
-                        user = event.user,
-                        position = event.position).collect { resource ->
-                    when (resource.status) {
-                        SUCCESS -> {
-                            if (event.feedType == MAIN) {
-                                analytics.labelContentFirebaseAnalytics(event.content!!)
-                                //TODO: Move to Cloud Function.
-                                // Use with WorkManager.
-                                // Return error in ContentLabeled.
-                                analytics.updateActionAnalytics(event.actionType, event.content, event.user)
-                                if (event.isMainFeedEmptied)
-                                    analytics.updateFeedEmptiedActionsAndAnalytics(event.user.uid)
-                            }
-                            _effects._notifyItemChanged.value = NotifyItemChangedEffect(event.position)
-                            _state._contentLabeledPosition.value = event.position
+        if (event.user != null && !event.user.isAnonymous) {
+            repository.editContentLabels(
+                    feedType = event.feedType,
+                    actionType = event.actionType,
+                    content = event.content,
+                    user = event.user,
+                    position = event.position).onEach { resource ->
+                when (resource.status) {
+                    SUCCESS -> {
+                        if (event.feedType == MAIN) {
+                            analytics.labelContentFirebaseAnalytics(event.content!!)
+                            //TODO: Move to Cloud Function.
+                            // Use with WorkManager.
+                            // Return error in ContentLabeled.
+                            analytics.updateActionAnalytics(event.actionType, event.content, event.user)
+                            if (event.isMainFeedEmptied)
+                                analytics.updateFeedEmptiedActionsAndAnalytics(event.user.uid)
                         }
-                        Status.ERROR -> {
-                            _effects._snackBar.value = SnackBarEffect(CONTENT_LABEL_ERROR)
-                            Crashlytics.log(ERROR, LOG_TAG, resource.message)
-                            _state._contentLabeledPosition.value = null
-                        }
+                        _effects._notifyItemChanged.value = NotifyItemChangedEffect(event.position)
+                        _state._contentLabeledPosition.value = event.position
+                    }
+                    Status.ERROR -> {
+                        _effects._snackBar.value = SnackBarEffect(CONTENT_LABEL_ERROR)
+                        Crashlytics.log(ERROR, LOG_TAG, resource.message)
+                        _state._contentLabeledPosition.value = null
                     }
                 }
-            } else {
-                _effects._notifyItemChanged.value = NotifyItemChangedEffect(event.position)
-                _effects._signIn.value = SignInEffect(true)
-            }
+            }.launchIn(viewModelScope)
+        } else {
+            _effects._notifyItemChanged.value = NotifyItemChangedEffect(event.position)
+            _effects._signIn.value = SignInEffect(true)
         }
     }
 
@@ -167,47 +165,51 @@ class FeedViewModel(private val repository: FeedRepository,
                 DISMISSED -> true
             })
 
-    suspend private fun getFeed(event: FeedViewEventType) {
+    @ExperimentalCoroutinesApi
+    private fun getFeed(event: FeedViewEventType) {
         val timeframe =
                 if (event is FeedLoad) getTimeframe(event.timeframe)
                 else if (event is SwipeToRefresh) getTimeframe(event.timeframe)
                 else null
-        if (feedType == MAIN) repository.getMainFeedNetwork(isRealtime, timeframe!!).collect { resource ->
-            when (resource.status) {
-                LOADING -> {
-                    if (event is SwipeToRefresh)
-                        _effects._swipeToRefresh.value = SwipeToRefreshEffect(true)
-                    getMainFeedLocal(timeframe)
-                }
-                SUCCESS -> {
-                    if (event is SwipeToRefresh)
-                        _effects._swipeToRefresh.value = SwipeToRefreshEffect(false)
-                    resource.data?.collect { pagedList ->
-                        _state._feedList.value = pagedList
+        if (feedType == MAIN)
+            repository.getMainFeedNetwork(isRealtime, timeframe!!).onEach { resource ->
+                when (resource.status) {
+                    LOADING -> {
+                        if (event is SwipeToRefresh)
+                            _effects._swipeToRefresh.value = SwipeToRefreshEffect(true)
+                        getMainFeedLocal(timeframe)
+                    }
+                    SUCCESS -> {
+                        if (event is SwipeToRefresh)
+                            _effects._swipeToRefresh.value = SwipeToRefreshEffect(false)
+                        resource.data?.collect { pagedList ->
+                            _state._feedList.value = pagedList
+                        }
+                    }
+                    Status.ERROR -> {
+                        Crashlytics.log(ERROR, LOG_TAG, resource.message)
+                        if (event is SwipeToRefresh)
+                            _effects._swipeToRefresh.value = SwipeToRefreshEffect(false)
+                        _effects._snackBar.value = SnackBarEffect(
+                                if (event is FeedLoad) CONTENT_REQUEST_NETWORK_ERROR
+                                else CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR)
+                        getMainFeedLocal(timeframe)
                     }
                 }
-                Status.ERROR -> {
-                    Crashlytics.log(ERROR, LOG_TAG, resource.message)
-                    if (event is SwipeToRefresh)
-                        _effects._swipeToRefresh.value = SwipeToRefreshEffect(false)
-                    _effects._snackBar.value = SnackBarEffect(
-                            if (event is FeedLoad) CONTENT_REQUEST_NETWORK_ERROR
-                            else CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR)
-                    getMainFeedLocal(timeframe)
-                }
-            }
-        } else repository.getLabeledFeedRoom(feedType).collect { pagedList ->
-            _effects._screenEmpty.value = ScreenEmptyEffect(pagedList.isEmpty())
-            _state._feedList.value = pagedList
-        }
+            }.launchIn(viewModelScope)
+        else
+            repository.getLabeledFeedRoom(feedType).onEach { pagedList ->
+                _effects._screenEmpty.value = ScreenEmptyEffect(pagedList.isEmpty())
+                _state._feedList.value = pagedList
+            }.launchIn(viewModelScope)
     }
 
+    @ExperimentalCoroutinesApi
     private fun getMainFeedLocal(timeframe: Timestamp) {
-        viewModelScope.launch {
-            repository.getMainFeedRoom(timeframe).collect { pagedList ->
-                _state._feedList.value = pagedList
-            }
-        }
+        repository.getMainFeedRoom(timeframe).onEach { pagedList ->
+            _state._feedList.value = pagedList
+        }.launchIn(viewModelScope)
+
     }
 
     private fun setContentLoadingStatus(contentId: String, visibility: Int) {
