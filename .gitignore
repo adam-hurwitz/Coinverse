@@ -82,3 +82,4 @@ app.aab
 /app/schemas/app.coinverse.feed.room.CoinverseDatabaseBuilder/3.json
 /app/schemas/app.coinverse.feed.room.CoinverseDatabase/3.json
 /app/schemas/app.coinverse.feed.room.FeedDatabase/3.json
+/app/release/app-release.aab
