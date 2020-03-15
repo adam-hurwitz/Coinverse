@@ -66,7 +66,7 @@ class PlayContentTests(val testDispatcher: TestCoroutineDispatcher) {
                 isRealtime = test.isRealtime)
         audioViewModel = AudioViewModel(repository = contentRepository)
         assertContentList(test)
-        ContentSelected(test.mockPosition, test.mockContent).also { event ->
+        ContentSelected(test.mockContent, test.mockPosition).also { event ->
             feedViewModel.contentSelected(event)
             assertContentSelected(test)
         }
@@ -96,7 +96,7 @@ class PlayContentTests(val testDispatcher: TestCoroutineDispatcher) {
             feedRepository.getLabeledFeedRoom(test.feedType)
         } returns mockQueryMainContentListFlow(test.mockFeedList)
         every {
-            feedRepository.getAudiocast(ContentSelected(test.mockPosition, test.mockContent))
+            feedRepository.getAudiocast(ContentSelected(test.mockContent, test.mockPosition))
         } returns mockGetAudiocast(test)
         every {
             contentRepository.getContentUri(test.mockContent.id, test.mockFilePath)
@@ -212,7 +212,7 @@ class PlayContentTests(val testDispatcher: TestCoroutineDispatcher) {
                 SAVED, DISMISSED -> feedRepository.getLabeledFeedRoom(test.feedType)
             }
             if (test.mockContent.contentType == ARTICLE) {
-                feedRepository.getAudiocast(ContentSelected(test.mockPosition, test.mockContent))
+                feedRepository.getAudiocast(ContentSelected(test.mockContent, test.mockPosition))
                 if (test.status != LOADING && test.status != ERROR) {
                     contentRepository.getContentUri(test.mockContent.id, test.mockFilePath)
                     contentRepository.bitmapToByteArray(test.mockPreviewImageUrl)
