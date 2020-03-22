@@ -53,12 +53,11 @@ android {
 dependencies {
     def lifecycle_version = '2.2.0'
     def lifecycle_test_version = '2.1.0'
-    def paging_version = '2.1.1'
     def nav_version = '1.0.0'
     def play_services_version = '17.0.0'
     def exoplayer_version = '2.11.1'
     def room_version = '2.2.4'
-    def glide_version = '4.10.0'
+    def glide_version = '4.11.0'
     def mopub_version = '5.11.1@aar'
     def junit_version = '5.5.1'
     def test_rules_core_version = '1.2.0'
@@ -73,7 +72,7 @@ dependencies {
     implementation "androidx.room:room-runtime:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
-    implementation "androidx.paging:paging-runtime-ktx:$paging_version"
+    implementation "androidx.paging:paging-runtime-ktx:2.1.1"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.1.1'
     implementation "com.google.android.gms:play-services-auth:$play_services_version"
     implementation "com.google.android.gms:play-services-location:$play_services_version"

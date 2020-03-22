@@ -37,7 +37,6 @@ import javax.inject.Singleton
 
 @Singleton
 class FeedRepository @Inject constructor(private val feedDao: FeedDao) {
-    //class FeedRepository @Inject constructor(private val database: CoinverseDatabase) {
     private val LOG_TAG = FeedRepository::class.java.simpleName
 
     fun getMainFeedNetwork(isRealtime: Boolean, timeframe: Timestamp) = flow<Resource<Flow<PagedList<Content>>>> {
@@ -54,7 +53,6 @@ class FeedRepository @Inject constructor(private val feedDao: FeedDao) {
 
     fun getMainFeedRoom(timestamp: Timestamp) =
             feedDao.getMainFeedRoom(timestamp, MAIN).toLiveData(pagedListConfig).asFlow()
-
 
     fun getLabeledFeedRoom(feedType: FeedType) =
             feedDao.getLabeledFeedRoom(feedType).toLiveData(pagedListConfig).asFlow()
