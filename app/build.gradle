@@ -53,7 +53,7 @@ android {
 dependencies {
     def lifecycle_version = '2.2.0'
     def lifecycle_test_version = '2.1.0'
-    def nav_version = '1.0.0'
+    def nav_version = '2.2.1'
     def play_services_version = '17.0.0'
     def exoplayer_version = '2.11.1'
     def room_version = '2.2.5'
@@ -92,8 +92,8 @@ dependencies {
     implementation "com.google.android.exoplayer:exoplayer-core:$exoplayer_version"
     implementation "com.google.android.exoplayer:exoplayer-ui:$exoplayer_version"
     implementation files('libs/YouTubeAndroidPlayerApi.jar')
-    implementation "android.arch.navigation:navigation-fragment-ktx:$nav_version"
-    implementation "android.arch.navigation:navigation-ui-ktx:$nav_version"
+    implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
+    implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
     implementation "com.github.bumptech.glide:glide:$glide_version"
     kapt "com.github.bumptech.glide:compiler:$glide_version"
     implementation("com.mopub:mopub-sdk-native-static:$mopub_version") { transitive = true }
