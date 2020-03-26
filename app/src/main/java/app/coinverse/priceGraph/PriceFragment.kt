@@ -18,7 +18,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.observe
-import app.coinverse.App
+import app.App
 import app.coinverse.R.color.colorAccent
 import app.coinverse.R.color.colorPrimaryDark
 import app.coinverse.R.dimen.data_point_radius

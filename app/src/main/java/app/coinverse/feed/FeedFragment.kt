@@ -19,7 +19,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.observe
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import app.coinverse.App
+import app.App
 import app.coinverse.R
 import app.coinverse.R.anim.fade_in
 import app.coinverse.R.drawable.*

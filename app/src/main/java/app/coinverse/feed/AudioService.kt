@@ -10,7 +10,7 @@ import android.net.Uri
 import android.os.Binder
 import android.os.Handler
 import android.util.Log
-import app.coinverse.App
+import app.App
 import app.coinverse.MainActivity
 import app.coinverse.R.drawable.ic_coinverse_notification_24dp
 import app.coinverse.R.string.app_name
