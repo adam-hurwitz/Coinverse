@@ -15,7 +15,7 @@ interface FeedDao {
     @Query("SELECT * FROM content WHERE feedType = :feedType ORDER BY timestamp DESC")
     fun getLabeledFeedRoom(feedType: FeedType): DataSource.Factory<Int, Content>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertFeed(users: List<Content>?)
 
     @Update(onConflict = OnConflictStrategy.REPLACE)

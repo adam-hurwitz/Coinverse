@@ -13,7 +13,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.observe
 import androidx.navigation.findNavController
-import app.App
+import app.coinverse.App
 import app.coinverse.R
 import app.coinverse.R.string.*
 import app.coinverse.analytics.Analytics

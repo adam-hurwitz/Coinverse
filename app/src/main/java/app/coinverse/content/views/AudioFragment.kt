@@ -31,7 +31,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.observe
-import app.App
+import app.coinverse.App
 import app.coinverse.analytics.Analytics
 import app.coinverse.content.AudioViewEventType.AudioPlayerLoad
 import app.coinverse.content.AudioViewEvents
