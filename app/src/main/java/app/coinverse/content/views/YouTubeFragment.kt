@@ -8,7 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import app.App
+import app.coinverse.App
 import app.coinverse.BuildConfig
 import app.coinverse.R.id.dialog_content
 import app.coinverse.analytics.Analytics

@@ -1,4 +1,4 @@
-package app
+package app.coinverse
 
 import android.app.Application
 import app.coinverse.dependencyInjection.DaggerAppComponent
