@@ -6,9 +6,41 @@ import android.util.Log
 import app.coinverse.analytics.models.ContentAction
 import app.coinverse.analytics.models.UserAction
 import app.coinverse.feed.models.Content
-import app.coinverse.feed.room.CoinverseDatabase
-import app.coinverse.firebase.*
-import app.coinverse.utils.*
+import app.coinverse.feed.room.FeedDao
+import app.coinverse.firebase.ACTIONS_DOCUMENT
+import app.coinverse.firebase.CLEAR_FEED_COUNT
+import app.coinverse.firebase.CONSUME_ACTION_COLLECTION
+import app.coinverse.firebase.CONSUME_COUNT
+import app.coinverse.firebase.CONSUME_SCORE
+import app.coinverse.firebase.DISMISS_ACTION_COLLECTION
+import app.coinverse.firebase.DISMISS_COUNT
+import app.coinverse.firebase.DISMISS_SCORE
+import app.coinverse.firebase.FINISH_ACTION_COLLECTION
+import app.coinverse.firebase.FINISH_COUNT
+import app.coinverse.firebase.FINISH_SCORE
+import app.coinverse.firebase.INVALID_SCORE
+import app.coinverse.firebase.ORGANIZE_COUNT
+import app.coinverse.firebase.SAVE_ACTION_COLLECTION
+import app.coinverse.firebase.SAVE_SCORE
+import app.coinverse.firebase.START_ACTION_COLLECTION
+import app.coinverse.firebase.START_COUNT
+import app.coinverse.firebase.START_SCORE
+import app.coinverse.firebase.contentEnCollection
+import app.coinverse.firebase.usersDocument
+import app.coinverse.utils.CLEAR_FEED_EVENT
+import app.coinverse.utils.CONSUME_CONTENT_EVENT
+import app.coinverse.utils.CONSUME_THRESHOLD
+import app.coinverse.utils.CREATOR_PARAM
+import app.coinverse.utils.DISMISS_EVENT
+import app.coinverse.utils.FINISH_CONTENT_EVENT
+import app.coinverse.utils.FINISH_THRESHOLD
+import app.coinverse.utils.FeedType
+import app.coinverse.utils.ORGANIZE_EVENT
+import app.coinverse.utils.QUALITY_SCORE
+import app.coinverse.utils.START_CONTENT_EVENT
+import app.coinverse.utils.TIMESTAMP_PARAM
+import app.coinverse.utils.USER_ID_PARAM
+import app.coinverse.utils.UserActionType
 import com.google.firebase.Timestamp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.auth.FirebaseAuth
@@ -20,8 +52,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class Analytics @Inject constructor(private val firebaseAnalytics: FirebaseAnalytics,
-                                    val database: CoinverseDatabase) {
+class Analytics @Inject constructor(
+        private val firebaseAnalytics: FirebaseAnalytics,
+        private val feedDao: FeedDao
+) {
     private val LOG_TAG = Analytics::class.java.simpleName
 
     fun setCurrentScreen(activity: Activity, viewName: String) {
@@ -36,7 +70,7 @@ class Analytics @Inject constructor(private val firebaseAnalytics: FirebaseAnaly
      */
     suspend fun updateActionsAndAnalytics(content: Content, watchPercent: Double) {
         val bundle = Bundle()
-        database.feedDao().updateContent(content)
+        feedDao.updateContent(content)
         if (watchPercent >= FINISH_THRESHOLD) {
             FirebaseAuth.getInstance().currentUser.also { user ->
                 bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, content.title)

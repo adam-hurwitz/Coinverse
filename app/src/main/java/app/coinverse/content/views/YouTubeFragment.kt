@@ -47,7 +47,7 @@ class YouTubeFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        (context.applicationContext as App).appComponent.inject(this)
+        (context.applicationContext as App).component.inject(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

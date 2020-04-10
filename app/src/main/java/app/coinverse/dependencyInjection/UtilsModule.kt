@@ -25,13 +25,10 @@ class UtilsModule(private val app: Application) {
 
     @Provides
     @Singleton
-    fun providesCoinverseDatabase() = Room.databaseBuilder(
+    fun providesFeedDao() = Room.databaseBuilder(
             app,
             CoinverseDatabase::class.java, DATABASE_NAME)
             .addMigrations(ROOM_MIGRATION_1_2, ROOM_MIGRATION_2_3)
             .build()
-
-    @Provides
-    @Singleton
-    fun providesFeedDao() = providesCoinverseDatabase().feedDao()
+            .feedDao()
 }

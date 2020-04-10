@@ -58,7 +58,7 @@ class AudioService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        (applicationContext as App).appComponent.inject(this)
+        (applicationContext as App).component.inject(this)
     }
 
     // Called first time audiocast is loaded.
