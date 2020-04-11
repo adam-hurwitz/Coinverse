@@ -6,12 +6,18 @@ import android.view.ViewGroup
 import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import app.coinverse.R.id.*
+import app.coinverse.R.id.contentTypeLogo
+import app.coinverse.R.id.openSource
+import app.coinverse.R.id.preview
+import app.coinverse.R.id.share
 import app.coinverse.databinding.CellContentBinding
 import app.coinverse.feed.models.Content
-import app.coinverse.feed.models.FeedViewEventType.*
-import app.coinverse.feed.models.FeedViewEvents
+import app.coinverse.feed.models.FeedViewEvent
+import app.coinverse.feed.models.FeedViewEventType.ContentSelected
+import app.coinverse.feed.models.FeedViewEventType.ContentShared
+import app.coinverse.feed.models.FeedViewEventType.ContentSourceOpened
 import app.coinverse.feed.viewmodel.FeedViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 private val LOG_TAG = FeedAdapter::class.java.simpleName
 
@@ -23,7 +29,8 @@ private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Content>() {
             oldContent == newContent
 }
 
-class FeedAdapter(val viewModel: FeedViewModel, val viewEvents: FeedViewEvents)
+@ExperimentalCoroutinesApi
+class FeedAdapter(val viewModel: FeedViewModel, val viewEvent: FeedViewEvent)
     : PagedListAdapter<Content, FeedAdapter.ViewHolder>(DIFF_CALLBACK) {
 
     class ViewHolder(private var binding: CellContentBinding) : RecyclerView.ViewHolder(binding.root) {
@@ -51,10 +58,10 @@ class FeedAdapter(val viewModel: FeedViewModel, val viewEvents: FeedViewEvents)
         when (view.id) {
             preview, contentTypeLogo -> {
                 val contentSelected = ContentSelected(content, position)
-                viewEvents.contentSelected(contentSelected)
+                viewEvent.contentSelected(contentSelected)
             }
-            share -> viewEvents.contentShared(ContentShared(content))
-            openSource -> viewEvents.contentSourceOpened(ContentSourceOpened(content.url))
+            share -> viewEvent.contentShared(ContentShared(content))
+            openSource -> viewEvent.contentSourceOpened(ContentSourceOpened(content.url))
         }
     }
 

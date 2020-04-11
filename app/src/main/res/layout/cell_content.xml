@@ -29,7 +29,8 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/cell_content_feed"
-            style="@style/CellConstraintStyle">
+            style="@style/CellConstraintStyle"
+            android:onClick="@{clickListener}">
 
             <TextView
                 android:id="@+id/creator"

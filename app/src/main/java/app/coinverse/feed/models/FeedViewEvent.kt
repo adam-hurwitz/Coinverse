@@ -1,6 +1,13 @@
 package app.coinverse.feed.models
 
-import app.coinverse.feed.models.FeedViewEventType.*
+import app.coinverse.feed.models.FeedViewEventType.ContentSelected
+import app.coinverse.feed.models.FeedViewEventType.ContentShared
+import app.coinverse.feed.models.FeedViewEventType.ContentSourceOpened
+import app.coinverse.feed.models.FeedViewEventType.ContentSwipeDrawed
+import app.coinverse.feed.models.FeedViewEventType.ContentSwiped
+import app.coinverse.feed.models.FeedViewEventType.FeedLoadComplete
+import app.coinverse.feed.models.FeedViewEventType.SwipeToRefresh
+import app.coinverse.feed.models.FeedViewEventType.UpdateAds
 import app.coinverse.utils.FeedType
 import app.coinverse.utils.Timeframe
 import app.coinverse.utils.UserActionType
@@ -9,7 +16,7 @@ import com.google.firebase.auth.FirebaseUser
 /**
  * View state events for content feeds
  */
-interface FeedViewEvents {
+interface FeedViewEvent {
     fun feedLoadComplete(event: FeedLoadComplete)
     fun swipeToRefresh(event: SwipeToRefresh)
     fun contentSelected(event: ContentSelected)

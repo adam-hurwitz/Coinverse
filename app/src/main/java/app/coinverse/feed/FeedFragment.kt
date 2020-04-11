@@ -2,12 +2,20 @@ package app.coinverse.feed
 
 import android.content.Context
 import android.content.Intent
-import android.content.Intent.*
+import android.content.Intent.ACTION_SEND
+import android.content.Intent.ACTION_VIEW
+import android.content.Intent.EXTRA_STREAM
+import android.content.Intent.EXTRA_SUBJECT
+import android.content.Intent.EXTRA_TEXT
+import android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+import android.content.Intent.createChooser
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.*
+import android.view.View.GONE
+import android.view.View.INVISIBLE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
@@ -22,39 +30,94 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import app.coinverse.App
 import app.coinverse.R
 import app.coinverse.R.anim.fade_in
-import app.coinverse.R.drawable.*
-import app.coinverse.R.id.*
+import app.coinverse.R.drawable.ic_chevron_left_color_accent_24dp
+import app.coinverse.R.drawable.ic_chevron_left_color_accent_fade_four_24dp
+import app.coinverse.R.drawable.ic_chevron_left_color_accent_fade_one_24dp
+import app.coinverse.R.drawable.ic_chevron_left_color_accent_fade_three_24dp
+import app.coinverse.R.drawable.ic_chevron_left_color_accent_fade_two_24dp
+import app.coinverse.R.drawable.ic_chevron_right_color_accent_24dp
+import app.coinverse.R.drawable.ic_chevron_right_color_accent_fade_four_24dp
+import app.coinverse.R.drawable.ic_chevron_right_color_accent_fade_one_24dp
+import app.coinverse.R.drawable.ic_chevron_right_color_accent_fade_three_24dp
+import app.coinverse.R.drawable.ic_chevron_right_color_accent_fade_two_24dp
+import app.coinverse.R.drawable.ic_coinverse_48dp
+import app.coinverse.R.drawable.ic_dismiss_planet_light_48dp
+import app.coinverse.R.id.native_ad_choices_relative_layout
+import app.coinverse.R.id.native_cta
+import app.coinverse.R.id.native_icon_image
+import app.coinverse.R.id.native_media_view
+import app.coinverse.R.id.native_text
+import app.coinverse.R.id.native_title
 import app.coinverse.R.layout.fb_native_ad_item
 import app.coinverse.R.layout.native_ad_item
 import app.coinverse.R.string
-import app.coinverse.R.string.*
+import app.coinverse.R.string.no_content_title
+import app.coinverse.R.string.no_dismissed_content_instructions
+import app.coinverse.R.string.no_dismissed_content_title
+import app.coinverse.R.string.no_feed_content_instructions
+import app.coinverse.R.string.no_saved_content_instructions
+import app.coinverse.R.string.no_saved_content_title
 import app.coinverse.analytics.Analytics
 import app.coinverse.content.views.ContentDialogFragment
 import app.coinverse.databinding.FragmentFeedBinding
 import app.coinverse.feed.adapter.FeedAdapter
 import app.coinverse.feed.adapter.initItemTouchHelper
 import app.coinverse.feed.models.ContentToPlay
-import app.coinverse.feed.models.FeedViewEventType.*
-import app.coinverse.feed.models.FeedViewEvents
+import app.coinverse.feed.models.FeedViewEvent
+import app.coinverse.feed.models.FeedViewEventType.ContentLabeled
+import app.coinverse.feed.models.FeedViewEventType.ContentSelected
+import app.coinverse.feed.models.FeedViewEventType.FeedLoadComplete
+import app.coinverse.feed.models.FeedViewEventType.SwipeToRefresh
+import app.coinverse.feed.models.FeedViewEventType.UpdateAds
 import app.coinverse.feed.viewmodel.FeedViewModel
 import app.coinverse.feed.viewmodel.FeedViewModelFactory
 import app.coinverse.home.HomeViewModel
 import app.coinverse.user.SignInDialogFragment
-import app.coinverse.utils.*
+import app.coinverse.utils.AD_UNIT_ID
+import app.coinverse.utils.AUDIOCAST_SHARE_MESSAGE
+import app.coinverse.utils.CONTENT_DIALOG_FRAGMENT_TAG
+import app.coinverse.utils.CONTENT_SHARE_DIALOG_TITLE
+import app.coinverse.utils.CONTENT_SHARE_SUBJECT_PREFFIX
+import app.coinverse.utils.CONTENT_SHARE_TYPE
+import app.coinverse.utils.CONTENT_TO_PLAY_KEY
 import app.coinverse.utils.ContentType.YOUTUBE
-import app.coinverse.utils.FeedType.*
+import app.coinverse.utils.FeedType
+import app.coinverse.utils.FeedType.DISMISSED
+import app.coinverse.utils.FeedType.MAIN
+import app.coinverse.utils.FeedType.SAVED
+import app.coinverse.utils.MOPUB_KEYWORDS
+import app.coinverse.utils.OPEN_CONTENT_FROM_NOTIFICATION_KEY
 import app.coinverse.utils.PaymentStatus.FREE
+import app.coinverse.utils.SHARED_VIA_COINVERSE
+import app.coinverse.utils.SHARE_CONTENT_IMAGE_TYPE
+import app.coinverse.utils.SIGNIN_DIALOG_FRAGMENT_TAG
+import app.coinverse.utils.SIGNIN_TYPE_KEY
+import app.coinverse.utils.SOURCE_SHARE_MESSAGE
 import app.coinverse.utils.SignInType.DIALOG
+import app.coinverse.utils.ToolbarState
+import app.coinverse.utils.VIDEO_SHARE_MESSAGE
+import app.coinverse.utils.snackbarWithText
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
 import com.google.firebase.auth.FirebaseAuth
-import com.mopub.nativeads.*
+import com.mopub.nativeads.FacebookAdRenderer
 import com.mopub.nativeads.FacebookAdRenderer.FacebookViewBinder
+import com.mopub.nativeads.FlurryNativeAdRenderer
+import com.mopub.nativeads.FlurryViewBinder
 import com.mopub.nativeads.FlurryViewBinder.Builder
+import com.mopub.nativeads.MediaViewBinder
+import com.mopub.nativeads.MoPubNativeAdLoadedListener
+import com.mopub.nativeads.MoPubNativeAdPositioning
+import com.mopub.nativeads.MoPubRecyclerAdapter
 import com.mopub.nativeads.MoPubRecyclerAdapter.ContentChangeStrategy.MOVE_ALL_ADS_WITH_CONTENT
+import com.mopub.nativeads.MoPubStaticNativeAdRenderer
+import com.mopub.nativeads.MoPubVideoNativeAdRenderer
+import com.mopub.nativeads.RequestParameters
+import com.mopub.nativeads.ViewBinder
 import kotlinx.android.synthetic.main.empty_feed.view.*
 import kotlinx.android.synthetic.main.fragment_feed.*
 import kotlinx.android.synthetic.main.toolbar_app.view.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import javax.inject.Inject
 
 private val LOG_TAG = FeedFragment::class.java.simpleName
@@ -80,7 +143,7 @@ class FeedFragment : Fragment() {
     private var openContentFromNotification = false
     private var openContentFromNotificationContentToPlay: ContentToPlay? = null
 
-    private lateinit var viewEvents: FeedViewEvents
+    private lateinit var viewEvent: FeedViewEvent
     private lateinit var feedType: FeedType
     private lateinit var binding: FragmentFeedBinding
     private lateinit var adapter: FeedAdapter
@@ -92,7 +155,7 @@ class FeedFragment : Fragment() {
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
-        if (homeViewModel.accountType.value == FREE) viewEvents.updateAds(UpdateAds())
+        if (homeViewModel.accountType.value == FREE) viewEvent.updateAds(UpdateAds())
     }
 
     override fun onAttach(context: Context) {
@@ -105,10 +168,11 @@ class FeedFragment : Fragment() {
         getFeedType()
     }
 
+    @ExperimentalCoroutinesApi
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         analytics.setCurrentScreen(requireActivity(), feedType.name)
-        feedViewModel.attachEvents(this)
+        feedViewModel.launchViewEvents(this)
         binding = FragmentFeedBinding.inflate(inflater, container, false)
         binding.lifecycleOwner = this
         return binding.root
@@ -117,8 +181,8 @@ class FeedFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initAdapters()
-        observeViewState()
-        observeViewEffects()
+        initViewStates()
+        initViewEffects()
     }
 
     override fun onDestroy() {
@@ -126,12 +190,12 @@ class FeedFragment : Fragment() {
         super.onDestroy()
     }
 
-    fun initEvents(viewEvents: FeedViewEvents) {
-        this.viewEvents = viewEvents
+    fun attachViewEvents(viewEvent: FeedViewEvent) {
+        this.viewEvent = viewEvent
     }
 
     fun swipeToRefresh() {
-        viewEvents.swipeToRefresh(SwipeToRefresh(
+        viewEvent.swipeToRefresh(SwipeToRefresh(
                 feedType, homeViewModel.timeframe.value!!, homeViewModel.isRealtime.value!!))
     }
 
@@ -150,7 +214,7 @@ class FeedFragment : Fragment() {
         val paymentStatus = homeViewModel.accountType.value
         contentRecyclerView.layoutManager = LinearLayoutManager(context)
         contentRecyclerView.setHasFixedSize(true)
-        adapter = FeedAdapter(feedViewModel, viewEvents)
+        adapter = FeedAdapter(feedViewModel, viewEvent)
         /** Free account */
         if (paymentStatus == FREE) {
             moPubAdapter = MoPubRecyclerAdapter(
@@ -197,15 +261,15 @@ class FeedFragment : Fragment() {
                 paymentStatus = paymentStatus!!,
                 feedType = feedType,
                 moPubAdapter = if (paymentStatus == FREE) moPubAdapter else null,
-                viewEvents = viewEvents
+                viewEvent = viewEvent
         ).attachToRecyclerView(contentRecyclerView)
     }
 
-    private fun observeViewState() {
+    private fun initViewStates() {
         setToolbar(feedViewModel.state.toolbarState)
         feedViewModel.state.feedList.observe(viewLifecycleOwner) { pagedList ->
             adapter.submitList(pagedList)
-            viewEvents.feedLoadComplete(FeedLoadComplete(pagedList.isNotEmpty()))
+            viewEvent.feedLoadComplete(FeedLoadComplete(pagedList.isNotEmpty()))
             openContentFromNotification()
         }
         feedViewModel.state.contentToPlay.observe(viewLifecycleOwner) { contentToPlay ->
@@ -235,24 +299,24 @@ class FeedFragment : Fragment() {
         }
     }
 
-    private fun observeViewEffects() {
-        feedViewModel.effects.signIn.observe(viewLifecycleOwner) {
+    private fun initViewEffects() {
+        feedViewModel.effect.signIn.observe(viewLifecycleOwner) {
             SignInDialogFragment().newInstance(Bundle().apply {
                 putString(SIGNIN_TYPE_KEY, DIALOG.name)
             }).show(parentFragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
         }
-        feedViewModel.effects.notifyItemChanged.observe(viewLifecycleOwner) {
+        feedViewModel.effect.notifyItemChanged.observe(viewLifecycleOwner) {
             adapter.notifyItemChanged(it.position)
         }
-        feedViewModel.effects.enableSwipeToRefresh.observe(viewLifecycleOwner) {
+        feedViewModel.effect.enableSwipeToRefresh.observe(viewLifecycleOwner) {
             homeViewModel.enableSwipeToRefresh(it.isEnabled)
         }
-        feedViewModel.effects.swipeToRefresh.observe(viewLifecycleOwner) {
+        feedViewModel.effect.swipeToRefresh.observe(viewLifecycleOwner) {
             homeViewModel.setSwipeToRefreshState(it.isEnabled)
         }
-        feedViewModel.effects.contentSwiped.observe(viewLifecycleOwner) {
+        feedViewModel.effect.contentSwiped.observe(viewLifecycleOwner) {
             FirebaseAuth.getInstance().currentUser.let { user ->
-                viewEvents.contentLabeled(ContentLabeled(
+                viewEvent.contentLabeled(ContentLabeled(
                         feedType = feedType,
                         actionType = it.actionType,
                         user = user,
@@ -261,13 +325,13 @@ class FeedFragment : Fragment() {
                         isMainFeedEmptied = if (feedType == MAIN) adapter.itemCount == 1 else false))
             }
         }
-        feedViewModel.effects.snackBar.observe(viewLifecycleOwner) {
+        feedViewModel.effect.snackBar.observe(viewLifecycleOwner) {
             when (feedType) {
                 MAIN -> snackbarWithText(resources, it.text, this.requireParentFragment().requireView())
                 SAVED, DISMISSED -> snackbarWithText(resources, it.text, contentFragment)
             }
         }
-        feedViewModel.effects.shareContentIntent.observe(viewLifecycleOwner) {
+        feedViewModel.effect.shareContentIntent.observe(viewLifecycleOwner) {
             it.contentRequest.observe(viewLifecycleOwner) { content ->
                 startActivity(createChooser(Intent(ACTION_SEND).apply {
                     this.type = CONTENT_SHARE_TYPE
@@ -288,10 +352,10 @@ class FeedFragment : Fragment() {
                 }, CONTENT_SHARE_DIALOG_TITLE))
             }
         }
-        feedViewModel.effects.openContentSourceIntent.observe(viewLifecycleOwner) {
+        feedViewModel.effect.openContentSourceIntent.observe(viewLifecycleOwner) {
             startActivity(Intent(ACTION_VIEW).setData(Uri.parse(it.url)))
         }
-        feedViewModel.effects.screenEmpty.observe(viewLifecycleOwner) {
+        feedViewModel.effect.screenEmpty.observe(viewLifecycleOwner) {
             if (!it.isEmpty) emptyContent.visibility = GONE
             else {
                 if (emptyContent.visibility == GONE) {
@@ -367,7 +431,7 @@ class FeedFragment : Fragment() {
                 }
             }
         }
-        feedViewModel.effects.updateAds.observe(viewLifecycleOwner) {
+        feedViewModel.effect.updateAds.observe(viewLifecycleOwner) {
             moPubAdapter.loadAds(AD_UNIT_ID, RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build())
             moPubAdapter.setAdLoadedListener(object : MoPubNativeAdLoadedListener {
                 override fun onAdRemoved(position: Int) {}
@@ -401,7 +465,7 @@ class FeedFragment : Fragment() {
     private fun openContentFromNotification() {
         if (openContentFromNotification)
             openContentFromNotificationContentToPlay?.let {
-                viewEvents.contentSelected(ContentSelected(it.content, it.position))
+                viewEvent.contentSelected(ContentSelected(it.content, it.position))
                 contentRecyclerView.layoutManager?.scrollToPosition(it.position)
                 openContentFromNotification = false
             }

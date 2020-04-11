@@ -1,6 +1,5 @@
 package app.coinverse.feedViewModel.tests
 
-import androidx.lifecycle.SavedStateHandle
 import app.coinverse.analytics.Analytics
 import app.coinverse.feedViewModel.NavigateContentTest
 import app.coinverse.feedViewModel.mockGetContent
@@ -48,18 +47,18 @@ class NavigateContentTests(val testDispatcher: TestCoroutineDispatcher) {
         assertContentList(test)
         ContentShared(test.mockContent).also { event ->
             feedViewModel.contentShared(event)
-            assertThat(feedViewModel.effects.shareContentIntent.getOrAwaitValue().contentRequest.getOrAwaitValue())
+            assertThat(feedViewModel.effect.shareContentIntent.getOrAwaitValue().contentRequest.getOrAwaitValue())
                     .isEqualTo(test.mockContent)
         }
         ContentSourceOpened(test.mockContent.url).also { event ->
             feedViewModel.contentSourceOpened(event)
-            assertThat(feedViewModel.effects.openContentSourceIntent.getOrAwaitValue())
+            assertThat(feedViewModel.effect.openContentSourceIntent.getOrAwaitValue())
                     .isEqualTo(OpenContentSourceIntentEffect(test.mockContent.url))
         }
         // Occurs on Fragment 'onViewStateRestored'
         UpdateAds().also { event ->
             feedViewModel.updateAds(event)
-            assertThat(feedViewModel.effects.updateAds.getOrAwaitValue().javaClass).isEqualTo(UpdateAdsEffect::class.java)
+            assertThat(feedViewModel.effect.updateAds.getOrAwaitValue().javaClass).isEqualTo(UpdateAdsEffect::class.java)
         }
         verifyTests(test)
     }

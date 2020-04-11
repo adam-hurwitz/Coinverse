@@ -1,6 +1,5 @@
 package app.coinverse.feedViewModel.tests
 
-import androidx.lifecycle.SavedStateHandle
 import app.coinverse.analytics.Analytics
 import app.coinverse.feedViewModel.LabelContentTest
 import app.coinverse.feedViewModel.mockEditContentLabels
@@ -75,13 +74,13 @@ class LabelContentTests(val testDispatcher: TestCoroutineDispatcher) {
 
     private fun assertEnableSwipeToRefresh() {
         HomeViewModel().apply {
-            enableSwipeToRefresh(feedViewModel.effects.enableSwipeToRefresh.getOrAwaitValue().isEnabled)
+            enableSwipeToRefresh(feedViewModel.effect.enableSwipeToRefresh.getOrAwaitValue().isEnabled)
             assertThat(isSwipeToRefreshEnabled.getOrAwaitValue()).isEqualTo(false)
         }
     }
 
     private fun assertContentLabeled(test: LabelContentTest) {
-        feedViewModel.effects.contentSwiped.getOrAwaitValue().also { contentSwipedEffect ->
+        feedViewModel.effect.contentSwiped.getOrAwaitValue().also { contentSwipedEffect ->
             assertThat(contentSwipedEffect).isEqualTo(ContentSwipedEffect(
                     feedType = test.feedType,
                     actionType = test.actionType,
@@ -99,18 +98,18 @@ class LabelContentTests(val testDispatcher: TestCoroutineDispatcher) {
                         SUCCESS -> {
                             assertThat(feedViewModel.state.contentLabeledPosition.getOrAwaitValue())
                                     .isEqualTo(test.adapterPosition)
-                            assertThat(feedViewModel.effects.notifyItemChanged.getOrAwaitValue())
+                            assertThat(feedViewModel.effect.notifyItemChanged.getOrAwaitValue())
                                     .isEqualTo(NotifyItemChangedEffect(position = test.adapterPosition))
                         }
                         ERROR -> {
-                            assertThat(feedViewModel.effects.snackBar.getOrAwaitValue())
+                            assertThat(feedViewModel.effect.snackBar.getOrAwaitValue())
                                     .isEqualTo(SnackBarEffect(text = MOCK_CONTENT_LABEL_ERROR))
                         }
                     }
                 } else {
-                    assertThat(feedViewModel.effects.notifyItemChanged.getOrAwaitValue())
+                    assertThat(feedViewModel.effect.notifyItemChanged.getOrAwaitValue())
                             .isEqualTo(NotifyItemChangedEffect(test.adapterPosition))
-                    assertThat(feedViewModel.effects.signIn.getOrAwaitValue()).isEqualTo(SignInEffect(true))
+                    assertThat(feedViewModel.effect.signIn.getOrAwaitValue()).isEqualTo(SignInEffect(true))
                 }
             }
         }

@@ -9,29 +9,42 @@ import android.graphics.drawable.ColorDrawable
 import androidx.core.content.ContextCompat.getColor
 import androidx.core.content.ContextCompat.getDrawable
 import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.ItemTouchHelper.*
+import androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_IDLE
+import androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_SWIPE
+import androidx.recyclerview.widget.ItemTouchHelper.Callback
+import androidx.recyclerview.widget.ItemTouchHelper.LEFT
+import androidx.recyclerview.widget.ItemTouchHelper.RIGHT
 import androidx.recyclerview.widget.RecyclerView
 import app.coinverse.R.color
 import app.coinverse.R.dimen
-import app.coinverse.R.drawable.*
+import app.coinverse.R.drawable.ic_coinverse_48dp
+import app.coinverse.R.drawable.ic_dismiss_planet_light_48dp
+import app.coinverse.R.drawable.ic_error_black_48dp
 import app.coinverse.R.string.dismiss
 import app.coinverse.R.string.save
+import app.coinverse.feed.models.FeedViewEvent
 import app.coinverse.feed.models.FeedViewEventType.ContentSwipeDrawed
 import app.coinverse.feed.models.FeedViewEventType.ContentSwiped
-import app.coinverse.feed.models.FeedViewEvents
-import app.coinverse.utils.*
-import app.coinverse.utils.FeedType.*
+import app.coinverse.utils.CELL_CONTENT_MARGIN
+import app.coinverse.utils.FeedType
+import app.coinverse.utils.FeedType.DISMISSED
+import app.coinverse.utils.FeedType.MAIN
+import app.coinverse.utils.FeedType.SAVED
+import app.coinverse.utils.PaymentStatus
 import app.coinverse.utils.PaymentStatus.FREE
 import app.coinverse.utils.PaymentStatus.PAID
+import app.coinverse.utils.RIGHT_SWIPE
+import app.coinverse.utils.SWIPE_CONTENT_Y_MARGIN_DP
 import app.coinverse.utils.UserActionType.DISMISS
 import app.coinverse.utils.UserActionType.SAVE
+import app.coinverse.utils.convertDpToPx
 import com.mopub.nativeads.MoPubRecyclerAdapter
 
 private val LOG_TAG = ItemTouchHelper::class.java.simpleName
 
 fun initItemTouchHelper(context: Context, resources: Resources, paymentStatus: PaymentStatus,
                         feedType: FeedType, moPubAdapter: MoPubRecyclerAdapter?,
-                        viewEvents: FeedViewEvents) = ItemTouchHelper(object : Callback() {
+                        viewEvent: FeedViewEvent) = ItemTouchHelper(object : Callback() {
 
     /**
      * Enable RecyclerView content item swiping, disable ad item swiping.
@@ -54,7 +67,7 @@ fun initItemTouchHelper(context: Context, resources: Resources, paymentStatus: P
                         target: RecyclerView.ViewHolder) = false
 
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-        viewEvents.contentSwiped(ContentSwiped(
+        viewEvent.contentSwiped(ContentSwiped(
                 feedType = feedType,
                 actionType = if (direction == RIGHT_SWIPE && feedType != SAVED) SAVE else DISMISS,
                 position = viewHolder.adapterPosition))
@@ -63,7 +76,7 @@ fun initItemTouchHelper(context: Context, resources: Resources, paymentStatus: P
     override fun onChildDraw(c: Canvas, recyclerView: RecyclerView,
                              viewHolder: RecyclerView.ViewHolder, dX: Float, dY: Float,
                              actionState: Int, isCurrentlyActive: Boolean) {
-        viewEvents.contentSwipeDrawed(ContentSwipeDrawed(true))
+        viewEvent.contentSwipeDrawed(ContentSwipeDrawed(true))
         if (actionState == ACTION_STATE_SWIPE) {
             var icon = getDrawable(context, ic_error_black_48dp)
             val iconLeft: Int

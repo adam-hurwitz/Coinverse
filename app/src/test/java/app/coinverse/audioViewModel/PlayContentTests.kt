@@ -3,7 +3,6 @@ package app.coinverse.audioViewModel
 import android.net.Uri
 import android.view.View.GONE
 import android.view.View.VISIBLE
-import androidx.lifecycle.SavedStateHandle
 import app.coinverse.analytics.Analytics
 import app.coinverse.content.AudioViewEventType.AudioPlayerLoad
 import app.coinverse.content.ContentRepository
@@ -123,7 +122,7 @@ class PlayContentTests(val testDispatcher: TestCoroutineDispatcher) {
                     LOADING -> {
                         assertThat(feedViewModel.getContentLoadingStatus(test.mockContent.id))
                                 .isEqualTo(VISIBLE)
-                        assertThat(feedViewModel.effects.notifyItemChanged.getOrAwaitValue())
+                        assertThat(feedViewModel.effect.notifyItemChanged.getOrAwaitValue())
                                 .isEqualTo(NotifyItemChangedEffect(test.mockPosition))
                     }
                     SUCCESS -> {
@@ -133,16 +132,16 @@ class PlayContentTests(val testDispatcher: TestCoroutineDispatcher) {
                                 filePath = MOCK_TXT_FILE_PATH))
                         assertThat(feedViewModel.getContentLoadingStatus(test.mockContent.id))
                                 .isEqualTo(GONE)
-                        assertThat(feedViewModel.effects.notifyItemChanged.getOrAwaitValue())
+                        assertThat(feedViewModel.effect.notifyItemChanged.getOrAwaitValue())
                                 .isEqualTo(NotifyItemChangedEffect(test.mockPosition))
                     }
                     ERROR -> {
-                        assertThat(feedViewModel.effects.notifyItemChanged.getOrAwaitValue())
+                        assertThat(feedViewModel.effect.notifyItemChanged.getOrAwaitValue())
                                 .isEqualTo(NotifyItemChangedEffect(test.mockPosition))
                         if (test.mockGetAudiocastError.equals(TTS_CHAR_LIMIT_ERROR))
-                            assertThat(feedViewModel.effects.snackBar.getOrAwaitValue())
+                            assertThat(feedViewModel.effect.snackBar.getOrAwaitValue())
                                     .isEqualTo(SnackBarEffect(TTS_CHAR_LIMIT_ERROR_MESSAGE))
-                        else assertThat(feedViewModel.effects.snackBar.getOrAwaitValue())
+                        else assertThat(feedViewModel.effect.snackBar.getOrAwaitValue())
                                 .isEqualTo(SnackBarEffect(MOCK_CONTENT_PLAY_ERROR))
                     }
                 }
@@ -165,7 +164,7 @@ class PlayContentTests(val testDispatcher: TestCoroutineDispatcher) {
                             content = test.mockContent,
                             filePath = test.mockFilePath))
                     assertThat(feedViewModel.getContentLoadingStatus(test.mockContent.id)).isEqualTo(GONE)
-                    assertThat(feedViewModel.effects.notifyItemChanged.getOrAwaitValue())
+                    assertThat(feedViewModel.effect.notifyItemChanged.getOrAwaitValue())
                             .isEqualTo(NotifyItemChangedEffect(test.mockPosition))
                 }
                 SAVED -> {

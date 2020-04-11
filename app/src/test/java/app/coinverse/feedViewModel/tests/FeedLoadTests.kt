@@ -2,7 +2,6 @@ package app.coinverse.feedViewModel.tests
 
 import android.widget.ProgressBar.GONE
 import android.widget.ProgressBar.VISIBLE
-import androidx.lifecycle.SavedStateHandle
 import app.coinverse.R.string.*
 import app.coinverse.analytics.Analytics
 import app.coinverse.feedViewModel.FeedLoadTest
@@ -131,11 +130,11 @@ class FeedLoadTests(val testDispatcher: TestCoroutineDispatcher) {
     private fun assertContentList(test: FeedLoadTest, eventType: FeedEventType) {
         feedViewModel.state.feedList.getOrAwaitValue().also { pagedList ->
             assertThat(pagedList).isEqualTo(test.mockFeedList)
-            feedViewModel.effects.updateAds.getOrAwaitValue().also { effect ->
+            feedViewModel.effect.updateAds.getOrAwaitValue().also { effect ->
                 assertThat(effect.javaClass).isEqualTo(UpdateAdsEffect::class.java)
             }
             if (test.feedType == MAIN && test.status == ERROR) {
-                feedViewModel.effects.snackBar.getOrAwaitValue().also { effect ->
+                feedViewModel.effect.snackBar.getOrAwaitValue().also { effect ->
                     assertThat(effect).isEqualTo(SnackBarEffect(
                             if (eventType == FEED_LOAD) MOCK_CONTENT_REQUEST_NETWORK_ERROR
                             else MOCK_CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR))
@@ -143,7 +142,7 @@ class FeedLoadTests(val testDispatcher: TestCoroutineDispatcher) {
             }
             // ScreenEmptyEffect
             feedViewModel.feedLoadComplete(FeedLoadComplete(hasContent = pagedList.isNotEmpty()))
-            feedViewModel.effects.screenEmpty.getOrAwaitValue().also { effect ->
+            feedViewModel.effect.screenEmpty.getOrAwaitValue().also { effect ->
                 assertThat(effect).isEqualTo(ScreenEmptyEffect(pagedList.isEmpty()))
             }
         }
@@ -151,13 +150,13 @@ class FeedLoadTests(val testDispatcher: TestCoroutineDispatcher) {
 
     private fun assertSwipeToRefresh(test: FeedLoadTest) {
         when (test.status) {
-            LOADING -> feedViewModel.effects.swipeToRefresh.getOrAwaitValue().also { effect ->
+            LOADING -> feedViewModel.effect.swipeToRefresh.getOrAwaitValue().also { effect ->
                 assertThat(effect).isEqualTo(SwipeToRefreshEffect(true))
             }
-            SUCCESS -> feedViewModel.effects.swipeToRefresh.getOrAwaitValue().also { effect ->
+            SUCCESS -> feedViewModel.effect.swipeToRefresh.getOrAwaitValue().also { effect ->
                 assertThat(effect).isEqualTo(SwipeToRefreshEffect(false))
             }
-            ERROR -> feedViewModel.effects.swipeToRefresh.getOrAwaitValue().also { effect ->
+            ERROR -> feedViewModel.effect.swipeToRefresh.getOrAwaitValue().also { effect ->
                 assertThat(effect).isEqualTo(SwipeToRefreshEffect(false))
             }
         }

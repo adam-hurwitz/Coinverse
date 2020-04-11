@@ -6,18 +6,58 @@ import android.widget.ProgressBar.GONE
 import android.widget.ProgressBar.VISIBLE
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.coinverse.R.string.*
+import app.coinverse.R.string.app_name
+import app.coinverse.R.string.dismissed
+import app.coinverse.R.string.saved
 import app.coinverse.analytics.Analytics
 import app.coinverse.feed.FeedFragment
 import app.coinverse.feed.FeedRepository
-import app.coinverse.feed.models.*
-import app.coinverse.feed.models.FeedViewEffectType.*
-import app.coinverse.feed.models.FeedViewEventType.*
-import app.coinverse.utils.*
-import app.coinverse.utils.ContentType.*
-import app.coinverse.utils.FeedType.*
+import app.coinverse.feed.models.ContentToPlay
+import app.coinverse.feed.models.FeedViewEffect
+import app.coinverse.feed.models.FeedViewEffectType.ContentSwipedEffect
+import app.coinverse.feed.models.FeedViewEffectType.EnableSwipeToRefreshEffect
+import app.coinverse.feed.models.FeedViewEffectType.NotifyItemChangedEffect
+import app.coinverse.feed.models.FeedViewEffectType.OpenContentSourceIntentEffect
+import app.coinverse.feed.models.FeedViewEffectType.ScreenEmptyEffect
+import app.coinverse.feed.models.FeedViewEffectType.ShareContentIntentEffect
+import app.coinverse.feed.models.FeedViewEffectType.SignInEffect
+import app.coinverse.feed.models.FeedViewEffectType.SnackBarEffect
+import app.coinverse.feed.models.FeedViewEffectType.SwipeToRefreshEffect
+import app.coinverse.feed.models.FeedViewEffectType.UpdateAdsEffect
+import app.coinverse.feed.models.FeedViewEvent
+import app.coinverse.feed.models.FeedViewEventType
+import app.coinverse.feed.models.FeedViewEventType.ContentLabeled
+import app.coinverse.feed.models.FeedViewEventType.ContentSelected
+import app.coinverse.feed.models.FeedViewEventType.ContentShared
+import app.coinverse.feed.models.FeedViewEventType.ContentSourceOpened
+import app.coinverse.feed.models.FeedViewEventType.ContentSwipeDrawed
+import app.coinverse.feed.models.FeedViewEventType.ContentSwiped
+import app.coinverse.feed.models.FeedViewEventType.FeedLoad
+import app.coinverse.feed.models.FeedViewEventType.FeedLoadComplete
+import app.coinverse.feed.models.FeedViewEventType.SwipeToRefresh
+import app.coinverse.feed.models.FeedViewEventType.UpdateAds
+import app.coinverse.feed.models.FeedViewState
+import app.coinverse.feed.models._FeedViewEffect
+import app.coinverse.feed.models._FeedViewState
+import app.coinverse.utils.CONTENT_LABEL_ERROR
+import app.coinverse.utils.CONTENT_PLAY_ERROR
+import app.coinverse.utils.CONTENT_REQUEST_NETWORK_ERROR
+import app.coinverse.utils.CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR
+import app.coinverse.utils.ContentType.ARTICLE
+import app.coinverse.utils.ContentType.NONE
+import app.coinverse.utils.ContentType.YOUTUBE
+import app.coinverse.utils.FeedType
+import app.coinverse.utils.FeedType.DISMISSED
+import app.coinverse.utils.FeedType.MAIN
+import app.coinverse.utils.FeedType.SAVED
+import app.coinverse.utils.Status
 import app.coinverse.utils.Status.LOADING
 import app.coinverse.utils.Status.SUCCESS
+import app.coinverse.utils.TTS_CHAR_LIMIT_ERROR
+import app.coinverse.utils.TTS_CHAR_LIMIT_ERROR_MESSAGE
+import app.coinverse.utils.Timeframe
+import app.coinverse.utils.ToolbarState
+import app.coinverse.utils.getTimeframe
 import com.crashlytics.android.Crashlytics
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -25,30 +65,31 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
+@ExperimentalCoroutinesApi
 class FeedViewModel(private val repository: FeedRepository,
                     private val analytics: Analytics,
                     private val feedType: FeedType,
                     private val timeframe: Timeframe,
-                    private val isRealtime: Boolean) : ViewModel(), FeedViewEvents {
+                    private val isRealtime: Boolean) : ViewModel(), FeedViewEvent {
     private val LOG_TAG = FeedViewModel::class.java.simpleName
 
     private val _state = _FeedViewState(feedType, setToolbar(feedType))
     val state = FeedViewState(_state)
-    private val _effects = _FeedViewEffects()
-    val effects = FeedViewEffects(_effects)
+    private val _effect = _FeedViewEffect()
+    val effect = FeedViewEffect(_effect)
 
     init {
         getFeed(FeedLoad(feedType, timeframe, isRealtime))
-        _effects._updateAds.value = UpdateAdsEffect()
+        _effect._updateAds.value = UpdateAdsEffect()
     }
 
     /** View events */
-    fun attachEvents(fragment: FeedFragment) {
-        fragment.initEvents(this)
+    fun launchViewEvents(fragment: FeedFragment) {
+        fragment.attachViewEvents(this)
     }
 
     override fun feedLoadComplete(event: FeedLoadComplete) {
-        _effects._screenEmpty.value = ScreenEmptyEffect(!event.hasContent)
+        _effect._screenEmpty.value = ScreenEmptyEffect(!event.hasContent)
     }
 
     override fun swipeToRefresh(event: SwipeToRefresh) {
@@ -63,17 +104,17 @@ class FeedViewModel(private val repository: FeedRepository,
                 when (resource.status) {
                     LOADING -> {
                         setContentLoadingStatus(contentSelected.content.id, VISIBLE)
-                        _effects._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
+                        _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
                     }
                     SUCCESS -> {
                         setContentLoadingStatus(contentSelected.content.id, GONE)
-                        _effects._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
+                        _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
                         _state._contentToPlay.value = resource.data
                     }
                     Status.ERROR -> {
                         setContentLoadingStatus(contentSelected.content.id, GONE)
-                        _effects._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
-                        _effects._snackBar.value = SnackBarEffect(
+                        _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
+                        _effect._snackBar.value = SnackBarEffect(
                                 if (resource.message.equals(TTS_CHAR_LIMIT_ERROR))
                                     TTS_CHAR_LIMIT_ERROR_MESSAGE
                                 else CONTENT_PLAY_ERROR)
@@ -82,7 +123,7 @@ class FeedViewModel(private val repository: FeedRepository,
             }.launchIn(viewModelScope)
             YOUTUBE -> {
                 setContentLoadingStatus(contentSelected.content.id, View.GONE)
-                _effects._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
+                _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
                 _state._contentToPlay.value =
                         ContentToPlay(contentSelected.position, contentSelected.content, "")
             }
@@ -91,11 +132,11 @@ class FeedViewModel(private val repository: FeedRepository,
     }
 
     override fun contentSwipeDrawed(event: ContentSwipeDrawed) {
-        _effects._enableSwipeToRefresh.value = EnableSwipeToRefreshEffect(false)
+        _effect._enableSwipeToRefresh.value = EnableSwipeToRefreshEffect(false)
     }
 
     override fun contentSwiped(event: ContentSwiped) {
-        _effects._contentSwiped.value = ContentSwipedEffect(event.feedType, event.actionType, event.position)
+        _effect._contentSwiped.value = ContentSwipedEffect(event.feedType, event.actionType, event.position)
     }
 
     @ExperimentalCoroutinesApi
@@ -118,37 +159,37 @@ class FeedViewModel(private val repository: FeedRepository,
                             if (event.isMainFeedEmptied)
                                 analytics.updateFeedEmptiedActionsAndAnalytics(event.user.uid)
                         }
-                        _effects._notifyItemChanged.value = NotifyItemChangedEffect(event.position)
+                        _effect._notifyItemChanged.value = NotifyItemChangedEffect(event.position)
                         _state._contentLabeledPosition.value = event.position
                     }
                     Status.ERROR -> {
-                        _effects._snackBar.value = SnackBarEffect(CONTENT_LABEL_ERROR)
+                        _effect._snackBar.value = SnackBarEffect(CONTENT_LABEL_ERROR)
                         Crashlytics.log(ERROR, LOG_TAG, resource.message)
                         _state._contentLabeledPosition.value = null
                     }
                 }
             }.launchIn(viewModelScope)
         } else {
-            _effects._notifyItemChanged.value = NotifyItemChangedEffect(event.position)
-            _effects._signIn.value = SignInEffect(true)
+            _effect._notifyItemChanged.value = NotifyItemChangedEffect(event.position)
+            _effect._signIn.value = SignInEffect(true)
         }
     }
 
     override fun contentShared(event: ContentShared) {
-        _effects._shareContentIntent.value =
+        _effect._shareContentIntent.value =
                 ShareContentIntentEffect(repository.getContent(event.content.id))
     }
 
     override fun contentSourceOpened(event: ContentSourceOpened) {
-        _effects._openContentSourceIntent.value = OpenContentSourceIntentEffect(event.url)
+        _effect._openContentSourceIntent.value = OpenContentSourceIntentEffect(event.url)
     }
 
     override fun updateAds(event: UpdateAds) {
-        _effects._updateAds.value = UpdateAdsEffect()
+        _effect._updateAds.value = UpdateAdsEffect()
     }
 
     fun getContentLoadingStatus(contentId: String?) =
-            if (effects.contentLoadingIds.contains(contentId)) VISIBLE else GONE
+            if (effect.contentLoadingIds.contains(contentId)) VISIBLE else GONE
 
     private fun setToolbar(feedType: FeedType) = ToolbarState(
             visibility = when (feedType) {
@@ -176,12 +217,12 @@ class FeedViewModel(private val repository: FeedRepository,
                 when (resource.status) {
                     LOADING -> {
                         if (event is SwipeToRefresh)
-                            _effects._swipeToRefresh.value = SwipeToRefreshEffect(true)
+                            _effect._swipeToRefresh.value = SwipeToRefreshEffect(true)
                         getMainFeedLocal(timeframe)
                     }
                     SUCCESS -> {
                         if (event is SwipeToRefresh)
-                            _effects._swipeToRefresh.value = SwipeToRefreshEffect(false)
+                            _effect._swipeToRefresh.value = SwipeToRefreshEffect(false)
                         resource.data?.collect { pagedList ->
                             _state._feedList.value = pagedList
                         }
@@ -189,8 +230,8 @@ class FeedViewModel(private val repository: FeedRepository,
                     Status.ERROR -> {
                         Crashlytics.log(ERROR, LOG_TAG, resource.message)
                         if (event is SwipeToRefresh)
-                            _effects._swipeToRefresh.value = SwipeToRefreshEffect(false)
-                        _effects._snackBar.value = SnackBarEffect(
+                            _effect._swipeToRefresh.value = SwipeToRefreshEffect(false)
+                        _effect._snackBar.value = SnackBarEffect(
                                 if (event is FeedLoad) CONTENT_REQUEST_NETWORK_ERROR
                                 else CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR)
                         getMainFeedLocal(timeframe)
@@ -199,7 +240,7 @@ class FeedViewModel(private val repository: FeedRepository,
             }.launchIn(viewModelScope)
         else
             repository.getLabeledFeedRoom(feedType).onEach { pagedList ->
-                _effects._screenEmpty.value = ScreenEmptyEffect(pagedList.isEmpty())
+                _effect._screenEmpty.value = ScreenEmptyEffect(pagedList.isEmpty())
                 _state._feedList.value = pagedList
             }.launchIn(viewModelScope)
     }
@@ -213,7 +254,7 @@ class FeedViewModel(private val repository: FeedRepository,
     }
 
     private fun setContentLoadingStatus(contentId: String, visibility: Int) {
-        if (visibility == VISIBLE) _effects._contentLoadingIds.add(contentId)
-        else _effects._contentLoadingIds.remove(contentId)
+        if (visibility == VISIBLE) _effect._contentLoadingIds.add(contentId)
+        else _effect._contentLoadingIds.remove(contentId)
     }
 }
