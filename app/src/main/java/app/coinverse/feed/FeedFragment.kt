@@ -81,6 +81,7 @@ import app.coinverse.utils.CONTENT_SHARE_SUBJECT_PREFFIX
 import app.coinverse.utils.CONTENT_SHARE_TYPE
 import app.coinverse.utils.CONTENT_TO_PLAY_KEY
 import app.coinverse.utils.ContentType.YOUTUBE
+import app.coinverse.utils.ERROR
 import app.coinverse.utils.FeedType
 import app.coinverse.utils.FeedType.DISMISSED
 import app.coinverse.utils.FeedType.MAIN
@@ -126,6 +127,7 @@ class FeedFragment : Fragment() {
 
     @Inject
     lateinit var analytics: Analytics
+
     @Inject
     lateinit var repository: FeedRepository
 
@@ -178,6 +180,7 @@ class FeedFragment : Fragment() {
         return binding.root
     }
 
+    @ExperimentalCoroutinesApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initAdapters()
@@ -210,6 +213,7 @@ class FeedFragment : Fragment() {
         }
     }
 
+    @ExperimentalCoroutinesApi
     private fun initAdapters() {
         val paymentStatus = homeViewModel.accountType.value
         contentRecyclerView.layoutManager = LinearLayoutManager(context)
@@ -265,6 +269,7 @@ class FeedFragment : Fragment() {
         ).attachToRecyclerView(contentRecyclerView)
     }
 
+    @ExperimentalCoroutinesApi
     private fun initViewStates() {
         setToolbar(feedViewModel.state.toolbarState)
         feedViewModel.state.feedList.observe(viewLifecycleOwner) { pagedList ->
@@ -299,6 +304,7 @@ class FeedFragment : Fragment() {
         }
     }
 
+    @ExperimentalCoroutinesApi
     private fun initViewEffects() {
         feedViewModel.effect.signIn.observe(viewLifecycleOwner) {
             SignInDialogFragment().newInstance(Bundle().apply {
@@ -315,14 +321,19 @@ class FeedFragment : Fragment() {
             homeViewModel.setSwipeToRefreshState(it.isEnabled)
         }
         feedViewModel.effect.contentSwiped.observe(viewLifecycleOwner) {
-            FirebaseAuth.getInstance().currentUser.let { user ->
-                viewEvent.contentLabeled(ContentLabeled(
-                        feedType = feedType,
-                        actionType = it.actionType,
-                        user = user,
-                        position = getAdapterPosition(it.position),
-                        content = adapter.getContent(getAdapterPosition(it.position)),
-                        isMainFeedEmptied = if (feedType == MAIN) adapter.itemCount == 1 else false))
+            val contentSwipedPosition = getAdapterPosition(it.position)
+            if (contentSwipedPosition != ERROR) {
+                val contentSwiped = adapter.getContent(contentSwipedPosition)
+                val user = FirebaseAuth.getInstance().currentUser
+                if (contentSwiped !== null && user !== null) {
+                    viewEvent.contentLabeled(ContentLabeled(
+                            feedType = feedType,
+                            actionType = it.actionType,
+                            user = user,
+                            position = getAdapterPosition(it.position),
+                            content = adapter.getContent(getAdapterPosition(it.position)),
+                            isMainFeedEmptied = if (feedType == MAIN) adapter.itemCount == 1 else false))
+                }
             }
         }
         feedViewModel.effect.snackBar.observe(viewLifecycleOwner) {
@@ -333,7 +344,7 @@ class FeedFragment : Fragment() {
         }
         feedViewModel.effect.shareContentIntent.observe(viewLifecycleOwner) {
             it.contentRequest.observe(viewLifecycleOwner) { content ->
-                startActivity(createChooser(Intent(ACTION_SEND).apply {
+                val intent = createChooser(Intent(ACTION_SEND).apply {
                     this.type = CONTENT_SHARE_TYPE
                     this.putExtra(EXTRA_SUBJECT, CONTENT_SHARE_SUBJECT_PREFFIX + content.title)
                     this.putExtra(EXTRA_TEXT,
@@ -349,11 +360,17 @@ class FeedFragment : Fragment() {
                                                 VIDEO_SHARE_MESSAGE + content.url
                                             else SOURCE_SHARE_MESSAGE + content.url
                                     })
-                }, CONTENT_SHARE_DIALOG_TITLE))
+                }, CONTENT_SHARE_DIALOG_TITLE)
+                intent.resolveActivity(requireContext().packageManager)?.let {
+                    startActivity(intent)
+                }
             }
         }
         feedViewModel.effect.openContentSourceIntent.observe(viewLifecycleOwner) {
-            startActivity(Intent(ACTION_VIEW).setData(Uri.parse(it.url)))
+            val intent = Intent(ACTION_VIEW).setData(Uri.parse(it.url))
+            intent.resolveActivity(requireContext().packageManager)?.let {
+                startActivity(intent)
+            }
         }
         feedViewModel.effect.screenEmpty.observe(viewLifecycleOwner) {
             if (!it.isEmpty) emptyContent.visibility = GONE

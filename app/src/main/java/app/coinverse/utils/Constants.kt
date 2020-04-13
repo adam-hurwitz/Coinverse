@@ -107,6 +107,7 @@ const val PLAYER_KEY = "playerKey"
 const val PLAY_OR_PAUSE_PRESSED_KEY = "playOrPausePressedKey"
 const val OPEN_FROM_NOTIFICATION_ACTION = "openFromNotificationAction"
 const val OPEN_CONTENT_FROM_NOTIFICATION_KEY = "openContentFromNotificationKey"
+const val ERROR = -1
 
 // Analytics
 

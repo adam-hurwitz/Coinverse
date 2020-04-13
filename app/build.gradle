@@ -58,7 +58,7 @@ dependencies {
     def exoplayer_version = '2.11.1'
     def room_version = '2.2.5'
     def glide_version = '4.11.0'
-    def mopub_version = '5.11.1@aar'
+    def mopub_version = '5.12.0'
     def junit_version = '5.5.1'
     def test_rules_core_version = '1.2.0'
     def fragment_version = '1.2.3'
@@ -98,11 +98,11 @@ dependencies {
     kapt "com.github.bumptech.glide:compiler:$glide_version"
     implementation("com.mopub:mopub-sdk-native-static:$mopub_version") { transitive = true }
     implementation("com.mopub:mopub-sdk-native-video:$mopub_version") { transitive = true }
-    implementation 'com.facebook.android:audience-network-sdk:5.1.0'
-    implementation 'com.mopub.mediation:facebookaudiencenetwork:5.1.0.0'
-    implementation 'com.flurry.android:ads:12.1.0@aar'
-    implementation 'com.flurry.android:analytics:12.1.0@aar'
-    implementation 'com.mopub.mediation:flurry:11.4.0.0'
+    implementation 'com.facebook.android:audience-network-sdk:5.8.0'
+    implementation 'com.mopub.mediation:facebookaudiencenetwork:5.8.0.0'
+    implementation 'com.flurry.android:ads:12.3.0'
+    implementation 'com.flurry.android:analytics:12.3.0'
+    implementation 'com.mopub.mediation:flurry:12.0.3.1'
 
     // Testing
 

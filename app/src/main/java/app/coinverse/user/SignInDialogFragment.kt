@@ -39,11 +39,14 @@ class SignInDialogFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         confirm.setOnClickListener {
-            startActivityForResult(
-                    AuthUI.getInstance().createSignInIntentBuilder()
-                            .setAvailableProviders(listOf(AuthUI.IdpConfig.GoogleBuilder().build()))
-                            .build(),
-                    RC_SIGN_IN)
+            val intent = AuthUI.getInstance()
+                    .createSignInIntentBuilder()
+                    .setAvailableProviders(listOf(AuthUI.IdpConfig.GoogleBuilder().build()))
+                    .build()
+            intent.resolveActivity(requireContext().packageManager)?.let {
+                startActivityForResult(intent, RC_SIGN_IN)
+            }
+
         }
     }
 

@@ -3,9 +3,12 @@ package app.coinverse.home
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.app.Activity.RESULT_OK
 import android.content.Intent
-import android.content.Intent.*
+import android.content.Intent.ACTION_SENDTO
+import android.content.Intent.ACTION_VIEW
+import android.content.Intent.EXTRA_EMAIL
+import android.content.Intent.EXTRA_SUBJECT
+import android.content.Intent.EXTRA_TEXT
 import android.net.Uri
-import android.net.Uri.parse
 import android.os.Build.BRAND
 import android.os.Build.MODEL
 import android.os.Build.VERSION.SDK_INT
@@ -31,7 +34,10 @@ import androidx.navigation.findNavController
 import app.coinverse.BuildConfig.VERSION_NAME
 import app.coinverse.R
 import app.coinverse.R.drawable.ic_astronaut_color_accent_24dp
-import app.coinverse.R.string.*
+import app.coinverse.R.string.error_sign_in_anonymously
+import app.coinverse.R.string.first_open
+import app.coinverse.R.string.logged_out
+import app.coinverse.R.string.mail_to
 import app.coinverse.analytics.models.UserActionCount
 import app.coinverse.content.views.ContentDialogFragment
 import app.coinverse.databinding.FragmentHomeBinding
@@ -46,23 +52,54 @@ import app.coinverse.priceGraph.PriceFragment
 import app.coinverse.user.PermissionsDialogFragment
 import app.coinverse.user.SignInDialogFragment
 import app.coinverse.user.models.User
-import app.coinverse.utils.*
+import app.coinverse.utils.ABOUT_LINK
+import app.coinverse.utils.APP_BAR_EXPANDED_KEY
 import app.coinverse.utils.AccountType.READ
+import app.coinverse.utils.CONTENT_DIALOG_FRAGMENT_TAG
+import app.coinverse.utils.CONTENT_FEED_FRAGMENT_TAG
+import app.coinverse.utils.CONTENT_TO_PLAY_KEY
+import app.coinverse.utils.FEED_TYPE_KEY
+import app.coinverse.utils.FeedType
 import app.coinverse.utils.FeedType.MAIN
 import app.coinverse.utils.FeedType.SAVED
+import app.coinverse.utils.OPEN_CONTENT_FROM_NOTIFICATION_KEY
+import app.coinverse.utils.PRICEGRAPH_FRAGMENT_TAG
+import app.coinverse.utils.PRIVACY_POLICY_LINK
 import app.coinverse.utils.PaymentStatus.FREE
+import app.coinverse.utils.RC_SIGN_IN
+import app.coinverse.utils.REQUEST_CODE_LOC_PERMISSION
+import app.coinverse.utils.SAVED_BOTTOM_SHEET_PEEK_HEIGHT
+import app.coinverse.utils.SAVED_CONTENT_EXPANDED_KEY
+import app.coinverse.utils.SAVED_CONTENT_TAG
+import app.coinverse.utils.SIGNIN_DIALOG_FRAGMENT_TAG
+import app.coinverse.utils.SIGNIN_TYPE_KEY
+import app.coinverse.utils.SUPPORT_ANDROID_API
+import app.coinverse.utils.SUPPORT_BODY
+import app.coinverse.utils.SUPPORT_DEVICE
+import app.coinverse.utils.SUPPORT_EMAIL
+import app.coinverse.utils.SUPPORT_ISSUE
+import app.coinverse.utils.SUPPORT_SUBJECT
+import app.coinverse.utils.SUPPORT_USER
+import app.coinverse.utils.SUPPORT_VERSION
 import app.coinverse.utils.SignInType.DIALOG
 import app.coinverse.utils.SignInType.FULLSCREEN
+import app.coinverse.utils.USER_KEY
+import app.coinverse.utils.getDisplayHeight
+import app.coinverse.utils.setImageUrlCircle
+import app.coinverse.utils.snackbarWithText
 import com.crashlytics.android.Crashlytics
 import com.firebase.ui.auth.IdpResponse
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetBehavior.*
+import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
+import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_HIDDEN
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.fragment_home.*
+import kotlinx.android.synthetic.main.toolbar_app.appBarLayout
 import kotlinx.android.synthetic.main.toolbar_home.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -179,15 +216,15 @@ class HomeFragment : Fragment() {
     }
 
     private fun initProfileButton(isLoggedIn: Boolean) {
-        if (isLoggedIn) profileButton.setImageUrlCircle(context!!, user?.photoUrl.toString())
+        if (isLoggedIn) profileButton.setImageUrlCircle(requireContext(), user?.photoUrl.toString())
         else profileButton.setImageResource(ic_astronaut_color_accent_24dp)
     }
 
     private fun initSavedBottomSheetContainer(savedInstanceState: Bundle?) {
-        bottomSheetBehavior = from(bottomSheet)
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
         bottomSheetBehavior.isHideable = false
         bottomSheetBehavior.peekHeight = SAVED_BOTTOM_SHEET_PEEK_HEIGHT
-        bottomSheet.layoutParams.height = getDisplayHeight(context!!)
+        bottomSheet.layoutParams.height = getDisplayHeight(requireContext())
         if (savedInstanceState == null
                 && (homeViewModel.user.value == null || homeViewModel.user.value!!.isAnonymous))
             childFragmentManager.beginTransaction().replace(
@@ -235,7 +272,10 @@ class HomeFragment : Fragment() {
 
     private fun setClickListeners() {
         appStatus.setOnClickListener { view: View ->
-            startActivity(Intent(ACTION_VIEW).setData(Uri.parse(ABOUT_LINK)))
+            val intent = Intent(ACTION_VIEW).setData(Uri.parse(ABOUT_LINK))
+            intent.resolveActivity(requireContext().packageManager)?.let {
+                startActivity(intent)
+            }
         }
         profileButton.setOnClickListener { view: View ->
             if (user != null && !user!!.isAnonymous)
@@ -247,30 +287,34 @@ class HomeFragment : Fragment() {
                 }).show(childFragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
         }
         submitBugButton.setOnClickListener { view: View ->
-            Intent(ACTION_SENDTO).let { intent ->
-                intent.data = Uri.parse(getString(mail_to))
-                intent.putExtra(EXTRA_EMAIL, arrayOf(SUPPORT_EMAIL))
-                        .putExtra(EXTRA_SUBJECT, "${SUPPORT_SUBJECT} $VERSION_NAME")
-                        .putExtra(EXTRA_TEXT, "${SUPPORT_BODY} " +
-                                "${SUPPORT_ISSUE}" +
-                                "${SUPPORT_VERSION} $VERSION_NAME" +
-                                "${SUPPORT_ANDROID_API} $SDK_INT" +
-                                "${SUPPORT_DEVICE} ${BRAND.substring(0, 1).toUpperCase()
-                                        + BRAND.substring(1)}, $MODEL" +
-                                "${SUPPORT_USER +
-                                        if (user != null && !user!!.isAnonymous) user!!.uid
-                                        else getString(logged_out)}")
-                if (intent.resolveActivity(activity!!.packageManager) != null) startActivity(intent)
+            val intent = Intent(ACTION_SENDTO)
+                    .putExtra(EXTRA_EMAIL, arrayOf(SUPPORT_EMAIL))
+                    .putExtra(EXTRA_SUBJECT, "${SUPPORT_SUBJECT} $VERSION_NAME")
+                    .putExtra(EXTRA_TEXT, "${SUPPORT_BODY} " +
+                            "${SUPPORT_ISSUE}" +
+                            "${SUPPORT_VERSION} $VERSION_NAME" +
+                            "${SUPPORT_ANDROID_API} $SDK_INT" +
+                            "${SUPPORT_DEVICE} ${BRAND.substring(0, 1).toUpperCase()
+                                    + BRAND.substring(1)}, $MODEL" +
+                            "${SUPPORT_USER +
+                                    if (user != null && !user!!.isAnonymous) user!!.uid
+                                    else getString(logged_out)}")
+            intent.data = Uri.parse(getString(mail_to))
+            intent.resolveActivity(requireActivity().packageManager)?.let {
+                startActivity(intent)
             }
         }
         menuHomeButton.setOnClickListener { view: View ->
-            PopupMenu(context!!, view).apply {
+            PopupMenu(requireContext(), view).apply {
                 this.menuInflater.inflate(R.menu.menu_home, this.menu)
                 this.show()
                 this.setOnMenuItemClickListener {
                     when (it.itemId) {
                         R.id.privacy_policy -> {
-                            startActivity(Intent(ACTION_VIEW).setData(parse(PRIVACY_POLICY_LINK)))
+                            val intent = Intent(ACTION_VIEW).setData(Uri.parse(PRIVACY_POLICY_LINK))
+                            intent.resolveActivity(requireActivity().packageManager)?.let {
+                                startActivity(intent)
+                            }
                             true
                         }
                         else -> false
@@ -281,7 +325,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun observeSignIn(savedInstanceState: Bundle?) {
-        homeViewModel.user.observe(this) { user: FirebaseUser? ->
+        homeViewModel.user.observe(viewLifecycleOwner) { user: FirebaseUser? ->
             this.user = user
             initProfileButton(user != null && !user.isAnonymous)
             lifecycleScope.launch {
@@ -368,10 +412,10 @@ class HomeFragment : Fragment() {
     }
 
     private fun getLocationPermissionCheck() {
-        if (checkSelfPermission(activity!!, ACCESS_COARSE_LOCATION) != PERMISSION_GRANTED) {
+        if (checkSelfPermission(requireActivity(), ACCESS_COARSE_LOCATION) != PERMISSION_GRANTED) {
             val pref = activity?.getPreferences(MODE_PRIVATE) ?: return
             if (pref.getBoolean(getString(first_open), true)
-                    || shouldShowRequestPermissionRationale(activity!!, ACCESS_COARSE_LOCATION)) {
+                    || shouldShowRequestPermissionRationale(requireActivity(), ACCESS_COARSE_LOCATION)) {
                 with(pref.edit()) {
                     putBoolean(getString(first_open), false)
                     apply()
