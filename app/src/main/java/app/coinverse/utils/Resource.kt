@@ -1,6 +1,7 @@
 package app.coinverse.utils
 
 import app.coinverse.utils.Status.ERROR
+import app.coinverse.utils.Status.LOADING
 import app.coinverse.utils.Status.SUCCESS
 
 /*
@@ -25,7 +26,7 @@ import app.coinverse.utils.Status.SUCCESS
 </T> */
 data class Resource<out T>(val status: Status, val data: T?, val message: String?) {
     companion object {
-        fun <T> loading(data: T?) = Resource(Status.LOADING, data, null)
+        fun <T> loading(data: T?) = Resource(LOADING, data, null)
         fun <T> success(data: T?) = Resource(SUCCESS, data, null)
         fun <T> error(msg: String, data: T?) = Resource(ERROR, data, msg)
     }

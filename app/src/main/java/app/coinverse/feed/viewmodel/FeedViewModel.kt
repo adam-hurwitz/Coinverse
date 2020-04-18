@@ -65,7 +65,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
-@ExperimentalCoroutinesApi
 class FeedViewModel(private val repository: FeedRepository,
                     private val analytics: Analytics,
                     private val feedType: FeedType,
