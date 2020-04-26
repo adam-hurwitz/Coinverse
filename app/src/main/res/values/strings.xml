@@ -1,6 +1,9 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">coinverse</string>
 
+    <!--Manifest-->
+    <string name="audio_service_description">Plays Coinverse audiocast content</string>
+
     <!--Preferences-->
     <string name="first_open">first open</string>
     <string name="user_lat">user latitude</string>

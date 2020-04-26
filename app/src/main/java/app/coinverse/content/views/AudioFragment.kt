@@ -41,9 +41,17 @@ import app.coinverse.content.viewmodel.AudioViewModelFactory
 import app.coinverse.databinding.FragmentAudioDialogBinding
 import app.coinverse.feed.AudioService
 import app.coinverse.feed.models.ContentToPlay
-import app.coinverse.utils.*
+import app.coinverse.utils.AUDIOCAST_VIEW
+import app.coinverse.utils.CONTENT_SELECTED_ACTION
+import app.coinverse.utils.CONTENT_SELECTED_BITMAP_KEY
+import app.coinverse.utils.CONTENT_TO_PLAY_KEY
+import app.coinverse.utils.PLAYER_ACTION
+import app.coinverse.utils.PLAYER_KEY
+import app.coinverse.utils.PLAY_OR_PAUSE_PRESSED_KEY
+import app.coinverse.utils.PlayerActionType
 import app.coinverse.utils.PlayerActionType.PAUSE
 import app.coinverse.utils.PlayerActionType.PLAY
+import app.coinverse.utils.setImageUrlRounded
 import com.google.android.exoplayer2.SimpleExoPlayer
 import kotlinx.android.synthetic.main.exo_playback_control_view.*
 import kotlinx.android.synthetic.main.exo_playback_control_view.view.*
@@ -59,6 +67,7 @@ private val LOG_TAG = AudioFragment::class.java.simpleName
 class AudioFragment : Fragment() {
     @Inject
     lateinit var analytics: Analytics
+
     @Inject
     lateinit var repository: ContentRepository
     private val audioViewModel: AudioViewModel by viewModels {
@@ -86,7 +95,7 @@ class AudioFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        contentToPlay = arguments!!.getParcelable(CONTENT_TO_PLAY_KEY)!!
+        contentToPlay = requireArguments().getParcelable(CONTENT_TO_PLAY_KEY)!!
         audioViewModel.attachEvents(this)
         if (savedInstanceState == null)
             viewEvents.audioPlayerLoad(AudioPlayerLoad(
@@ -95,7 +104,7 @@ class AudioFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        analytics.setCurrentScreen(activity!!, AUDIOCAST_VIEW)
+        analytics.setCurrentScreen(requireActivity(), AUDIOCAST_VIEW)
         return FragmentAudioDialogBinding.inflate(inflater, container, false).root
     }
 
@@ -122,7 +131,7 @@ class AudioFragment : Fragment() {
 
     private fun setPlayerView() {
         playerView.requestFocus()
-        playerView.preview.setImageUrlRounded(context!!, contentToPlay.content.previewImage)
+        playerView.preview.setImageUrlRounded(requireContext(), contentToPlay.content.previewImage)
         playerView.titleToolbar.text = contentToPlay.content.title
         playerView.showController()
     }
@@ -164,7 +173,7 @@ class AudioFragment : Fragment() {
                         putExtra(CONTENT_SELECTED_BITMAP_KEY, contentPlayer.image)
                     }, serviceConnection, Context.BIND_AUTO_CREATE)
             ContextCompat.startForegroundService(
-                    context!!,
+                    requireContext(),
                     Intent(context, AudioService::class.java).apply {
                         action = CONTENT_SELECTED_ACTION
                         putExtra(CONTENT_TO_PLAY_KEY, contentToPlay.apply {

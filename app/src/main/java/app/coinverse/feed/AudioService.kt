@@ -18,10 +18,25 @@ import app.coinverse.R.string.notification_channel_description
 import app.coinverse.analytics.Analytics
 import app.coinverse.feed.models.Content
 import app.coinverse.feed.models.ContentToPlay
-import app.coinverse.utils.*
-import app.coinverse.utils.PlayerActionType.*
+import app.coinverse.utils.CONTENT_SELECTED_ACTION
+import app.coinverse.utils.CONTENT_SELECTED_BITMAP_KEY
+import app.coinverse.utils.CONTENT_TO_PLAY_KEY
+import app.coinverse.utils.EXOPLAYER_NOTIFICATION_ID
+import app.coinverse.utils.OPEN_CONTENT_FROM_NOTIFICATION_KEY
+import app.coinverse.utils.OPEN_FROM_NOTIFICATION_ACTION
+import app.coinverse.utils.PLAYER_ACTION
+import app.coinverse.utils.PLAYER_KEY
+import app.coinverse.utils.PLAY_OR_PAUSE_PRESSED_KEY
+import app.coinverse.utils.PlayerActionType.PAUSE
+import app.coinverse.utils.PlayerActionType.PLAY
+import app.coinverse.utils.PlayerActionType.STOP
+import app.coinverse.utils.byteArrayToBitmap
 import com.crashlytics.android.Crashlytics
-import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.C
+import com.google.android.exoplayer2.ExoPlaybackException
+import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.RenderersFactory
+import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.audio.AudioRendererEventListener
 import com.google.android.exoplayer2.audio.MediaCodecAudioRenderer
 import com.google.android.exoplayer2.drm.DrmSessionManager
@@ -47,6 +62,7 @@ class AudioService : Service() {
     @Inject
     lateinit var analytics: Analytics
 
+    private var startId = 0
     private var player: SimpleExoPlayer? = null
     private var playerNotificationManager: PlayerNotificationManager? = null
     private var content = Content()
@@ -55,6 +71,20 @@ class AudioService : Service() {
     private var startPosition: Long = 0
     private var seekToPositionMillis = 0
     private var playOrPausePressed = false
+
+    /**
+     * This class will be what is returned when an activity binds to this service.
+     * The activity will also use this to know what it can get from our service to know
+     * about the video playback.
+     */
+    inner class AudioServiceBinder : Binder() {
+        /**
+         * This method should be used only for setting the exoplayer instance.
+         * If exoplayer's internal are altered or accessed we can not guarantee
+         * things will work correctly.
+         */
+        fun getExoPlayerInstance() = player
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -78,6 +108,7 @@ class AudioService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        this.startId = startId
         val intent = intent.apply {
             when (intent?.action) {
                 CONTENT_SELECTED_ACTION -> {
@@ -114,21 +145,7 @@ class AudioService : Service() {
                 else -> Crashlytics.log(Log.ERROR, LOG_TAG, "ExoPlayer onStartCommand error")
             }
         }
-        return super.onStartCommand(intent, flags, startId)
-    }
-
-    /**
-     * This class will be what is returned when an activity binds to this service.
-     * The activity will also use this to know what it can get from our service to know
-     * about the video playback.
-     */
-    inner class AudioServiceBinder : Binder() {
-        /**
-         * This method should be used only for setting the exoplayer instance.
-         * If exoplayer's internal are altered or accessed we can not guarantee
-         * things will work correctly.
-         */
-        fun getExoPlayerInstance() = player
+        return START_REDELIVER_INTENT
     }
 
     private inner class AudioOnlyRenderersFactory(var context: Context) : RenderersFactory {
@@ -167,6 +184,7 @@ class AudioService : Service() {
                 },
                 object : PlayerNotificationManager.NotificationListener {
                     override fun onNotificationStarted(notificationId: Int, notification: Notification) {
+                        // Starts foreground service.
                         startForeground(notificationId, notification)
                         player?.playWhenReady = true
                     }
@@ -223,14 +241,14 @@ class AudioService : Service() {
     private fun stopService() {
         player?.playWhenReady = false
         stopForeground(true)
-        stopSelf()
+        stopSelf(startId)
     }
 
     private fun isBehindLiveWindow(e: ExoPlaybackException) =
             if (e.type != ExoPlaybackException.TYPE_SOURCE) false
             else {
                 while (e.sourceException != null) if (e.sourceException is BehindLiveWindowException) true
-                Crashlytics.log(Log.ERROR, LOG_TAG, "Audio error: ${e.sourceException?.cause.toString()}")
+                Crashlytics.log(Log.ERROR, LOG_TAG, "Audio error: ${e.sourceException.cause.toString()}")
                 false
             }
 
