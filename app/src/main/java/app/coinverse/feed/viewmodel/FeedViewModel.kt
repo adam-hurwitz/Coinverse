@@ -60,10 +60,13 @@ import app.coinverse.utils.ToolbarState
 import app.coinverse.utils.getTimeframe
 import com.crashlytics.android.Crashlytics
 import com.google.firebase.Timestamp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.withContext
 
 class FeedViewModel(private val repository: FeedRepository,
                     private val analytics: Analytics,
@@ -100,26 +103,28 @@ class FeedViewModel(private val repository: FeedRepository,
         val contentSelected = ContentSelected(event.content, event.position)
         when (contentSelected.content.contentType) {
             ARTICLE -> repository.getAudiocast(contentSelected).onEach { resource ->
-                when (resource.status) {
-                    LOADING -> {
-                        setContentLoadingStatus(contentSelected.content.id, VISIBLE)
-                        _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
-                    }
-                    SUCCESS -> {
-                        setContentLoadingStatus(contentSelected.content.id, GONE)
-                        _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
-                        _state._contentToPlay.value = resource.data
-                    }
-                    Status.ERROR -> {
-                        setContentLoadingStatus(contentSelected.content.id, GONE)
-                        _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
-                        _effect._snackBar.value = SnackBarEffect(
-                                if (resource.message.equals(TTS_CHAR_LIMIT_ERROR))
-                                    TTS_CHAR_LIMIT_ERROR_MESSAGE
-                                else CONTENT_PLAY_ERROR)
+                withContext(Dispatchers.Main) {
+                    when (resource.status) {
+                        LOADING -> {
+                            setContentLoadingStatus(contentSelected.content.id, VISIBLE)
+                            _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
+                        }
+                        SUCCESS -> {
+                            setContentLoadingStatus(contentSelected.content.id, GONE)
+                            _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
+                            _state._contentToPlay.value = resource.data
+                        }
+                        Status.ERROR -> {
+                            setContentLoadingStatus(contentSelected.content.id, GONE)
+                            _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
+                            _effect._snackBar.value = SnackBarEffect(
+                                    if (resource.message.equals(TTS_CHAR_LIMIT_ERROR))
+                                        TTS_CHAR_LIMIT_ERROR_MESSAGE
+                                    else CONTENT_PLAY_ERROR)
+                        }
                     }
                 }
-            }.launchIn(viewModelScope)
+            }.flowOn(Dispatchers.IO).launchIn(viewModelScope)
             YOUTUBE -> {
                 setContentLoadingStatus(contentSelected.content.id, View.GONE)
                 _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
@@ -158,15 +163,19 @@ class FeedViewModel(private val repository: FeedRepository,
                             if (event.isMainFeedEmptied)
                                 analytics.updateFeedEmptiedActionsAndAnalytics(event.user.uid)
                         }
-                        _state._contentLabeledPosition.value = event.position
+                        withContext(Dispatchers.Main) {
+                            _state._contentLabeledPosition.value = event.position
+                        }
                     }
                     Status.ERROR -> {
-                        _effect._snackBar.value = SnackBarEffect(CONTENT_LABEL_ERROR)
+                        withContext(Dispatchers.Main) {
+                            _state._contentLabeledPosition.value = null
+                            _effect._snackBar.value = SnackBarEffect(CONTENT_LABEL_ERROR)
+                        }
                         Crashlytics.log(ERROR, LOG_TAG, resource.message)
-                        _state._contentLabeledPosition.value = null
                     }
                 }
-            }.launchIn(viewModelScope)
+            }.flowOn(Dispatchers.IO).launchIn(viewModelScope)
         } else {
             _effect._notifyItemChanged.value = NotifyItemChangedEffect(event.position)
             _effect._signIn.value = SignInEffect(true)
