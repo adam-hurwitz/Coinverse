@@ -6,13 +6,21 @@ import androidx.lifecycle.liveData
 import app.coinverse.feed.models.Content
 import app.coinverse.feed.models.ContentPlayer
 import app.coinverse.feed.models.ContentToPlay
-import app.coinverse.utils.*
 import app.coinverse.utils.ContentType.ARTICLE
 import app.coinverse.utils.ContentType.YOUTUBE
+import app.coinverse.utils.MOCK_CONTENT_LABEL_ERROR
+import app.coinverse.utils.MOCK_GET_BITMAP_TO_BYTEARRAY_ERROR
+import app.coinverse.utils.MOCK_GET_CONTENT_URI_ERROR
+import app.coinverse.utils.MOCK_GET_MAIN_FEED_LIST_ERROR
+import app.coinverse.utils.MOCK_URL
 import app.coinverse.utils.Resource.Companion.error
 import app.coinverse.utils.Resource.Companion.loading
 import app.coinverse.utils.Resource.Companion.success
-import app.coinverse.utils.Status.*
+import app.coinverse.utils.Status
+import app.coinverse.utils.Status.ERROR
+import app.coinverse.utils.Status.LOADING
+import app.coinverse.utils.Status.SUCCESS
+import app.coinverse.utils.asPagedList
 import kotlinx.coroutines.flow.flow
 
 val mockArticleContent = Content(id = "1", contentType = ARTICLE, url = MOCK_URL)

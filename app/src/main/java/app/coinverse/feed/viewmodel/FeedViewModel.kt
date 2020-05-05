@@ -158,7 +158,6 @@ class FeedViewModel(private val repository: FeedRepository,
                             if (event.isMainFeedEmptied)
                                 analytics.updateFeedEmptiedActionsAndAnalytics(event.user.uid)
                         }
-                        _effect._notifyItemChanged.value = NotifyItemChangedEffect(event.position)
                         _state._contentLabeledPosition.value = event.position
                     }
                     Status.ERROR -> {

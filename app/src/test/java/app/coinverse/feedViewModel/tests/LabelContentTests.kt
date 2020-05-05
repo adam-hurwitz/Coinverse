@@ -1,24 +1,42 @@
 package app.coinverse.feedViewModel.tests
 
 import app.coinverse.analytics.Analytics
+import app.coinverse.feed.FeedRepository
+import app.coinverse.feed.models.FeedViewEffectType.ContentSwipedEffect
+import app.coinverse.feed.models.FeedViewEffectType.NotifyItemChangedEffect
+import app.coinverse.feed.models.FeedViewEffectType.SignInEffect
+import app.coinverse.feed.models.FeedViewEffectType.SnackBarEffect
+import app.coinverse.feed.models.FeedViewEventType.ContentLabeled
+import app.coinverse.feed.models.FeedViewEventType.ContentSwipeDrawed
+import app.coinverse.feed.models.FeedViewEventType.ContentSwiped
+import app.coinverse.feed.viewmodel.FeedViewModel
 import app.coinverse.feedViewModel.LabelContentTest
 import app.coinverse.feedViewModel.mockEditContentLabels
 import app.coinverse.feedViewModel.mockGetMainFeedList
 import app.coinverse.feedViewModel.mockQueryMainContentListFlow
 import app.coinverse.feedViewModel.testCases.labelContentTestCases
-import app.coinverse.feed.FeedRepository
-import app.coinverse.feed.models.FeedViewEffectType.*
-import app.coinverse.feed.models.FeedViewEventType.*
-import app.coinverse.feed.viewmodel.FeedViewModel
 import app.coinverse.home.HomeViewModel
-import app.coinverse.utils.*
-import app.coinverse.utils.FeedType.*
+import app.coinverse.utils.CONSTANTS_CLASS_COMPILED_JAVA
+import app.coinverse.utils.CONTENT_LABEL_ERROR
+import app.coinverse.utils.ContentTestExtension
+import app.coinverse.utils.FeedType.DISMISSED
+import app.coinverse.utils.FeedType.MAIN
+import app.coinverse.utils.FeedType.SAVED
+import app.coinverse.utils.MOCK_CONTENT_LABEL_ERROR
 import app.coinverse.utils.Status.ERROR
 import app.coinverse.utils.Status.SUCCESS
+import app.coinverse.utils.getOrAwaitValue
+import app.coinverse.utils.mockUser
 import com.crashlytics.android.Crashlytics
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
-import io.mockk.*
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.confirmVerified
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkClass
+import io.mockk.mockkStatic
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.runBlockingTest
 import org.assertj.core.api.Assertions.assertThat
@@ -98,8 +116,6 @@ class LabelContentTests(val testDispatcher: TestCoroutineDispatcher) {
                         SUCCESS -> {
                             assertThat(feedViewModel.state.contentLabeledPosition.getOrAwaitValue())
                                     .isEqualTo(test.adapterPosition)
-                            assertThat(feedViewModel.effect.notifyItemChanged.getOrAwaitValue())
-                                    .isEqualTo(NotifyItemChangedEffect(position = test.adapterPosition))
                         }
                         ERROR -> {
                             assertThat(feedViewModel.effect.snackBar.getOrAwaitValue())

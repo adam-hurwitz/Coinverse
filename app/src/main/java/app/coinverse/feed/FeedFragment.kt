@@ -102,7 +102,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPS
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
 import com.google.firebase.auth.FirebaseAuth
 import com.mopub.nativeads.FacebookAdRenderer
-import com.mopub.nativeads.FacebookAdRenderer.FacebookViewBinder
 import com.mopub.nativeads.FlurryNativeAdRenderer
 import com.mopub.nativeads.FlurryViewBinder
 import com.mopub.nativeads.FlurryViewBinder.Builder
@@ -219,14 +218,14 @@ class FeedFragment : Fragment() {
         contentRecyclerView.layoutManager = LinearLayoutManager(context)
         contentRecyclerView.setHasFixedSize(true)
         adapter = FeedAdapter(feedViewModel, viewEvent)
+        moPubAdapter = MoPubRecyclerAdapter(
+                requireActivity(),
+                adapter,
+                MoPubNativeAdPositioning.MoPubServerPositioning())
         /** Free account */
         if (paymentStatus == FREE) {
-            moPubAdapter = MoPubRecyclerAdapter(
-                    requireActivity(),
-                    adapter,
-                    MoPubNativeAdPositioning.MoPubServerPositioning())
             moPubAdapter.registerAdRenderer(FacebookAdRenderer(
-                    FacebookViewBinder.Builder(fb_native_ad_item)
+                    FacebookAdRenderer.FacebookViewBinder.Builder(fb_native_ad_item)
                             .titleId(native_title)
                             .textId(native_text)
                             .mediaViewId(native_media_view)
@@ -293,9 +292,10 @@ class FeedFragment : Fragment() {
         feedViewModel.state.contentLabeledPosition.observe(viewLifecycleOwner) { position ->
             //TODO: Undo feature
             if (homeViewModel.accountType.value == FREE) {
-                position?.let {
+                position.let {
                     val moPubPosition = moPubAdapter.getAdjustedPosition(position)
-                    if ((moPubAdapter.isAd(moPubPosition - 1) && moPubAdapter.isAd(moPubPosition + 1))) {
+                    if ((moPubAdapter.isAd(moPubPosition - 1)
+                                    && moPubAdapter.isAd(moPubPosition + 1))) {
                         clearAdjacentAds = true
                         moPubAdapter.refreshAds(AD_UNIT_ID, RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build())
                     }
@@ -330,8 +330,8 @@ class FeedFragment : Fragment() {
                             feedType = feedType,
                             actionType = it.actionType,
                             user = user,
-                            position = getAdapterPosition(it.position),
-                            content = adapter.getContent(getAdapterPosition(it.position)),
+                            position = contentSwipedPosition,
+                            content = adapter.getContent(contentSwipedPosition),
                             isMainFeedEmptied = if (feedType == MAIN) adapter.itemCount == 1 else false))
                 }
             }
@@ -449,18 +449,20 @@ class FeedFragment : Fragment() {
             }
         }
         feedViewModel.effect.updateAds.observe(viewLifecycleOwner) {
-            moPubAdapter.loadAds(AD_UNIT_ID, RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build())
-            moPubAdapter.setAdLoadedListener(object : MoPubNativeAdLoadedListener {
-                override fun onAdRemoved(position: Int) {}
-                override fun onAdLoaded(position: Int) {
-                    if (moPubAdapter.isAd(position + 1) || moPubAdapter.isAd(position - 1))
-                        moPubAdapter.refreshAds(AD_UNIT_ID, RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build())
-                    if (clearAdjacentAds) {
-                        clearAdjacentAds = false
-                        adapter.notifyDataSetChanged()
+            if (homeViewModel.accountType.value == FREE) {
+                moPubAdapter.loadAds(AD_UNIT_ID, RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build())
+                moPubAdapter.setAdLoadedListener(object : MoPubNativeAdLoadedListener {
+                    override fun onAdRemoved(position: Int) {}
+                    override fun onAdLoaded(position: Int) {
+                        if (moPubAdapter.isAd(position + 1) || moPubAdapter.isAd(position - 1))
+                            moPubAdapter.refreshAds(AD_UNIT_ID, RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build())
+                        if (clearAdjacentAds) {
+                            clearAdjacentAds = false
+                            adapter.notifyDataSetChanged()
+                        }
                     }
-                }
-            })
+                })
+            }
         }
     }
 

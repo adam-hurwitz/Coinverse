@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import app.coinverse.feed.models.ContentToPlay
 import app.coinverse.utils.PaymentStatus
-import app.coinverse.utils.PaymentStatus.FREE
+import app.coinverse.utils.PaymentStatus.PAID
 import app.coinverse.utils.Timeframe
 import app.coinverse.utils.buildTypeTimescale
 import com.google.firebase.auth.FirebaseAuth
@@ -37,9 +37,11 @@ class HomeViewModel : ViewModel() {
     private val _savedContentToPlay = MutableLiveData<ContentToPlay?>()
 
     init {
-        //TODO: Toggle with button if paid user.
+        // TODO: Toggle with button if paid user.
         _isRealtime.value = false
-        _accountType.value = FREE
+        // TODO: FREE version
+        //  Display YouTube content separate from ads feed.
+        _accountType.value = PAID
         _timeframe.value = buildTypeTimescale
         _user.value = getCurrentUser()
     }
