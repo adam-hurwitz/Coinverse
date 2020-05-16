@@ -4,10 +4,16 @@ import androidx.arch.core.executor.ArchTaskExecutor
 import androidx.arch.core.executor.TaskExecutor
 import io.mockk.unmockkAll
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
-import org.junit.jupiter.api.extension.*
+import org.junit.jupiter.api.extension.AfterAllCallback
+import org.junit.jupiter.api.extension.AfterEachCallback
+import org.junit.jupiter.api.extension.BeforeEachCallback
+import org.junit.jupiter.api.extension.ExtensionContext
+import org.junit.jupiter.api.extension.ParameterContext
+import org.junit.jupiter.api.extension.ParameterResolver
 
 class ContentTestExtension : AfterAllCallback, BeforeEachCallback, AfterEachCallback, ParameterResolver {
 
@@ -15,6 +21,7 @@ class ContentTestExtension : AfterAllCallback, BeforeEachCallback, AfterEachCall
         unmockkAll()
     }
 
+    @ExperimentalCoroutinesApi
     override fun beforeEach(context: ExtensionContext?) {
         // Set Coroutine Dispatcher.
         Dispatchers.setMain(context?.root
@@ -29,6 +36,7 @@ class ContentTestExtension : AfterAllCallback, BeforeEachCallback, AfterEachCall
         })
     }
 
+    @ExperimentalCoroutinesApi
     override fun afterEach(context: ExtensionContext?) {
         // Reset Coroutine Dispatcher.
         Dispatchers.resetMain()
@@ -41,10 +49,12 @@ class ContentTestExtension : AfterAllCallback, BeforeEachCallback, AfterEachCall
         ArchTaskExecutor.getInstance().setDelegate(null)
     }
 
+    @ExperimentalCoroutinesApi
     override fun supportsParameter(parameterContext: ParameterContext?,
                                    extensionContext: ExtensionContext?) =
             parameterContext?.parameter?.type == TestCoroutineDispatcher::class.java
 
+    @ExperimentalCoroutinesApi
     override fun resolveParameter(parameterContext: ParameterContext?,
                                   extensionContext: ExtensionContext?) =
             if (parameterContext?.parameter?.type == TestCoroutineDispatcher::class.java)
@@ -55,10 +65,12 @@ class ContentTestExtension : AfterAllCallback, BeforeEachCallback, AfterEachCall
             else null
 
 
+    @ExperimentalCoroutinesApi
     private fun getTestCoroutineDispatcher(context: ExtensionContext?) = context?.root
             ?.getStore(TEST_COROUTINE_DISPATCHER_NAMESPACE)
             ?.get(TEST_COROUTINE_DISPATCHER_KEY, TestCoroutineDispatcher::class.java)
 
+    @ExperimentalCoroutinesApi
     private fun saveAndReturnTestCoroutineDispatcher(extensionContext: ExtensionContext?) =
             TestCoroutineDispatcher().apply {
                 extensionContext?.root

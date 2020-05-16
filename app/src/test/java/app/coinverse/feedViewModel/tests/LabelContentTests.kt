@@ -37,6 +37,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkClass
 import io.mockk.mockkStatic
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.runBlockingTest
 import org.assertj.core.api.Assertions.assertThat
@@ -45,6 +46,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
+@ExperimentalCoroutinesApi
 @ExtendWith(ContentTestExtension::class)
 class LabelContentTests(val testDispatcher: TestCoroutineDispatcher) {
 

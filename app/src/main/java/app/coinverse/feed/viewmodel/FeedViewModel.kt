@@ -68,6 +68,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 
+@ExperimentalCoroutinesApi
 class FeedViewModel(private val repository: FeedRepository,
                     private val analytics: Analytics,
                     private val feedType: FeedType,
@@ -221,42 +222,48 @@ class FeedViewModel(private val repository: FeedRepository,
                 else null
         if (feedType == MAIN)
             repository.getMainFeedNetwork(isRealtime, timeframe!!).onEach { resource ->
-                when (resource.status) {
-                    LOADING -> {
-                        if (event is SwipeToRefresh)
-                            _effect._swipeToRefresh.value = SwipeToRefreshEffect(true)
-                        getMainFeedLocal(timeframe)
-                    }
-                    SUCCESS -> {
-                        if (event is SwipeToRefresh)
-                            _effect._swipeToRefresh.value = SwipeToRefreshEffect(false)
-                        resource.data?.collect { pagedList ->
-                            _state._feedList.value = pagedList
+                withContext(Dispatchers.Main) {
+                    when (resource.status) {
+                        LOADING -> {
+                            if (event is SwipeToRefresh)
+                                _effect._swipeToRefresh.value = SwipeToRefreshEffect(true)
+                            getMainFeedLocal(timeframe)
+                        }
+                        SUCCESS -> {
+                            if (event is SwipeToRefresh)
+                                _effect._swipeToRefresh.value = SwipeToRefreshEffect(false)
+                            resource.data?.collect { pagedList ->
+                                _state._feedList.value = pagedList
+                            }
+                        }
+                        Status.ERROR -> {
+                            Crashlytics.log(ERROR, LOG_TAG, resource.message)
+                            if (event is SwipeToRefresh)
+                                _effect._swipeToRefresh.value = SwipeToRefreshEffect(false)
+                            _effect._snackBar.value = SnackBarEffect(
+                                    if (event is FeedLoad) CONTENT_REQUEST_NETWORK_ERROR
+                                    else CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR)
+                            getMainFeedLocal(timeframe)
                         }
                     }
-                    Status.ERROR -> {
-                        Crashlytics.log(ERROR, LOG_TAG, resource.message)
-                        if (event is SwipeToRefresh)
-                            _effect._swipeToRefresh.value = SwipeToRefreshEffect(false)
-                        _effect._snackBar.value = SnackBarEffect(
-                                if (event is FeedLoad) CONTENT_REQUEST_NETWORK_ERROR
-                                else CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR)
-                        getMainFeedLocal(timeframe)
-                    }
                 }
-            }.launchIn(viewModelScope)
+            }.flowOn(Dispatchers.IO).launchIn(viewModelScope)
         else
             repository.getLabeledFeedRoom(feedType).onEach { pagedList ->
-                _effect._screenEmpty.value = ScreenEmptyEffect(pagedList.isEmpty())
-                _state._feedList.value = pagedList
-            }.launchIn(viewModelScope)
+                withContext(Dispatchers.Main) {
+                    _effect._screenEmpty.value = ScreenEmptyEffect(pagedList.isEmpty())
+                    _state._feedList.value = pagedList
+                }
+            }.flowOn(Dispatchers.IO).launchIn(viewModelScope)
     }
 
     @ExperimentalCoroutinesApi
     private fun getMainFeedLocal(timeframe: Timestamp) {
         repository.getMainFeedRoom(timeframe).onEach { pagedList ->
-            _state._feedList.value = pagedList
-        }.launchIn(viewModelScope)
+            withContext(Dispatchers.Main) {
+                _state._feedList.value = pagedList
+            }
+        }.flowOn(Dispatchers.IO).launchIn(viewModelScope)
 
     }
 

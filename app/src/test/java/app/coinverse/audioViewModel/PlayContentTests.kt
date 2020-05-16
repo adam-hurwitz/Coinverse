@@ -50,6 +50,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkClass
 import io.mockk.mockkStatic
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.runBlockingTest
 import org.assertj.core.api.Assertions.assertThat
@@ -58,8 +59,9 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
+@ExperimentalCoroutinesApi
 @ExtendWith(ContentTestExtension::class)
-class PlayContentTests(val testDispatcher: TestCoroutineDispatcher) {
+class PlayContentTests constructor(val testDispatcher: TestCoroutineDispatcher) {
 
     private fun PlayContent() = playContentTestCases()
     private val feedRepository = mockkClass(FeedRepository::class)
@@ -144,10 +146,10 @@ class PlayContentTests(val testDispatcher: TestCoroutineDispatcher) {
             ARTICLE -> when (test.feedType) {
                 MAIN, DISMISSED -> when (test.status) {
                     LOADING -> {
-                        assertThat(feedViewModel.getContentLoadingStatus(test.mockContent.id))
-                                .isEqualTo(VISIBLE)
                         assertThat(feedViewModel.effect.notifyItemChanged.getOrAwaitValue())
                                 .isEqualTo(NotifyItemChangedEffect(test.mockPosition))
+                        assertThat(feedViewModel.getContentLoadingStatus(test.mockContent.id))
+                                .isEqualTo(VISIBLE)
                     }
                     SUCCESS -> {
                         assertThat(feedViewModel.state.contentToPlay.getOrAwaitValue()).isEqualTo(ContentToPlay(

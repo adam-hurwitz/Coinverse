@@ -1,24 +1,29 @@
 package app.coinverse.feedViewModel.tests
 
 import app.coinverse.analytics.Analytics
+import app.coinverse.feed.FeedRepository
+import app.coinverse.feed.models.FeedViewEffectType.OpenContentSourceIntentEffect
+import app.coinverse.feed.models.FeedViewEffectType.UpdateAdsEffect
+import app.coinverse.feed.models.FeedViewEventType.ContentShared
+import app.coinverse.feed.models.FeedViewEventType.ContentSourceOpened
+import app.coinverse.feed.models.FeedViewEventType.UpdateAds
+import app.coinverse.feed.viewmodel.FeedViewModel
 import app.coinverse.feedViewModel.NavigateContentTest
 import app.coinverse.feedViewModel.mockGetContent
 import app.coinverse.feedViewModel.mockGetMainFeedList
 import app.coinverse.feedViewModel.mockQueryMainContentListFlow
 import app.coinverse.feedViewModel.testCases.navigateContentTestCases
-import app.coinverse.feed.FeedRepository
-import app.coinverse.feed.models.FeedViewEffectType.OpenContentSourceIntentEffect
-import app.coinverse.feed.models.FeedViewEffectType.UpdateAdsEffect
-import app.coinverse.feed.models.FeedViewEventType.*
-import app.coinverse.feed.viewmodel.FeedViewModel
 import app.coinverse.utils.ContentTestExtension
-import app.coinverse.utils.FeedType.*
+import app.coinverse.utils.FeedType.DISMISSED
+import app.coinverse.utils.FeedType.MAIN
+import app.coinverse.utils.FeedType.SAVED
 import app.coinverse.utils.Status.SUCCESS
 import app.coinverse.utils.getOrAwaitValue
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockkClass
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.runBlockingTest
 import org.assertj.core.api.Assertions.assertThat
@@ -26,6 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
+@ExperimentalCoroutinesApi
 @ExtendWith(ContentTestExtension::class)
 class NavigateContentTests(val testDispatcher: TestCoroutineDispatcher) {
 
@@ -44,6 +50,7 @@ class NavigateContentTests(val testDispatcher: TestCoroutineDispatcher) {
                 feedType = test.feedType,
                 timeframe = test.timeframe,
                 isRealtime = test.isRealtime)
+        println("NavigateContent: ${test.mockContent.contentType}")
         assertContentList(test)
         ContentShared(test.mockContent).also { event ->
             feedViewModel.contentShared(event)
