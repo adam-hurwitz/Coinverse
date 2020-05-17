@@ -99,7 +99,6 @@ class FeedViewModel(private val repository: FeedRepository,
         getFeed(SwipeToRefresh(feedType, timeframe, isRealtime))
     }
 
-    @ExperimentalCoroutinesApi
     override fun contentSelected(event: ContentSelected) {
         val contentSelected = ContentSelected(event.content, event.position)
         when (contentSelected.content.contentType) {
@@ -144,7 +143,6 @@ class FeedViewModel(private val repository: FeedRepository,
         _effect._contentSwiped.value = ContentSwipedEffect(event.feedType, event.actionType, event.position)
     }
 
-    @ExperimentalCoroutinesApi
     override fun contentLabeled(event: ContentLabeled) {
         if (event.user != null && !event.user.isAnonymous) {
             repository.editContentLabels(
@@ -214,7 +212,6 @@ class FeedViewModel(private val repository: FeedRepository,
                 DISMISSED -> true
             })
 
-    @ExperimentalCoroutinesApi
     private fun getFeed(event: FeedViewEventType) {
         val timeframe =
                 if (event is FeedLoad) getTimeframe(event.timeframe)
@@ -257,7 +254,6 @@ class FeedViewModel(private val repository: FeedRepository,
             }.flowOn(Dispatchers.IO).launchIn(viewModelScope)
     }
 
-    @ExperimentalCoroutinesApi
     private fun getMainFeedLocal(timeframe: Timestamp) {
         repository.getMainFeedRoom(timeframe).onEach { pagedList ->
             withContext(Dispatchers.Main) {
