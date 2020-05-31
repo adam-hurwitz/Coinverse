@@ -1,103 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/swipeToRefresh"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipeToRefresh"
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <androidx.coordinatorlayout.widget.CoordinatorLayout
+        <com.google.android.material.appbar.AppBarLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/appBarLayout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content"
+            android:background="@android:color/white">
 
-            <com.google.android.material.appbar.AppBarLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:app="http://schemas.android.com/apk/res-auto"
-                android:id="@+id/appBarLayout"
+            <com.google.android.material.appbar.CollapsingToolbarLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@android:color/white">
+                android:fitsSystemWindows="true"
+                app:layout_scrollFlags="scroll|snap">
 
-                <com.google.android.material.appbar.CollapsingToolbarLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fitsSystemWindows="true"
-                    app:layout_scrollFlags="scroll|snap">
-
-                    <include layout="@layout/toolbar_home" />
-
-                    <FrameLayout
-                        android:id="@+id/priceContainer"
-                        android:name="PriceFragment"
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/price_graph_height"
-                        app:layout_collapseMode="parallax"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toBottomOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                </com.google.android.material.appbar.CollapsingToolbarLayout>
-
-            </com.google.android.material.appbar.AppBarLayout>
-
-            <FrameLayout
-                android:id="@+id/contentContainer"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:layout_behavior="@string/appbar_scrolling_view_behavior" />
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/bottomSheet"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:paddingBottom="@dimen/margin_large"
-                app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
-
-                <ImageView
-                    android:id="@+id/bottom_handle_logo"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/padding_tiniest"
-                    android:background="@drawable/ic_coinverse_48dp"
-                    android:elevation="@dimen/bottom_sheet_logo_elevation"
-                    app:layout_constraintBottom_toBottomOf="@id/bottom_handle"
-                    app:layout_constraintLeft_toLeftOf="@id/bottom_handle"
-                    app:layout_constraintRight_toRightOf="@id/bottom_handle"
-                    app:layout_constraintTop_toTopOf="@id/bottom_handle" />
-
-                <ImageView
-                    android:id="@+id/bottom_handle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/ic_bottom_sheet_handle"
-                    android:contentDescription="@string/saved_bottomsheet_handle_content_description"
-                    android:elevation="@dimen/bottom_sheet_elevation"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintRight_toRightOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <ImageView
-                    android:id="@+id/bottom_handle_elevation"
-                    android:layout_width="0dp"
-                    android:layout_height="@dimen/bottom_sheet_elevation"
-                    android:background="@color/bottom_sheet_handle_elevation"
-                    android:contentDescription="@string/saved_bottomsheet_handle_content_description"
-                    app:layout_constraintBottom_toBottomOf="@id/bottom_handle"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintRight_toRightOf="parent" />
+                <include layout="@layout/toolbar_home" />
 
                 <FrameLayout
-                    android:id="@+id/savedContentContainer"
+                    android:id="@+id/priceContainer"
+                    android:name="PriceFragment"
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:background="@android:color/white"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/bottom_handle_elevation" />
+                    android:layout_height="@dimen/price_graph_height"
+                    app:layout_collapseMode="parallax"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.appbar.CollapsingToolbarLayout>
 
-        </androidx.coordinatorlayout.widget.CoordinatorLayout>
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-</layout>
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <FrameLayout
+            android:id="@+id/contentContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/bottomSheet"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingBottom="@dimen/margin_large"
+            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+            <ImageView
+                android:id="@+id/bottom_handle_logo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/padding_tiniest"
+                android:background="@drawable/ic_coinverse_48dp"
+                android:elevation="@dimen/bottom_sheet_logo_elevation"
+                app:layout_constraintBottom_toBottomOf="@id/bottom_handle"
+                app:layout_constraintLeft_toLeftOf="@id/bottom_handle"
+                app:layout_constraintRight_toRightOf="@id/bottom_handle"
+                app:layout_constraintTop_toTopOf="@id/bottom_handle" />
+
+            <ImageView
+                android:id="@+id/bottom_handle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/ic_bottom_sheet_handle"
+                android:contentDescription="@string/saved_bottomsheet_handle_content_description"
+                android:elevation="@dimen/bottom_sheet_elevation"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/bottom_handle_elevation"
+                android:layout_width="0dp"
+                android:layout_height="@dimen/bottom_sheet_elevation"
+                android:background="@color/bottom_sheet_handle_elevation"
+                android:contentDescription="@string/saved_bottomsheet_handle_content_description"
+                app:layout_constraintBottom_toBottomOf="@id/bottom_handle"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent" />
+
+            <FrameLayout
+                android:id="@+id/savedContentContainer"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:background="@android:color/white"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/bottom_handle_elevation" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

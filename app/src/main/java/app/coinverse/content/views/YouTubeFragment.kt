@@ -14,7 +14,9 @@ import app.coinverse.R.id.dialog_content
 import app.coinverse.analytics.Analytics
 import app.coinverse.databinding.FragmentContentDialogBinding
 import app.coinverse.feed.models.ContentToPlay
-import app.coinverse.utils.BuildType.*
+import app.coinverse.utils.BuildType.debug
+import app.coinverse.utils.BuildType.open
+import app.coinverse.utils.BuildType.release
 import app.coinverse.utils.CONTENT_TO_PLAY_KEY
 import app.coinverse.utils.YOUTUBE_ID_REGEX
 import app.coinverse.utils.YOUTUBE_VIEW
@@ -24,6 +26,7 @@ import app.coinverse.utils.auth.APP_API_KEY_STAGING
 import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
 import com.google.android.youtube.player.YouTubePlayerSupportFragment
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -114,7 +117,7 @@ class YouTubeFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         if (youtubePlayer != null)
-            lifecycleScope.launch {
+            lifecycleScope.launch(Dispatchers.IO) {
                 analytics.updateActionsAndAnalytics(contentToPlay.content,
                         (youtubePlayer.currentTimeMillis.toDouble() - seekToPositionMillis)
                                 / youtubePlayer.durationMillis)

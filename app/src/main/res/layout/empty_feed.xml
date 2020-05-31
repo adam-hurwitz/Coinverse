@@ -1,126 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/emptyFeedView"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:padding="@dimen/padding_medium">
+
+    <ImageView
+        android:id="@+id/emptyImage"
+        android:layout_width="@dimen/dialog_image"
+        android:layout_height="@dimen/dialog_image"
+        android:contentDescription="@string/swipe_right_image"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/shootingStarOne"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:padding="@dimen/padding_medium">
+        android:layout_marginTop="@dimen/margin_large"
+        android:layout_marginBottom="@dimen/margin_large"
+        android:contentDescription="@string/empty_content_feed_content_description"
+        android:src="@drawable/ic_shooting_star"
+        app:layout_constraintBottom_toTopOf="@id/title"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageView
-            android:id="@+id/emptyImage"
-            android:layout_width="@dimen/dialog_image"
-            android:layout_height="@dimen/dialog_image"
-            android:contentDescription="@string/swipe_right_image"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+    <ImageView
+        android:id="@+id/earth"
+        android:layout_width="@dimen/empty_content_image_dimen"
+        android:layout_height="@dimen/empty_content_image_dimen"
+        android:contentDescription="@string/empty_content_feed_content_description"
+        android:src="@drawable/ic_earth"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/emptyInstructions" />
 
-        <ImageView
-            android:id="@+id/shootingStarOne"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginTop="@dimen/margin_large"
-            android:layout_marginBottom="@dimen/margin_large"
-            android:contentDescription="@string/empty_content_feed_content_description"
-            android:src="@drawable/ic_shooting_star"
-            app:layout_constraintBottom_toTopOf="@id/title"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingBottom="@dimen/padding_large"
+        android:text="@string/no_content_title"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="@dimen/text_size_title"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/emptyImage" />
 
-        <ImageView
-            android:id="@+id/earth"
-            android:layout_width="@dimen/empty_content_image_dimen"
-            android:layout_height="@dimen/empty_content_image_dimen"
-            android:contentDescription="@string/empty_content_feed_content_description"
-            android:src="@drawable/ic_earth"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/emptyInstructions" />
+    <ImageView
+        android:id="@+id/swipeRightOne"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/swipe_right_image"
+        app:layout_constraintBottom_toTopOf="@id/emptyInstructions"
+        app:layout_constraintRight_toLeftOf="@id/swipeRightTwo"
+        app:layout_constraintTop_toBottomOf="@id/title" />
 
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:paddingBottom="@dimen/padding_large"
-            android:text="@string/no_content_title"
-            android:textColor="@color/colorPrimaryDark"
-            android:textSize="@dimen/text_size_title"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/emptyImage" />
+    <ImageView
+        android:id="@+id/swipeRightTwo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/swipe_right_image"
+        app:layout_constraintBottom_toTopOf="@id/emptyInstructions"
+        app:layout_constraintRight_toLeftOf="@id/swipeRightThree"
+        app:layout_constraintTop_toBottomOf="@id/title" />
 
-        <ImageView
-            android:id="@+id/swipe_right_one"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:contentDescription="@string/swipe_right_image"
-            app:layout_constraintBottom_toTopOf="@id/emptyInstructions"
-            app:layout_constraintRight_toLeftOf="@id/swipe_right_two"
-            app:layout_constraintTop_toBottomOf="@id/title" />
+    <ImageView
+        android:id="@+id/swipeRightThree"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/swipe_right_image"
+        app:layout_constraintBottom_toTopOf="@id/emptyInstructions"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/title" />
 
-        <ImageView
-            android:id="@+id/swipe_right_two"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:contentDescription="@string/swipe_right_image"
-            app:layout_constraintBottom_toTopOf="@id/emptyInstructions"
-            app:layout_constraintRight_toLeftOf="@id/swipe_right_three"
-            app:layout_constraintTop_toBottomOf="@id/title" />
+    <ImageView
+        android:id="@+id/swipeRightFour"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/swipe_right_image"
+        app:layout_constraintBottom_toTopOf="@id/emptyInstructions"
+        app:layout_constraintLeft_toRightOf="@id/swipeRightThree"
+        app:layout_constraintTop_toBottomOf="@id/title" />
 
-        <ImageView
-            android:id="@+id/swipe_right_three"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:contentDescription="@string/swipe_right_image"
-            app:layout_constraintBottom_toTopOf="@id/emptyInstructions"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/title" />
+    <ImageView
+        android:id="@+id/swipeRightFive"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/swipe_right_image"
+        app:layout_constraintBottom_toTopOf="@id/emptyInstructions"
+        app:layout_constraintLeft_toRightOf="@id/swipeRightFour"
+        app:layout_constraintTop_toBottomOf="@id/title" />
 
-        <ImageView
-            android:id="@+id/swipe_right_four"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:contentDescription="@string/swipe_right_image"
-            app:layout_constraintBottom_toTopOf="@id/emptyInstructions"
-            app:layout_constraintLeft_toRightOf="@id/swipe_right_three"
-            app:layout_constraintTop_toBottomOf="@id/title" />
+    <TextView
+        android:id="@+id/emptyInstructions"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingBottom="@dimen/padding_large"
+        android:text="@string/no_feed_content_instructions"
+        android:textSize="@dimen/text_size_normal"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/swipeRightOne" />
 
-        <ImageView
-            android:id="@+id/swipe_right_five"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:contentDescription="@string/swipe_right_image"
-            app:layout_constraintBottom_toTopOf="@id/emptyInstructions"
-            app:layout_constraintLeft_toRightOf="@id/swipe_right_four"
-            app:layout_constraintTop_toBottomOf="@id/title" />
+    <TextView
+        android:id="@+id/confirmation"
+        style="@style/ButtonStyle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/letsGo"
+        android:visibility="gone"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/emptyInstructions" />
 
-        <TextView
-            android:id="@+id/emptyInstructions"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:paddingBottom="@dimen/padding_large"
-            android:text="@string/no_feed_content_instructions"
-            android:textSize="@dimen/text_size_normal"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/swipe_right_one" />
-
-        <TextView
-            android:id="@+id/confirmation"
-            style="@style/ButtonStyle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="@string/letsGo"
-            android:visibility="gone"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/emptyInstructions" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</layout>
+</androidx.constraintlayout.widget.ConstraintLayout>

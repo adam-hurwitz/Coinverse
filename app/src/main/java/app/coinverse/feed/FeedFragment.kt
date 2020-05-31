@@ -114,9 +114,6 @@ import com.mopub.nativeads.MoPubStaticNativeAdRenderer
 import com.mopub.nativeads.MoPubVideoNativeAdRenderer
 import com.mopub.nativeads.RequestParameters
 import com.mopub.nativeads.ViewBinder
-import kotlinx.android.synthetic.main.empty_feed.view.*
-import kotlinx.android.synthetic.main.fragment_feed.*
-import kotlinx.android.synthetic.main.toolbar_app.view.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import javax.inject.Inject
 
@@ -175,7 +172,6 @@ class FeedFragment : Fragment() {
         analytics.setCurrentScreen(requireActivity(), feedType.name)
         feedViewModel.launchViewEvents(this)
         binding = FragmentFeedBinding.inflate(inflater, container, false)
-        binding.lifecycleOwner = this
         return binding.root
     }
 
@@ -215,8 +211,8 @@ class FeedFragment : Fragment() {
     @ExperimentalCoroutinesApi
     private fun initAdapters() {
         val paymentStatus = homeViewModel.accountType.value
-        contentRecyclerView.layoutManager = LinearLayoutManager(context)
-        contentRecyclerView.setHasFixedSize(true)
+        binding.contentRecyclerView.layoutManager = LinearLayoutManager(context)
+        binding.contentRecyclerView.setHasFixedSize(true)
         adapter = FeedAdapter(feedViewModel, viewEvent)
         moPubAdapter = MoPubRecyclerAdapter(
                 requireActivity(),
@@ -253,10 +249,10 @@ class FeedFragment : Fragment() {
                             .build()))
             moPubAdapter.registerAdRenderer(MoPubStaticNativeAdRenderer(viewBinder))
             moPubAdapter.setContentChangeStrategy(MOVE_ALL_ADS_WITH_CONTENT)
-            contentRecyclerView.adapter = moPubAdapter
+            binding.contentRecyclerView.adapter = moPubAdapter
         } else {
             /** Paid account */
-            contentRecyclerView.adapter = adapter
+            binding.contentRecyclerView.adapter = adapter
         }
         initItemTouchHelper(
                 context = requireContext(),
@@ -265,7 +261,7 @@ class FeedFragment : Fragment() {
                 feedType = feedType,
                 moPubAdapter = if (paymentStatus == FREE) moPubAdapter else null,
                 viewEvent = viewEvent
-        ).attachToRecyclerView(contentRecyclerView)
+        ).attachToRecyclerView(binding.contentRecyclerView)
     }
 
     @ExperimentalCoroutinesApi
@@ -339,7 +335,7 @@ class FeedFragment : Fragment() {
         feedViewModel.effect.snackBar.observe(viewLifecycleOwner) {
             when (feedType) {
                 MAIN -> snackbarWithText(resources, it.text, this.requireParentFragment().requireView())
-                SAVED, DISMISSED -> snackbarWithText(resources, it.text, contentFragment)
+                SAVED, DISMISSED -> snackbarWithText(resources, it.text, binding.contentFragment)
             }
         }
         feedViewModel.effect.shareContentIntent.observe(viewLifecycleOwner) {
@@ -373,26 +369,28 @@ class FeedFragment : Fragment() {
             }
         }
         feedViewModel.effect.screenEmpty.observe(viewLifecycleOwner) {
-            if (!it.isEmpty) emptyContent.visibility = GONE
+            val emptyFeedView = binding.emptyFeedLayout.emptyFeedView
+            if (!it.isEmpty)
+                emptyFeedView.visibility = GONE
             else {
-                if (emptyContent.visibility == GONE) {
+                if (emptyFeedView.visibility == GONE) {
                     val fadeIn = AnimationUtils.loadAnimation(context, fade_in)
-                    emptyContent.startAnimation(fadeIn)
+                    emptyFeedView.startAnimation(fadeIn)
                     fadeIn.setAnimationListener(object : Animation.AnimationListener {
                         override fun onAnimationRepeat(animation: Animation?) {/*Do something.*/
                         }
 
                         override fun onAnimationEnd(animation: Animation?) {
-                            emptyContent.visibility = VISIBLE
-                            contentRecyclerView.visibility = VISIBLE
+                            emptyFeedView.visibility = VISIBLE
+                            binding.contentRecyclerView.visibility = VISIBLE
                         }
 
                         override fun onAnimationStart(animation: Animation?) {
-                            contentRecyclerView.visibility = INVISIBLE
+                            binding.contentRecyclerView.visibility = INVISIBLE
                         }
                     })
                 }
-                emptyContent.confirmation.setOnClickListener { view: View ->
+                binding.emptyFeedLayout.confirmation.setOnClickListener { view: View ->
                     if (feedType == SAVED && homeViewModel.bottomSheetState.value == STATE_EXPANDED) {
                         //TODO: Add to HomeViewModel ViewState.
                         homeViewModel.setBottomSheetState(STATE_COLLAPSED)
@@ -400,50 +398,49 @@ class FeedFragment : Fragment() {
                 }
                 when (feedType) {
                     MAIN -> {
-                        binding.emptyContent.shootingStarOne.visibility = VISIBLE
-                        binding.emptyContent.earth.visibility = VISIBLE
-                        emptyContent.title.text = getString(no_content_title)
-                        emptyContent.emptyInstructions.text = getString(no_feed_content_instructions)
+                        binding.emptyFeedLayout.shootingStarOne.visibility = VISIBLE
+                        binding.emptyFeedLayout.earth.visibility = VISIBLE
+                        binding.emptyFeedLayout.title.text = getString(no_content_title)
+                        binding.emptyFeedLayout.emptyInstructions.text = getString(no_feed_content_instructions)
                     }
                     SAVED -> {
-                        binding.emptyContent.shootingStarOne.visibility = GONE
-                        binding.emptyContent.earth.visibility = GONE
-                        emptyContent.emptyImage.setImageDrawable(getDrawable(requireContext(),
+
+                        binding.emptyFeedLayout.shootingStarOne.visibility = GONE
+                        binding.emptyFeedLayout.earth.visibility = GONE
+                        binding.emptyFeedLayout.emptyImage.setImageDrawable(getDrawable(requireContext(),
                                 ic_coinverse_48dp))
-                        emptyContent.title.text = getString(no_saved_content_title)
-                        emptyContent.swipe_right_one.setImageDrawable(getDrawable(requireContext(),
+                        binding.emptyFeedLayout.title.text = getString(no_saved_content_title)
+                        binding.emptyFeedLayout.swipeRightOne.setImageDrawable(getDrawable(requireContext(),
                                 ic_chevron_right_color_accent_24dp))
-                        emptyContent.swipe_right_two.setImageDrawable(getDrawable(requireContext(),
+                        binding.emptyFeedLayout.swipeRightTwo.setImageDrawable(getDrawable(requireContext(),
                                 ic_chevron_right_color_accent_fade_one_24dp))
-                        emptyContent.swipe_right_three.setImageDrawable(getDrawable(requireContext(),
+                        binding.emptyFeedLayout.swipeRightThree.setImageDrawable(getDrawable(requireContext(),
                                 ic_chevron_right_color_accent_fade_two_24dp))
-                        emptyContent.swipe_right_four.setImageDrawable(getDrawable(requireContext(),
+                        binding.emptyFeedLayout.swipeRightFour.setImageDrawable(getDrawable(requireContext(),
                                 ic_chevron_right_color_accent_fade_three_24dp))
-                        emptyContent.swipe_right_five.setImageDrawable(getDrawable(requireContext(),
+                        binding.emptyFeedLayout.swipeRightFive.setImageDrawable(getDrawable(requireContext(),
                                 ic_chevron_right_color_accent_fade_four_24dp))
-                        emptyContent.emptyInstructions.text =
-                                getString(no_saved_content_instructions)
-                        emptyContent.confirmation.visibility = VISIBLE
+                        binding.emptyFeedLayout.emptyInstructions.text = getString(no_saved_content_instructions)
+                        binding.emptyFeedLayout.confirmation.visibility = VISIBLE
                     }
                     DISMISSED -> {
-                        binding.emptyContent.shootingStarOne.visibility = GONE
-                        binding.emptyContent.earth.visibility = GONE
-                        emptyContent.emptyImage.setImageDrawable(getDrawable(requireContext(),
+                        binding.emptyFeedLayout.shootingStarOne.visibility = GONE
+                        binding.emptyFeedLayout.earth.visibility = GONE
+                        binding.emptyFeedLayout.emptyImage.setImageDrawable(getDrawable(requireContext(),
                                 ic_dismiss_planet_light_48dp))
-                        emptyContent.title.text = getString(no_dismissed_content_title)
-                        emptyContent.swipe_right_one.setImageDrawable(getDrawable(requireContext(),
+                        binding.emptyFeedLayout.title.text = getString(no_dismissed_content_title)
+                        binding.emptyFeedLayout.swipeRightOne.setImageDrawable(getDrawable(requireContext(),
                                 ic_chevron_left_color_accent_24dp))
-                        emptyContent.swipe_right_two.setImageDrawable(getDrawable(requireContext(),
+                        binding.emptyFeedLayout.swipeRightTwo.setImageDrawable(getDrawable(requireContext(),
                                 ic_chevron_left_color_accent_fade_one_24dp))
-                        emptyContent.swipe_right_three.setImageDrawable(getDrawable(requireContext(),
+                        binding.emptyFeedLayout.swipeRightThree.setImageDrawable(getDrawable(requireContext(),
                                 ic_chevron_left_color_accent_fade_two_24dp))
-                        emptyContent.swipe_right_four.setImageDrawable(getDrawable(requireContext(),
+                        binding.emptyFeedLayout.swipeRightFour.setImageDrawable(getDrawable(requireContext(),
                                 ic_chevron_left_color_accent_fade_three_24dp))
-                        emptyContent.swipe_right_five.setImageDrawable(getDrawable(requireContext(),
+                        binding.emptyFeedLayout.swipeRightFive.setImageDrawable(getDrawable(requireContext(),
                                 ic_chevron_left_color_accent_fade_four_24dp))
-                        emptyContent.emptyInstructions.text =
-                                getString(no_dismissed_content_instructions)
-                        emptyContent.confirmation.visibility = VISIBLE
+                        binding.emptyFeedLayout.emptyInstructions.text = getString(no_dismissed_content_instructions)
+                        binding.emptyFeedLayout.confirmation.visibility = VISIBLE
                     }
                 }
             }
@@ -468,10 +465,10 @@ class FeedFragment : Fragment() {
 
     private fun setToolbar(toolbarState: ToolbarState) {
         binding.appbar.appBarLayout.visibility = feedViewModel.state.toolbarState.visibility
-        binding.appbar.appBarLayout.titleToolbar.text = context?.getString(feedViewModel.state.toolbarState.titleRes)
+        binding.appbar.titleToolbar.text = context?.getString(feedViewModel.state.toolbarState.titleRes)
         if (toolbarState.isActionBarEnabled) {
-            appbar.toolbar.title = ""
-            (activity as AppCompatActivity).setSupportActionBar(appbar.toolbar)
+            binding.appbar.toolbar.title = ""
+            (activity as AppCompatActivity).setSupportActionBar(binding.appbar.toolbar)
             (activity as AppCompatActivity).supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         }
     }
@@ -485,7 +482,7 @@ class FeedFragment : Fragment() {
         if (openContentFromNotification)
             openContentFromNotificationContentToPlay?.let {
                 viewEvent.contentSelected(ContentSelected(it.content, it.position))
-                contentRecyclerView.layoutManager?.scrollToPosition(it.position)
+                binding.contentRecyclerView.layoutManager?.scrollToPosition(it.position)
                 openContentFromNotification = false
             }
     }
