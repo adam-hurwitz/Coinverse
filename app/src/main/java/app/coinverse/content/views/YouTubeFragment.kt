@@ -55,12 +55,12 @@ class YouTubeFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        contentToPlay = arguments!!.getParcelable(CONTENT_TO_PLAY_KEY)!!
+        contentToPlay = requireArguments().getParcelable(CONTENT_TO_PLAY_KEY)!!
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        analytics.setCurrentScreen(activity!!, YOUTUBE_VIEW)
+        analytics.setCurrentScreen(requireActivity(), YOUTUBE_VIEW)
         binding = FragmentContentDialogBinding.inflate(inflater, container, false)
         val youTubePlayerFragment = YouTubePlayerSupportFragment.newInstance()
         youTubePlayerFragment.initialize(
