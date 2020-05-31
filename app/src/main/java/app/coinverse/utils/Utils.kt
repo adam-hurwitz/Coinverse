@@ -12,8 +12,11 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.toBitmap
 import androidx.navigation.ui.R.id.snackbar_text
 import androidx.paging.Config
+import app.coinverse.R
 import app.coinverse.R.color
-import app.coinverse.R.drawable.*
+import app.coinverse.R.drawable.ic_coinverse_24dp
+import app.coinverse.R.drawable.ic_coinverse_48dp
+import app.coinverse.R.drawable.ic_content_placeholder
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
@@ -45,6 +48,16 @@ fun getDisplayWidth(context: Context) = context.resources.displayMetrics.widthPi
 
 fun getDisplayHeight(context: Context) = context.resources.displayMetrics.heightPixels
 
+fun ImageView.setImageUrlRounded(url: String?) {
+    GlideApp.with(context)
+            .load(url)
+            .transform(RoundedCorners(CONTENT_IMAGE_CORNER_RADIUS))
+            .placeholder(R.drawable.ic_content_placeholder)
+            .error(R.drawable.ic_coinverse_24dp)
+            .fallback(R.drawable.ic_coinverse_24dp)
+            .into(this)
+}
+
 fun ImageView.setImageUrlRounded(context: Context, url: String) {
     GlideApp.with(context)
             .load(url)
@@ -60,6 +73,17 @@ fun ImageView.setImageUrlCircle(context: Context, url: String) {
             .load(url)
             .apply(RequestOptions.circleCropTransform())
             .into(this)
+}
+
+fun ImageView.setContentTypeIcon(contentType: ContentType) {
+    when (contentType) {
+        ContentType.ARTICLE -> this.setImageResource(R.drawable.ic_audio_black)
+        ContentType.YOUTUBE -> this.setImageResource(R.drawable.ic_video_black)
+    }
+}
+
+fun TextView.setTimePostedAgo(time: Long) {
+    this.text = getTimeAgo(context, time, false)
 }
 
 fun getDialogDisplayWidth(context: Context) =

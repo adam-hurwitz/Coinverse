@@ -17,6 +17,9 @@ import app.coinverse.feed.models.FeedViewEventType.ContentSelected
 import app.coinverse.feed.models.FeedViewEventType.ContentShared
 import app.coinverse.feed.models.FeedViewEventType.ContentSourceOpened
 import app.coinverse.feed.viewmodel.FeedViewModel
+import app.coinverse.utils.setContentTypeIcon
+import app.coinverse.utils.setImageUrlRounded
+import app.coinverse.utils.setTimePostedAgo
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 private val LOG_TAG = FeedAdapter::class.java.simpleName
@@ -35,10 +38,17 @@ class FeedAdapter(val viewModel: FeedViewModel, val viewEvent: FeedViewEvent)
 
     class ViewHolder(private var binding: CellContentBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(viewModel: FeedViewModel, content: Content, onClickListener: OnClickListener) {
-            binding.viewModel = viewModel
-            binding.data = content
-            binding.clickListener = onClickListener
-            binding.executePendingBindings()
+            binding.cellContentFeed.setOnClickListener(onClickListener)
+            binding.creator.text = content.creator
+            binding.timeAgo.setTimePostedAgo(content.timestamp.toDate().time)
+            binding.contentTypeLogo.setContentTypeIcon(content.contentType)
+            binding.contentTypeLogo.setOnClickListener(onClickListener)
+            binding.preview.setImageUrlRounded(content.previewImage)
+            binding.preview.setOnClickListener(onClickListener)
+            binding.progressBar.visibility = viewModel.getContentLoadingStatus(content.id)
+            binding.titleToolbar.text = content.title
+            binding.openSource.setOnClickListener(onClickListener)
+            binding.share.setOnClickListener(onClickListener)
         }
     }
 

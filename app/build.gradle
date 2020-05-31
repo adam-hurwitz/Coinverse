@@ -46,7 +46,6 @@ android {
     compileOptions { targetCompatibility JavaVersion.VERSION_1_8 }
 
     buildFeatures.viewBinding = true
-    buildFeatures.dataBinding = true
 
     testOptions { unitTests.includeAndroidResources = true }
 }
