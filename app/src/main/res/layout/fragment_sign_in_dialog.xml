@@ -1,77 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <androidx.core.widget.NestedScrollView
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:padding="@dimen/padding_medium">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <ImageView
+            android:id="@+id/profileImage"
+            android:layout_width="@dimen/dialog_image"
+            android:layout_height="@dimen/dialog_image"
+            android:contentDescription="@string/profile_image"
+            android:src="@drawable/ic_astronaut_color_accent_24dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/titleToolbar"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="@dimen/padding_medium">
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingBottom="@dimen/padding_large"
+            android:text="@string/sign_in_title"
+            android:textSize="@dimen/text_size_title"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/profileImage" />
 
-            <ImageView
-                android:id="@+id/profileImage"
-                android:layout_width="@dimen/dialog_image"
-                android:layout_height="@dimen/dialog_image"
-                android:contentDescription="@string/profile_image"
-                android:src="@drawable/ic_astronaut_color_accent_24dp"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+        <TextView
+            android:id="@+id/save_and_organize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableStart="@drawable/ic_coinverse_48dp"
+            android:drawablePadding="@dimen/padding_small"
+            android:gravity="center"
+            android:paddingBottom="@dimen/padding_large"
+            android:text="@string/save_and_organize"
+            android:textSize="@dimen/text_size_normal"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/titleToolbar" />
 
-            <TextView
-                android:id="@+id/titleToolbar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:paddingBottom="@dimen/padding_large"
-                android:text="@string/sign_in_title"
-                android:textSize="@dimen/text_size_title"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/profileImage" />
+        <TextView
+            android:id="@+id/community"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:drawableStart="@drawable/ic_community_48dp"
+            android:drawablePadding="@dimen/padding_small"
+            android:gravity="start"
+            android:paddingBottom="@dimen/padding_large"
+            android:text="@string/community"
+            android:textSize="@dimen/text_size_normal"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/save_and_organize" />
 
-            <TextView
-                android:id="@+id/save_and_organize"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:drawableStart="@drawable/ic_coinverse_48dp"
-                android:drawablePadding="@dimen/padding_small"
-                android:gravity="center"
-                android:paddingBottom="@dimen/padding_large"
-                android:text="@string/save_and_organize"
-                android:textSize="@dimen/text_size_normal"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/titleToolbar" />
+        <TextView
+            android:id="@+id/confirm"
+            style="@style/ButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/here_we_go"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/community" />
 
-            <TextView
-                android:id="@+id/community"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:drawableStart="@drawable/ic_community_48dp"
-                android:drawablePadding="@dimen/padding_small"
-                android:gravity="start"
-                android:paddingBottom="@dimen/padding_large"
-                android:text="@string/community"
-                android:textSize="@dimen/text_size_normal"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/save_and_organize" />
-
-            <TextView
-                android:id="@+id/confirm"
-                style="@style/ButtonStyle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="@string/here_we_go"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/community" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    </androidx.core.widget.NestedScrollView>
-</layout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>

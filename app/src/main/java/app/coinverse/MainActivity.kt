@@ -3,16 +3,16 @@ package app.coinverse
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.databinding.DataBindingUtil.setContentView
 import androidx.navigation.Navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import app.coinverse.R.id.dismissedContentFragment
 import app.coinverse.R.id.homeFragment
-import app.coinverse.R.layout.activity_main
 import app.coinverse.databinding.ActivityMainBinding
 import app.coinverse.feed.models.ContentToPlay
 import app.coinverse.home.HomeViewModel
-import app.coinverse.utils.FeedType.*
+import app.coinverse.utils.FeedType.DISMISSED
+import app.coinverse.utils.FeedType.MAIN
+import app.coinverse.utils.FeedType.SAVED
 import app.coinverse.utils.OPEN_CONTENT_FROM_NOTIFICATION_KEY
 import app.coinverse.utils.OPEN_FROM_NOTIFICATION_ACTION
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
@@ -23,15 +23,14 @@ class MainActivity : AppCompatActivity() {
     private val LOG_TAG = MainActivity::class.java.simpleName
     private val homeViewModel: HomeViewModel by viewModels()
 
-    private lateinit var binding: ActivityMainBinding
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = setContentView(this, activity_main)
+        setContentView(ActivityMainBinding.inflate(layoutInflater).root)
         openContentFromNotification()
     }
 
-    override fun onSupportNavigateUp() = findNavController(navHostFragment.view!!).navigateUp()
+    override fun onSupportNavigateUp() =
+            findNavController(navHostFragment.requireView()).navigateUp()
 
     override fun onBackPressed() {
         if (homeViewModel.bottomSheetState.value == STATE_EXPANDED)

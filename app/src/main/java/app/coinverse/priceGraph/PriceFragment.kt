@@ -7,7 +7,9 @@ import android.os.Bundle
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.*
+import android.view.View.GONE
+import android.view.View.INVISIBLE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -23,7 +25,11 @@ import app.coinverse.R.color.colorAccent
 import app.coinverse.R.color.colorPrimaryDark
 import app.coinverse.R.dimen.data_point_radius
 import app.coinverse.R.integer
-import app.coinverse.R.string.*
+import app.coinverse.R.string.ask
+import app.coinverse.R.string.bid
+import app.coinverse.R.string.max_min_format
+import app.coinverse.R.string.price_pair_format
+import app.coinverse.R.string.timeframe_last_day
 import app.coinverse.databinding.FragmentPriceBinding
 import app.coinverse.home.HomeViewModel
 import app.coinverse.priceGraph.models.PriceGraphData
@@ -31,7 +37,10 @@ import app.coinverse.priceGraph.models.PriceGraphXAndYConstraints
 import app.coinverse.priceGraph.viewmodel.PriceViewModel
 import app.coinverse.priceGraph.viewmodel.PriceViewModelFactory
 import app.coinverse.utils.Exchange
-import app.coinverse.utils.Exchange.*
+import app.coinverse.utils.Exchange.BINANCE
+import app.coinverse.utils.Exchange.COINBASE
+import app.coinverse.utils.Exchange.GEMINI
+import app.coinverse.utils.Exchange.KRAKEN
 import app.coinverse.utils.OrderType
 import app.coinverse.utils.OrderType.ASK
 import app.coinverse.utils.OrderType.BID
@@ -83,7 +92,6 @@ class PriceFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         binding = FragmentPriceBinding.inflate(inflater, container, false)
-        binding.lifecycleOwner = this
         return binding.root
     }
 
@@ -156,7 +164,7 @@ class PriceFragment : Fragment() {
             setExchangeToggleColor(GEMINI, enabledExchangeList, geminiToggle)
             setExchangeToggleColor(KRAKEN, enabledExchangeList, krakenToggle)
 
-            for (exchange in enabledExchangeList!!) {
+            for (exchange in enabledExchangeList) {
                 val graphSeriesMap = priceViewModel.graphSeriesMap[exchange]
                 val asks = graphSeriesMap?.asks
                 val bids = graphSeriesMap?.bids
