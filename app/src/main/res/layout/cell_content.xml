@@ -45,6 +45,30 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@id/timeAgo" />
 
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/youTubeLogoTopGuideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="@dimen/youtube_logo_top_guideline_percent" />
+
+        <ImageView
+            android:id="@+id/youTubeLogo"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:contentDescription="@string/youtube_logo_content_description"
+            app:layout_constraintBottom_toBottomOf="@id/youTubeLogoBottomGuideline"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="@id/youTubeLogoTopGuideline" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/youTubeLogoBottomGuideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="@dimen/youtube_logo_bottom_guideline_percent" />
+
         <ProgressBar
             android:id="@+id/progressBar"
             android:layout_width="wrap_content"

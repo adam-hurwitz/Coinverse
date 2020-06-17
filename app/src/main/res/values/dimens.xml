@@ -41,7 +41,8 @@
     <integer name="price_graph_base_to_quote_margin">8</integer>
 
     <item name="price_graph_constraint_guideline" format="float" type="dimen">0.8</item>
-    <item name="price_graph_asks_and_bids_constraint_guideline" format="float" type="dimen">0.5</item>
+    <item name="price_graph_asks_and_bids_constraint_guideline" format="float" type="dimen">0.5
+    </item>
     <item name="data_point_radius" format="float" type="dimen">0.0</item>
 
     <!--Content Feed-->
@@ -50,6 +51,8 @@
     <dimen name="empty_content_image_dimen">96dp</dimen>
     <dimen name="card_elevation">8dp</dimen>
     <dimen name="saved_bottomsheet_background_handle">48dp</dimen>
+    <item name="youtube_logo_top_guideline_percent" format="float" type="dimen">0.45</item>
+    <item name="youtube_logo_bottom_guideline_percent" format="float" type="dimen">0.55</item>
     <integer name="maxLines">2</integer>
     <item name="content_transparency" format="float" type="dimen">0.90</item>
 

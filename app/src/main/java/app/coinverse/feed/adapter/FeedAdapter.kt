@@ -20,6 +20,7 @@ import app.coinverse.feed.viewmodel.FeedViewModel
 import app.coinverse.utils.setContentTypeIcon
 import app.coinverse.utils.setImageUrlRounded
 import app.coinverse.utils.setTimePostedAgo
+import app.coinverse.utils.setYouTubeLogo
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 private val LOG_TAG = FeedAdapter::class.java.simpleName
@@ -42,6 +43,7 @@ class FeedAdapter(val viewModel: FeedViewModel, val viewEvent: FeedViewEvent)
             binding.creator.text = content.creator
             binding.timeAgo.setTimePostedAgo(content.timestamp.toDate().time)
             binding.contentTypeLogo.setContentTypeIcon(content.contentType)
+            binding.youTubeLogo.setYouTubeLogo(content.contentType)
             binding.contentTypeLogo.setOnClickListener(onClickListener)
             binding.preview.setImageUrlRounded(content.previewImage)
             binding.preview.setOnClickListener(onClickListener)

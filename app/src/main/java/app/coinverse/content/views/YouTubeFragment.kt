@@ -23,6 +23,7 @@ import app.coinverse.utils.YOUTUBE_VIEW
 import app.coinverse.utils.auth.APP_API_KEY_OPEN_SHARED
 import app.coinverse.utils.auth.APP_API_KEY_PRODUCTION
 import app.coinverse.utils.auth.APP_API_KEY_STAGING
+import com.crashlytics.android.Crashlytics
 import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
 import com.google.android.youtube.player.YouTubePlayerSupportFragment
@@ -116,11 +117,15 @@ class YouTubeFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        if (youtubePlayer != null)
-            lifecycleScope.launch(Dispatchers.IO) {
-                analytics.updateActionsAndAnalytics(contentToPlay.content,
-                        (youtubePlayer.currentTimeMillis.toDouble() - seekToPositionMillis)
-                                / youtubePlayer.durationMillis)
-            }
+        try {
+            if (youtubePlayer != null)
+                lifecycleScope.launch(Dispatchers.IO) {
+                    analytics.updateActionsAndAnalytics(contentToPlay.content,
+                            (youtubePlayer.currentTimeMillis.toDouble() - seekToPositionMillis)
+                                    / youtubePlayer.durationMillis)
+                }
+        } catch (error: Exception) {
+            Crashlytics.log(Log.ERROR, LOG_TAG, error.localizedMessage)
+        }
     }
 }

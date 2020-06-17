@@ -6,6 +6,8 @@ import android.content.res.Resources
 import android.graphics.BitmapFactory
 import android.util.DisplayMetrics
 import android.view.View
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
@@ -17,6 +19,7 @@ import app.coinverse.R.color
 import app.coinverse.R.drawable.ic_coinverse_24dp
 import app.coinverse.R.drawable.ic_coinverse_48dp
 import app.coinverse.R.drawable.ic_content_placeholder
+import app.coinverse.R.drawable.yt_logo_mono_dark
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
@@ -79,6 +82,15 @@ fun ImageView.setContentTypeIcon(contentType: ContentType) {
     when (contentType) {
         ContentType.ARTICLE -> this.setImageResource(R.drawable.ic_audio_black)
         ContentType.YOUTUBE -> this.setImageResource(R.drawable.ic_video_black)
+    }
+}
+
+fun ImageView.setYouTubeLogo(contentType: ContentType) {
+    if (contentType == ContentType.YOUTUBE) {
+        this.visibility = VISIBLE
+        this.setImageResource(yt_logo_mono_dark)
+    } else {
+        this.visibility = GONE
     }
 }
 
