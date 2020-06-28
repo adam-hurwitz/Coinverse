@@ -128,6 +128,7 @@ val DISMISS_EVENT = getInstance().getString("dismiss_content_event")
 val USER_ID_PARAM = getInstance().getString("user_id_param")
 val TIMESTAMP_PARAM = getInstance().getString("timestamp_param")
 val CREATOR_PARAM = getInstance().getString("creator_name_param")
+val YOUTUBE_WATCH_PERCENT_ERROR = -1.0
 
 // Utils
 const val REQUEST_CODE_LOC_PERMISSION = 1909

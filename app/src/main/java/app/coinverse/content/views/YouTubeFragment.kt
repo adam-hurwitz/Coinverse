@@ -20,6 +20,7 @@ import app.coinverse.utils.BuildType.release
 import app.coinverse.utils.CONTENT_TO_PLAY_KEY
 import app.coinverse.utils.YOUTUBE_ID_REGEX
 import app.coinverse.utils.YOUTUBE_VIEW
+import app.coinverse.utils.YOUTUBE_WATCH_PERCENT_ERROR
 import app.coinverse.utils.auth.APP_API_KEY_OPEN_SHARED
 import app.coinverse.utils.auth.APP_API_KEY_PRODUCTION
 import app.coinverse.utils.auth.APP_API_KEY_STAGING
@@ -117,15 +118,21 @@ class YouTubeFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        try {
-            if (youtubePlayer != null)
+        if (youtubePlayer != null) {
+            val watchPercent = getWatchPercent()
+            if (watchPercent != YOUTUBE_WATCH_PERCENT_ERROR)
                 lifecycleScope.launch(Dispatchers.IO) {
-                    analytics.updateActionsAndAnalytics(contentToPlay.content,
-                            (youtubePlayer.currentTimeMillis.toDouble() - seekToPositionMillis)
-                                    / youtubePlayer.durationMillis)
+                    analytics.updateActionsAndAnalytics(contentToPlay.content, watchPercent)
                 }
-        } catch (error: Exception) {
-            Crashlytics.log(Log.ERROR, LOG_TAG, error.localizedMessage)
         }
     }
+
+    private fun getWatchPercent() =
+            try {
+                ((youtubePlayer.currentTimeMillis.toDouble() - seekToPositionMillis)
+                        / youtubePlayer.durationMillis)
+            } catch (error: Exception) {
+                Crashlytics.log(Log.ERROR, LOG_TAG, error.localizedMessage)
+                YOUTUBE_WATCH_PERCENT_ERROR
+            }
 }
