@@ -2,6 +2,7 @@ package app.coinverse.feedViewModel.tests
 
 import app.coinverse.analytics.Analytics
 import app.coinverse.feed.FeedRepository
+import app.coinverse.feed.FeedViewModel
 import app.coinverse.feed.models.FeedViewEffectType.ContentSwipedEffect
 import app.coinverse.feed.models.FeedViewEffectType.NotifyItemChangedEffect
 import app.coinverse.feed.models.FeedViewEffectType.SignInEffect
@@ -9,7 +10,6 @@ import app.coinverse.feed.models.FeedViewEffectType.SnackBarEffect
 import app.coinverse.feed.models.FeedViewEventType.ContentLabeled
 import app.coinverse.feed.models.FeedViewEventType.ContentSwipeDrawed
 import app.coinverse.feed.models.FeedViewEventType.ContentSwiped
-import app.coinverse.feed.viewmodel.FeedViewModel
 import app.coinverse.feedViewModel.LabelContentTest
 import app.coinverse.feedViewModel.mockEditContentLabels
 import app.coinverse.feedViewModel.mockGetMainFeedList
@@ -39,6 +39,7 @@ import io.mockk.mockkClass
 import io.mockk.mockkStatic
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.test.runBlockingTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
@@ -48,7 +49,10 @@ import org.junit.jupiter.params.provider.MethodSource
 
 @ExperimentalCoroutinesApi
 @ExtendWith(ContentTestExtension::class)
-class LabelContentTests(val testDispatcher: TestCoroutineDispatcher) {
+class LabelContentTests(
+        val testDispatcher: TestCoroutineDispatcher,
+        val testScope: TestCoroutineScope
+) {
 
     private fun LabelContent() = labelContentTestCases()
     private val repository = mockkClass(FeedRepository::class)
@@ -69,11 +73,12 @@ class LabelContentTests(val testDispatcher: TestCoroutineDispatcher) {
     fun `Label Content`(test: LabelContentTest) = testDispatcher.runBlockingTest {
         mockComponents(test)
         feedViewModel = FeedViewModel(
-                repository = repository,
-                analytics = analytics,
+                coroutineScopeProvider = testScope,
                 feedType = test.feedType,
                 timeframe = test.timeframe,
-                isRealtime = test.isRealtime)
+                isRealtime = test.isRealtime,
+                repository = repository,
+                analytics = analytics)
         assertContentList(test)
         ContentSwipeDrawed(test.isDrawed).also { event ->
             feedViewModel.contentSwipeDrawed(event)

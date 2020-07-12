@@ -20,6 +20,8 @@ import java.util.concurrent.TimeoutException
 
 val TEST_COROUTINE_DISPATCHER_NAMESPACE =
         ExtensionContext.Namespace.create(TEST_COROUTINE_DISPATCHER_NAMESPACE_STRING)
+val TEST_COROUTINE_SCOPE_NAMESPACE =
+        ExtensionContext.Namespace.create(TEST_COROUTINE_SCOPE_NAMESPACE_STRING)
 
 fun LabelContentTest.mockUser() =
         if (this.isUserSignedIn) FirebaseAuth.getInstance().currentUser else null

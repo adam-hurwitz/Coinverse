@@ -11,12 +11,12 @@ import app.coinverse.R.id.openSource
 import app.coinverse.R.id.preview
 import app.coinverse.R.id.share
 import app.coinverse.databinding.CellContentBinding
+import app.coinverse.feed.FeedViewModel
 import app.coinverse.feed.models.Content
 import app.coinverse.feed.models.FeedViewEvent
 import app.coinverse.feed.models.FeedViewEventType.ContentSelected
 import app.coinverse.feed.models.FeedViewEventType.ContentShared
 import app.coinverse.feed.models.FeedViewEventType.ContentSourceOpened
-import app.coinverse.feed.viewmodel.FeedViewModel
 import app.coinverse.utils.setContentTypeIcon
 import app.coinverse.utils.setImageUrlRounded
 import app.coinverse.utils.setTimePostedAgo

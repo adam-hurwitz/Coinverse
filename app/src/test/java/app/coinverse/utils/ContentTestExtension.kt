@@ -6,6 +6,7 @@ import io.mockk.unmockkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.jupiter.api.extension.AfterAllCallback
@@ -53,6 +54,7 @@ class ContentTestExtension : AfterAllCallback, BeforeEachCallback, AfterEachCall
     override fun supportsParameter(parameterContext: ParameterContext?,
                                    extensionContext: ExtensionContext?) =
             parameterContext?.parameter?.type == TestCoroutineDispatcher::class.java
+                    || parameterContext?.parameter?.type == TestCoroutineScope::class.java
 
     @ExperimentalCoroutinesApi
     override fun resolveParameter(parameterContext: ParameterContext?,
@@ -61,6 +63,11 @@ class ContentTestExtension : AfterAllCallback, BeforeEachCallback, AfterEachCall
                 getTestCoroutineDispatcher(extensionContext).let { dipatcher ->
                     if (dipatcher == null) saveAndReturnTestCoroutineDispatcher(extensionContext)
                     else dipatcher
+                }
+            else if (parameterContext?.parameter?.type == TestCoroutineScope::class.java)
+                getTestCoroutineScope(extensionContext).let { scope ->
+                    if (scope == null) saveAndReturnTestCoroutineScope(extensionContext)
+                    else scope
                 }
             else null
 
@@ -76,5 +83,16 @@ class ContentTestExtension : AfterAllCallback, BeforeEachCallback, AfterEachCall
                 extensionContext?.root
                         ?.getStore(TEST_COROUTINE_DISPATCHER_NAMESPACE)
                         ?.put(TEST_COROUTINE_DISPATCHER_KEY, this)
+            }
+
+    private fun getTestCoroutineScope(context: ExtensionContext?) = context?.root
+            ?.getStore(TEST_COROUTINE_SCOPE_NAMESPACE)
+            ?.get(TEST_COROUTINE_SCOPE_KEY, TestCoroutineScope::class.java)
+
+    private fun saveAndReturnTestCoroutineScope(context: ExtensionContext?) =
+            TestCoroutineScope(getTestCoroutineDispatcher(context)!!).apply {
+                context?.root
+                        ?.getStore(TEST_COROUTINE_SCOPE_NAMESPACE)
+                        ?.put(TEST_COROUTINE_SCOPE_KEY, this)
             }
 }

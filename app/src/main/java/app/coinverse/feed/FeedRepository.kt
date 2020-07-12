@@ -6,19 +6,39 @@ import androidx.paging.PagedList
 import androidx.paging.toLiveData
 import app.coinverse.BuildConfig
 import app.coinverse.feed.models.Content
-import app.coinverse.feed.models.ContentToPlay
 import app.coinverse.feed.models.FeedViewEventType
 import app.coinverse.feed.room.FeedDao
-import app.coinverse.firebase.*
-import app.coinverse.utils.*
-import app.coinverse.utils.FeedType.*
+import app.coinverse.firebase.COLLECTIONS_DOCUMENT
+import app.coinverse.firebase.DISMISS_COLLECTION
+import app.coinverse.firebase.SAVE_COLLECTION
+import app.coinverse.firebase.contentEnCollection
+import app.coinverse.firebase.firebaseApp
+import app.coinverse.firebase.usersDocument
+import app.coinverse.utils.BUILD_TYPE_PARAM
+import app.coinverse.utils.CONTENT_ID_PARAM
+import app.coinverse.utils.CONTENT_LOGGED_IN_REALTIME_ERROR
+import app.coinverse.utils.CONTENT_LOGGED_OUT_NON_REALTIME_ERROR
+import app.coinverse.utils.CONTENT_PREVIEW_IMAGE_PARAM
+import app.coinverse.utils.CONTENT_TITLE_PARAM
+import app.coinverse.utils.ERROR_PATH_PARAM
+import app.coinverse.utils.FILE_PATH_PARAM
+import app.coinverse.utils.FeedType
+import app.coinverse.utils.FeedType.DISMISSED
+import app.coinverse.utils.FeedType.MAIN
+import app.coinverse.utils.FeedType.SAVED
+import app.coinverse.utils.GET_AUDIOCAST_FUNCTION
+import app.coinverse.utils.Resource
 import app.coinverse.utils.Resource.Companion.error
 import app.coinverse.utils.Resource.Companion.loading
 import app.coinverse.utils.Resource.Companion.success
 import app.coinverse.utils.Status.ERROR
 import app.coinverse.utils.Status.SUCCESS
+import app.coinverse.utils.TIMESTAMP
+import app.coinverse.utils.UserActionType
 import app.coinverse.utils.UserActionType.DISMISS
 import app.coinverse.utils.UserActionType.SAVE
+import app.coinverse.utils.awaitRealtime
+import app.coinverse.utils.pagedListConfig
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth.getInstance
 import com.google.firebase.auth.FirebaseUser
@@ -75,7 +95,7 @@ class FeedRepository @Inject constructor(private val feedDao: FeedDao) {
                     .continueWith { task -> (task.result?.data as HashMap<String, String>) }
                     .await().also { response ->
                         if (response?.get(ERROR_PATH_PARAM).isNullOrEmpty())
-                            emit(success((ContentToPlay(
+                            emit(success((app.coinverse.feed.models.ContentToPlay(
                                     position = contentSelected.position,
                                     content = contentSelected.content,
                                     filePath = response?.get(FILE_PATH_PARAM)))))
@@ -85,7 +105,7 @@ class FeedRepository @Inject constructor(private val feedDao: FeedDao) {
             val errorMessage = if (error is FirebaseFunctionsException)
                 "$GET_AUDIOCAST_FUNCTION exception: " +
                         "${error.code.name} details: ${error.details.toString()}"
-            else "$GET_AUDIOCAST_FUNCTION exception: ${error?.localizedMessage}"
+            else "$GET_AUDIOCAST_FUNCTION exception: ${error.localizedMessage}"
             emit(error(errorMessage, null))
         }
     }
@@ -112,6 +132,7 @@ class FeedRepository @Inject constructor(private val feedDao: FeedDao) {
                                 userCollection = userReference,
                                 content = content,
                                 position = position).collect { emit(it) }
+
                         ERROR -> emit(resource)
                     }
                 }

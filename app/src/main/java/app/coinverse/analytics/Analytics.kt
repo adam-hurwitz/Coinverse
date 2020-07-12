@@ -68,7 +68,7 @@ class Analytics @Inject constructor(
      * @param content Content audiocast, video, or text media
      * @param watchPercent Double the amount of time in seconds the user has listened/watched content
      */
-    fun updateActionsAndAnalytics(content: Content, watchPercent: Double) {
+    suspend fun updateActionsAndAnalytics(content: Content, watchPercent: Double) {
         val bundle = Bundle()
         feedDao.updateContent(content)
         if (watchPercent >= FINISH_THRESHOLD) {

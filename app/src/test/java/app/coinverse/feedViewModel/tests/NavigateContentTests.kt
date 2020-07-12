@@ -2,12 +2,12 @@ package app.coinverse.feedViewModel.tests
 
 import app.coinverse.analytics.Analytics
 import app.coinverse.feed.FeedRepository
+import app.coinverse.feed.FeedViewModel
 import app.coinverse.feed.models.FeedViewEffectType.OpenContentSourceIntentEffect
 import app.coinverse.feed.models.FeedViewEffectType.UpdateAdsEffect
 import app.coinverse.feed.models.FeedViewEventType.ContentShared
 import app.coinverse.feed.models.FeedViewEventType.ContentSourceOpened
 import app.coinverse.feed.models.FeedViewEventType.UpdateAds
-import app.coinverse.feed.viewmodel.FeedViewModel
 import app.coinverse.feedViewModel.NavigateContentTest
 import app.coinverse.feedViewModel.mockGetContent
 import app.coinverse.feedViewModel.mockGetMainFeedList
@@ -25,6 +25,7 @@ import io.mockk.every
 import io.mockk.mockkClass
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.test.runBlockingTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.extension.ExtendWith
@@ -33,7 +34,10 @@ import org.junit.jupiter.params.provider.MethodSource
 
 @ExperimentalCoroutinesApi
 @ExtendWith(ContentTestExtension::class)
-class NavigateContentTests(val testDispatcher: TestCoroutineDispatcher) {
+class NavigateContentTests(
+        val testDispatcher: TestCoroutineDispatcher,
+        val testScope: TestCoroutineScope
+) {
 
     private fun NavigateContent() = navigateContentTestCases()
     private val repository = mockkClass(FeedRepository::class)
@@ -45,11 +49,12 @@ class NavigateContentTests(val testDispatcher: TestCoroutineDispatcher) {
     fun `Navigate Content`(test: NavigateContentTest) = testDispatcher.runBlockingTest {
         mockComponents(test)
         feedViewModel = FeedViewModel(
-                repository = repository,
-                analytics = analytics,
+                coroutineScopeProvider = testScope,
                 feedType = test.feedType,
                 timeframe = test.timeframe,
-                isRealtime = test.isRealtime)
+                isRealtime = test.isRealtime,
+                repository = repository,
+                analytics = analytics)
         println("NavigateContent: ${test.mockContent.contentType}")
         assertContentList(test)
         ContentShared(test.mockContent).also { event ->

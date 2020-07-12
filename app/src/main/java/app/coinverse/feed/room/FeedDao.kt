@@ -20,8 +20,8 @@ interface FeedDao {
     fun getLabeledFeedRoom(feedType: FeedType): DataSource.Factory<Int, Content>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insertFeed(users: List<Content>?)
+    suspend fun insertFeed(users: List<Content>?)
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
-    fun updateContent(content: Content)
+    suspend fun updateContent(content: Content)
 }

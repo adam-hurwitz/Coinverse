@@ -8,13 +8,13 @@ import app.coinverse.content.AudioViewEventType.AudioPlayerLoad
 import app.coinverse.content.ContentRepository
 import app.coinverse.content.viewmodel.AudioViewModel
 import app.coinverse.feed.FeedRepository
+import app.coinverse.feed.FeedViewModel
 import app.coinverse.feed.models.Content
 import app.coinverse.feed.models.ContentPlayer
 import app.coinverse.feed.models.ContentToPlay
 import app.coinverse.feed.models.FeedViewEffectType.NotifyItemChangedEffect
 import app.coinverse.feed.models.FeedViewEffectType.SnackBarEffect
 import app.coinverse.feed.models.FeedViewEventType.ContentSelected
-import app.coinverse.feed.viewmodel.FeedViewModel
 import app.coinverse.feedViewModel.PlayContentTest
 import app.coinverse.feedViewModel.mockBitmapToByteArray
 import app.coinverse.feedViewModel.mockGetAudiocast
@@ -52,6 +52,7 @@ import io.mockk.mockkClass
 import io.mockk.mockkStatic
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.test.runBlockingTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
@@ -61,7 +62,10 @@ import org.junit.jupiter.params.provider.MethodSource
 
 @ExperimentalCoroutinesApi
 @ExtendWith(ContentTestExtension::class)
-class PlayContentTests constructor(val testDispatcher: TestCoroutineDispatcher) {
+class PlayContentTests constructor(
+        val testDispatcher: TestCoroutineDispatcher,
+        val testScope: TestCoroutineScope
+) {
 
     private fun PlayContent() = playContentTestCases()
     private val feedRepository = mockkClass(FeedRepository::class)
@@ -84,11 +88,12 @@ class PlayContentTests constructor(val testDispatcher: TestCoroutineDispatcher) 
     fun `Play Content`(test: PlayContentTest) = testDispatcher.runBlockingTest {
         mockComponents(test)
         feedViewModel = FeedViewModel(
-                repository = feedRepository,
-                analytics = analytics,
+                coroutineScopeProvider = testScope,
                 feedType = test.feedType,
                 timeframe = test.timeframe,
-                isRealtime = test.isRealtime)
+                isRealtime = test.isRealtime,
+                repository = feedRepository,
+                analytics = analytics)
         audioViewModel = AudioViewModel(repository = contentRepository)
         assertContentList(test)
         ContentSelected(test.mockContent, test.mockPosition).also { event ->

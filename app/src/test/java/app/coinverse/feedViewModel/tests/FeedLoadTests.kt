@@ -7,12 +7,12 @@ import app.coinverse.R.string.dismissed
 import app.coinverse.R.string.saved
 import app.coinverse.analytics.Analytics
 import app.coinverse.feed.FeedRepository
+import app.coinverse.feed.FeedViewModel
 import app.coinverse.feed.models.FeedViewEffectType.ScreenEmptyEffect
 import app.coinverse.feed.models.FeedViewEffectType.SnackBarEffect
 import app.coinverse.feed.models.FeedViewEffectType.SwipeToRefreshEffect
 import app.coinverse.feed.models.FeedViewEffectType.UpdateAdsEffect
 import app.coinverse.feed.models.FeedViewEventType.FeedLoadComplete
-import app.coinverse.feed.viewmodel.FeedViewModel
 import app.coinverse.feedViewModel.FeedLoadTest
 import app.coinverse.feedViewModel.mockGetMainFeedList
 import app.coinverse.feedViewModel.mockQueryMainContentListFlow
@@ -46,6 +46,7 @@ import io.mockk.mockkClass
 import io.mockk.mockkStatic
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.test.runBlockingTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
@@ -55,7 +56,10 @@ import org.junit.jupiter.params.provider.MethodSource
 
 @ExperimentalCoroutinesApi
 @ExtendWith(ContentTestExtension::class)
-class FeedLoadTests(val testDispatcher: TestCoroutineDispatcher) {
+class FeedLoadTests(
+        val testDispatcher: TestCoroutineDispatcher,
+        val testScope: TestCoroutineScope
+) {
 
     private fun FeedLoad() = feedLoadTestCases()
     private val repository = mockkClass(FeedRepository::class)
@@ -74,11 +78,12 @@ class FeedLoadTests(val testDispatcher: TestCoroutineDispatcher) {
     fun `Feed Load`(test: FeedLoadTest) = testDispatcher.runBlockingTest {
         mockComponents(test)
         feedViewModel = FeedViewModel(
-                repository = repository,
-                analytics = analytics,
+                coroutineScopeProvider = testScope,
                 feedType = test.feedType,
                 timeframe = test.timeframe,
-                isRealtime = test.isRealtime)
+                isRealtime = test.isRealtime,
+                repository = repository,
+                analytics = analytics)
         assertThatToolbarState(test)
         assertContentList(test, FEED_LOAD)
         verifyTests(test)
@@ -89,13 +94,14 @@ class FeedLoadTests(val testDispatcher: TestCoroutineDispatcher) {
     fun `Swipe-to-Refresh`(test: FeedLoadTest) = testDispatcher.runBlockingTest {
         mockComponents(test)
         feedViewModel = FeedViewModel(
-                repository = repository,
-                analytics = analytics,
+                coroutineScopeProvider = testScope,
                 feedType = test.feedType,
                 timeframe = test.timeframe,
-                isRealtime = test.isRealtime)
+                isRealtime = test.isRealtime,
+                repository = repository,
+                analytics = analytics)
         assertContentList(test, FEED_LOAD)
-        // FIXME
+        // Fixme
         /*if (test.feedType == MAIN)
             SwipeToRefresh(test.feedType, test.timeframe, false).also { event ->
                 feedViewModel.swipeToRefresh(event)

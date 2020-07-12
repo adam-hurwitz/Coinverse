@@ -23,7 +23,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources.getDrawable
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.observe
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -60,6 +59,7 @@ import app.coinverse.R.string.no_saved_content_title
 import app.coinverse.analytics.Analytics
 import app.coinverse.content.views.ContentDialogFragment
 import app.coinverse.databinding.FragmentFeedBinding
+import app.coinverse.dependencyInjection.Component
 import app.coinverse.feed.adapter.FeedAdapter
 import app.coinverse.feed.adapter.initItemTouchHelper
 import app.coinverse.feed.models.ContentToPlay
@@ -69,8 +69,6 @@ import app.coinverse.feed.models.FeedViewEventType.ContentSelected
 import app.coinverse.feed.models.FeedViewEventType.FeedLoadComplete
 import app.coinverse.feed.models.FeedViewEventType.SwipeToRefresh
 import app.coinverse.feed.models.FeedViewEventType.UpdateAds
-import app.coinverse.feed.viewmodel.FeedViewModel
-import app.coinverse.feed.viewmodel.FeedViewModelFactory
 import app.coinverse.home.HomeViewModel
 import app.coinverse.user.SignInDialogFragment
 import app.coinverse.utils.AD_UNIT_ID
@@ -98,6 +96,7 @@ import app.coinverse.utils.SignInType.DIALOG
 import app.coinverse.utils.ToolbarState
 import app.coinverse.utils.VIDEO_SHARE_MESSAGE
 import app.coinverse.utils.snackbarWithText
+import app.coinverse.utils.viewmodel.fragmentSavedStateViewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
 import com.google.firebase.auth.FirebaseAuth
@@ -119,28 +118,19 @@ import javax.inject.Inject
 
 private val LOG_TAG = FeedFragment::class.java.simpleName
 
+@ExperimentalCoroutinesApi
 class FeedFragment : Fragment() {
 
     @Inject
     lateinit var analytics: Analytics
 
-    @Inject
-    lateinit var repository: FeedRepository
-
     private val homeViewModel: HomeViewModel by activityViewModels()
-    private val feedViewModel: FeedViewModel by viewModels {
-        FeedViewModelFactory(
-                this,
-                repository = repository,
-                analytics = analytics,
-                feedType = feedType,
-                timeframe = homeViewModel.timeframe.value!!,
-                isRealtime = homeViewModel.isRealtime.value!!)
-    }
     private var clearAdjacentAds = false
     private var openContentFromNotification = false
     private var openContentFromNotificationContentToPlay: ContentToPlay? = null
 
+    private lateinit var component: Component
+    private lateinit var feedViewModel: FeedViewModel
     private lateinit var viewEvent: FeedViewEvent
     private lateinit var feedType: FeedType
     private lateinit var binding: FragmentFeedBinding
@@ -158,7 +148,8 @@ class FeedFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        (context.applicationContext as App).component.inject(this)
+        component = (context.applicationContext as App).component
+        component.inject(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -166,10 +157,19 @@ class FeedFragment : Fragment() {
         getFeedType()
     }
 
-    @ExperimentalCoroutinesApi
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+            inflater: LayoutInflater, container: ViewGroup?,
+            savedInstanceState: Bundle?
+    ): View? {
         analytics.setCurrentScreen(requireActivity(), feedType.name)
+        val feedViewModel: FeedViewModel by fragmentSavedStateViewModels { handle ->
+            component.feedViewModelFactory().create(
+                    feedType = feedType,
+                    timeframe = homeViewModel.timeframe.value!!,
+                    isRealtime = homeViewModel.isRealtime.value!!
+            )
+        }
+        this.feedViewModel = feedViewModel
         feedViewModel.launchViewEvents(this)
         binding = FragmentFeedBinding.inflate(inflater, container, false)
         return binding.root

@@ -1,17 +1,14 @@
-package app.coinverse.feed.viewmodel
+package app.coinverse.feed
 
 import android.util.Log.ERROR
 import android.view.View
 import android.widget.ProgressBar.GONE
 import android.widget.ProgressBar.VISIBLE
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import app.coinverse.R.string.app_name
 import app.coinverse.R.string.dismissed
 import app.coinverse.R.string.saved
 import app.coinverse.analytics.Analytics
-import app.coinverse.feed.FeedFragment
-import app.coinverse.feed.FeedRepository
 import app.coinverse.feed.models.ContentToPlay
 import app.coinverse.feed.models.FeedViewEffect
 import app.coinverse.feed.models.FeedViewEffectType.ContentSwipedEffect
@@ -58,23 +55,39 @@ import app.coinverse.utils.TTS_CHAR_LIMIT_ERROR_MESSAGE
 import app.coinverse.utils.Timeframe
 import app.coinverse.utils.ToolbarState
 import app.coinverse.utils.getTimeframe
+import app.coinverse.utils.viewmodel.getViewModelScope
 import com.crashlytics.android.Crashlytics
 import com.google.firebase.Timestamp
-import kotlinx.coroutines.Dispatchers
+import com.squareup.inject.assisted.Assisted
+import com.squareup.inject.assisted.AssistedInject
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.withContext
 
 @ExperimentalCoroutinesApi
-class FeedViewModel(private val repository: FeedRepository,
-                    private val analytics: Analytics,
-                    private val feedType: FeedType,
-                    private val timeframe: Timeframe,
-                    private val isRealtime: Boolean) : ViewModel(), FeedViewEvent {
+class FeedViewModel @AssistedInject constructor(
+        @Assisted private val coroutineScopeProvider: CoroutineScope?,
+        @Assisted private val feedType: FeedType,
+        @Assisted private val timeframe: Timeframe,
+        @Assisted private val isRealtime: Boolean,
+        private val repository: FeedRepository,
+        private val analytics: Analytics
+) : ViewModel(), FeedViewEvent {
     private val LOG_TAG = FeedViewModel::class.java.simpleName
+
+    @AssistedInject.Factory
+    interface Factory {
+        fun create(
+                coroutineScopeProvider: CoroutineScope? = null,
+                feedType: FeedType,
+                timeframe: Timeframe,
+                isRealtime: Boolean
+        ): FeedViewModel
+    }
+
+    private val coroutineScope = getViewModelScope(coroutineScopeProvider)
 
     private val _state = _FeedViewState(feedType, setToolbar(feedType))
     val state = FeedViewState(_state)
@@ -103,28 +116,26 @@ class FeedViewModel(private val repository: FeedRepository,
         val contentSelected = ContentSelected(event.content, event.position)
         when (contentSelected.content.contentType) {
             ARTICLE -> repository.getAudiocast(contentSelected).onEach { resource ->
-                withContext(Dispatchers.Main) {
-                    when (resource.status) {
-                        LOADING -> {
-                            setContentLoadingStatus(contentSelected.content.id, VISIBLE)
-                            _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
-                        }
-                        SUCCESS -> {
-                            setContentLoadingStatus(contentSelected.content.id, GONE)
-                            _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
-                            _state._contentToPlay.value = resource.data
-                        }
-                        Status.ERROR -> {
-                            setContentLoadingStatus(contentSelected.content.id, GONE)
-                            _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
-                            _effect._snackBar.value = SnackBarEffect(
-                                    if (resource.message.equals(TTS_CHAR_LIMIT_ERROR))
-                                        TTS_CHAR_LIMIT_ERROR_MESSAGE
-                                    else CONTENT_PLAY_ERROR)
-                        }
+                when (resource.status) {
+                    LOADING -> {
+                        setContentLoadingStatus(contentSelected.content.id, VISIBLE)
+                        _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
+                    }
+                    SUCCESS -> {
+                        setContentLoadingStatus(contentSelected.content.id, GONE)
+                        _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
+                        _state._contentToPlay.value = resource.data
+                    }
+                    Status.ERROR -> {
+                        setContentLoadingStatus(contentSelected.content.id, GONE)
+                        _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
+                        _effect._snackBar.value = SnackBarEffect(
+                                if (resource.message.equals(TTS_CHAR_LIMIT_ERROR))
+                                    TTS_CHAR_LIMIT_ERROR_MESSAGE
+                                else CONTENT_PLAY_ERROR)
                     }
                 }
-            }.flowOn(Dispatchers.IO).launchIn(viewModelScope)
+            }.launchIn(coroutineScope)
             YOUTUBE -> {
                 setContentLoadingStatus(contentSelected.content.id, View.GONE)
                 _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
@@ -162,19 +173,15 @@ class FeedViewModel(private val repository: FeedRepository,
                             if (event.isMainFeedEmptied)
                                 analytics.updateFeedEmptiedActionsAndAnalytics(event.user.uid)
                         }
-                        withContext(Dispatchers.Main) {
-                            _state._contentLabeledPosition.value = event.position
-                        }
+                        _state._contentLabeledPosition.value = event.position
                     }
                     Status.ERROR -> {
-                        withContext(Dispatchers.Main) {
-                            _state._contentLabeledPosition.value = null
-                            _effect._snackBar.value = SnackBarEffect(CONTENT_LABEL_ERROR)
-                        }
+                        _state._contentLabeledPosition.value = null
+                        _effect._snackBar.value = SnackBarEffect(CONTENT_LABEL_ERROR)
                         Crashlytics.log(ERROR, LOG_TAG, resource.message)
                     }
                 }
-            }.flowOn(Dispatchers.IO).launchIn(viewModelScope)
+            }.launchIn(coroutineScope)
         } else {
             _effect._notifyItemChanged.value = NotifyItemChangedEffect(event.position)
             _effect._signIn.value = SignInEffect(true)
@@ -212,6 +219,7 @@ class FeedViewModel(private val repository: FeedRepository,
                 DISMISSED -> true
             })
 
+    // private suspend fun getFeed(event: FeedViewEventType) {
     private fun getFeed(event: FeedViewEventType) {
         val timeframe =
                 if (event is FeedLoad) getTimeframe(event.timeframe)
@@ -219,48 +227,41 @@ class FeedViewModel(private val repository: FeedRepository,
                 else null
         if (feedType == MAIN)
             repository.getMainFeedNetwork(isRealtime, timeframe!!).onEach { resource ->
-                withContext(Dispatchers.Main) {
-                    when (resource.status) {
-                        LOADING -> {
-                            if (event is SwipeToRefresh)
-                                _effect._swipeToRefresh.value = SwipeToRefreshEffect(true)
-                            getMainFeedLocal(timeframe)
-                        }
-                        SUCCESS -> {
-                            if (event is SwipeToRefresh)
-                                _effect._swipeToRefresh.value = SwipeToRefreshEffect(false)
-                            resource.data?.collect { pagedList ->
-                                _state._feedList.value = pagedList
-                            }
-                        }
-                        Status.ERROR -> {
-                            Crashlytics.log(ERROR, LOG_TAG, resource.message)
-                            if (event is SwipeToRefresh)
-                                _effect._swipeToRefresh.value = SwipeToRefreshEffect(false)
-                            _effect._snackBar.value = SnackBarEffect(
-                                    if (event is FeedLoad) CONTENT_REQUEST_NETWORK_ERROR
-                                    else CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR)
-                            getMainFeedLocal(timeframe)
+                when (resource.status) {
+                    LOADING -> {
+                        if (event is SwipeToRefresh)
+                            _effect._swipeToRefresh.value = SwipeToRefreshEffect(true)
+                        getMainFeedLocal(timeframe)
+                    }
+                    SUCCESS -> {
+                        if (event is SwipeToRefresh)
+                            _effect._swipeToRefresh.value = SwipeToRefreshEffect(false)
+                        resource.data?.collect { pagedList ->
+                            _state._feedList.value = pagedList
                         }
                     }
+                    Status.ERROR -> {
+                        Crashlytics.log(ERROR, LOG_TAG, resource.message)
+                        if (event is SwipeToRefresh)
+                            _effect._swipeToRefresh.value = SwipeToRefreshEffect(false)
+                        _effect._snackBar.value = SnackBarEffect(
+                                if (event is FeedLoad) CONTENT_REQUEST_NETWORK_ERROR
+                                else CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR)
+                        getMainFeedLocal(timeframe)
+                    }
                 }
-            }.flowOn(Dispatchers.IO).launchIn(viewModelScope)
+            }.launchIn(coroutineScope)
         else
             repository.getLabeledFeedRoom(feedType).onEach { pagedList ->
-                withContext(Dispatchers.Main) {
-                    _effect._screenEmpty.value = ScreenEmptyEffect(pagedList.isEmpty())
-                    _state._feedList.value = pagedList
-                }
-            }.flowOn(Dispatchers.IO).launchIn(viewModelScope)
+                _effect._screenEmpty.value = ScreenEmptyEffect(pagedList.isEmpty())
+                _state._feedList.value = pagedList
+            }.launchIn(coroutineScope)
     }
 
     private fun getMainFeedLocal(timeframe: Timestamp) {
         repository.getMainFeedRoom(timeframe).onEach { pagedList ->
-            withContext(Dispatchers.Main) {
-                _state._feedList.value = pagedList
-            }
-        }.flowOn(Dispatchers.IO).launchIn(viewModelScope)
-
+            _state._feedList.value = pagedList
+        }.launchIn(coroutineScope)
     }
 
     private fun setContentLoadingStatus(contentId: String, visibility: Int) {

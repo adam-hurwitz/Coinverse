@@ -51,26 +51,17 @@ android {
 }
 
 dependencies {
-    def lifecycle_version = '2.2.0'
-    def lifecycle_test_version = '2.1.0'
-    def nav_version = '2.2.1'
-    def play_services_version = '17.0.0'
-    def exoplayer_version = '2.11.1'
-    def room_version = '2.2.5'
-    def glide_version = '4.11.0'
-    def mopub_version = '5.12.0'
-    def junit_version = '5.5.1'
-    def test_rules_core_version = '1.2.0'
-    def fragment_version = '1.2.4'
-
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.google.dagger:dagger:2.27'
-    kapt 'com.google.dagger:dagger-compiler:2.27'
+    implementation "com.google.dagger:dagger:$dagger_version"
+    kapt "com.google.dagger:dagger-compiler:$dagger_version"
+    implementation "com.squareup.inject:assisted-inject-annotations-dagger2:$dagger_assistedinject_version"
+    kapt "com.squareup.inject:assisted-inject-processor-dagger2:$dagger_assistedinject_version"
     implementation "androidx.fragment:fragment-ktx:$fragment_version"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
     implementation "androidx.room:room-runtime:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
+    implementation "androidx.room:room-ktx:$room_version"
     implementation "androidx.paging:paging-runtime-ktx:2.1.2"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.1.1'
     implementation "com.google.android.gms:play-services-auth:18.0.0"
