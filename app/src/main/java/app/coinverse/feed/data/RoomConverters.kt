@@ -1,15 +1,17 @@
-package app.coinverse.feed.room
+package app.coinverse.feed.data
 
 import androidx.room.TypeConverter
 import app.coinverse.utils.ContentType
 import app.coinverse.utils.ContentType.ARTICLE
 import app.coinverse.utils.ContentType.YOUTUBE
 import app.coinverse.utils.FeedType
-import app.coinverse.utils.FeedType.*
+import app.coinverse.utils.FeedType.DISMISSED
+import app.coinverse.utils.FeedType.MAIN
+import app.coinverse.utils.FeedType.SAVED
 import com.google.firebase.Timestamp
 import java.util.*
 
-class Converters {
+class RoomConverters {
     @TypeConverter
     fun toTimestamp(value: Long) = Timestamp(Date(value))
 

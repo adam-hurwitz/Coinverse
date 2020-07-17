@@ -20,10 +20,9 @@ import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.content.res.AppCompatResources.getDrawable
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.observe
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import app.coinverse.App
@@ -50,25 +49,26 @@ import app.coinverse.R.id.native_title
 import app.coinverse.R.layout.fb_native_ad_item
 import app.coinverse.R.layout.native_ad_item
 import app.coinverse.R.string
-import app.coinverse.R.string.no_content_title
-import app.coinverse.R.string.no_dismissed_content_instructions
-import app.coinverse.R.string.no_dismissed_content_title
-import app.coinverse.R.string.no_feed_content_instructions
-import app.coinverse.R.string.no_saved_content_instructions
-import app.coinverse.R.string.no_saved_content_title
 import app.coinverse.analytics.Analytics
-import app.coinverse.content.views.ContentDialogFragment
+import app.coinverse.content.ContentDialogFragment
 import app.coinverse.databinding.FragmentFeedBinding
 import app.coinverse.dependencyInjection.Component
+import app.coinverse.dependencyInjection.fragmentSavedStateViewModels
 import app.coinverse.feed.adapter.FeedAdapter
 import app.coinverse.feed.adapter.initItemTouchHelper
-import app.coinverse.feed.models.ContentToPlay
-import app.coinverse.feed.models.FeedViewEvent
-import app.coinverse.feed.models.FeedViewEventType.ContentLabeled
-import app.coinverse.feed.models.FeedViewEventType.ContentSelected
-import app.coinverse.feed.models.FeedViewEventType.FeedLoadComplete
-import app.coinverse.feed.models.FeedViewEventType.SwipeToRefresh
-import app.coinverse.feed.models.FeedViewEventType.UpdateAds
+import app.coinverse.feed.state.FeedView
+import app.coinverse.feed.state.FeedViewIntent
+import app.coinverse.feed.state.FeedViewIntentType.*
+import app.coinverse.feed.state.FeedViewState
+import app.coinverse.feed.state.FeedViewState.ClearAdjacentAds
+import app.coinverse.feed.state.FeedViewState.Feed
+import app.coinverse.feed.state.FeedViewState.OpenContent
+import app.coinverse.feed.state.FeedViewState.OpenContentSource
+import app.coinverse.feed.state.FeedViewState.ShareContent
+import app.coinverse.feed.state.FeedViewState.SignIn
+import app.coinverse.feed.state.FeedViewState.SwipeContent
+import app.coinverse.feed.state.FeedViewState.SwipeToRefresh
+import app.coinverse.feed.state.FeedViewState.UpdateAds
 import app.coinverse.home.HomeViewModel
 import app.coinverse.user.SignInDialogFragment
 import app.coinverse.utils.AD_UNIT_ID
@@ -78,8 +78,10 @@ import app.coinverse.utils.CONTENT_SHARE_DIALOG_TITLE
 import app.coinverse.utils.CONTENT_SHARE_SUBJECT_PREFFIX
 import app.coinverse.utils.CONTENT_SHARE_TYPE
 import app.coinverse.utils.CONTENT_TO_PLAY_KEY
+import app.coinverse.utils.ContentType.NONE
 import app.coinverse.utils.ContentType.YOUTUBE
 import app.coinverse.utils.ERROR
+import app.coinverse.utils.Event
 import app.coinverse.utils.FeedType
 import app.coinverse.utils.FeedType.DISMISSED
 import app.coinverse.utils.FeedType.MAIN
@@ -92,11 +94,10 @@ import app.coinverse.utils.SHARE_CONTENT_IMAGE_TYPE
 import app.coinverse.utils.SIGNIN_DIALOG_FRAGMENT_TAG
 import app.coinverse.utils.SIGNIN_TYPE_KEY
 import app.coinverse.utils.SOURCE_SHARE_MESSAGE
-import app.coinverse.utils.SignInType.DIALOG
+import app.coinverse.utils.SignInType
 import app.coinverse.utils.ToolbarState
 import app.coinverse.utils.VIDEO_SHARE_MESSAGE
 import app.coinverse.utils.snackbarWithText
-import app.coinverse.utils.viewmodel.fragmentSavedStateViewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
 import com.google.firebase.auth.FirebaseAuth
@@ -114,36 +115,40 @@ import com.mopub.nativeads.MoPubVideoNativeAdRenderer
 import com.mopub.nativeads.RequestParameters
 import com.mopub.nativeads.ViewBinder
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import javax.inject.Inject
 
-private val LOG_TAG = FeedFragment::class.java.simpleName
-
 @ExperimentalCoroutinesApi
-class FeedFragment : Fragment() {
+class FeedFragment : Fragment(), FeedView {
+    private val LOG_TAG = FeedFragment::class.java.simpleName
 
     @Inject
     lateinit var analytics: Analytics
-
     private val homeViewModel: HomeViewModel by activityViewModels()
+    private val intent = FeedViewIntent()
     private var clearAdjacentAds = false
-    private var openContentFromNotification = false
-    private var openContentFromNotificationContentToPlay: ContentToPlay? = null
+    private var isOpenFromNotification = false
+    private var openContentFromNotification: OpenContent? = null
 
     private lateinit var component: Component
     private lateinit var feedViewModel: FeedViewModel
-    private lateinit var viewEvent: FeedViewEvent
     private lateinit var feedType: FeedType
     private lateinit var binding: FragmentFeedBinding
     private lateinit var adapter: FeedAdapter
     private lateinit var moPubAdapter: MoPubRecyclerAdapter
 
-    fun newInstance(contentBundle: Bundle) = FeedFragment().apply {
-        arguments = contentBundle
+    companion object {
+        @JvmStatic
+        fun newInstance(contentBundle: Bundle) = FeedFragment().apply {
+            arguments = contentBundle
+        }
     }
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
-        if (homeViewModel.accountType.value == FREE) viewEvent.updateAds(UpdateAds())
+        if (homeViewModel.accountType.value == FREE)
+            intent.updateAds.value = true
     }
 
     override fun onAttach(context: Context) {
@@ -152,15 +157,11 @@ class FeedFragment : Fragment() {
         component.inject(this)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        getFeedType()
-    }
-
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
+        feedType = getFeedType()
         analytics.setCurrentScreen(requireActivity(), feedType.name)
         val feedViewModel: FeedViewModel by fragmentSavedStateViewModels { handle ->
             component.feedViewModelFactory().create(
@@ -170,7 +171,6 @@ class FeedFragment : Fragment() {
             )
         }
         this.feedViewModel = feedViewModel
-        feedViewModel.launchViewEvents(this)
         binding = FragmentFeedBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -179,8 +179,8 @@ class FeedFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initAdapters()
-        initViewStates()
-        initViewEffects()
+        feedViewModel.bindIntents(this)
+        if (savedInstanceState == null) intent.loadFromNetwork.value = true
     }
 
     override fun onDestroy() {
@@ -188,23 +188,170 @@ class FeedFragment : Fragment() {
         super.onDestroy()
     }
 
-    fun attachViewEvents(viewEvent: FeedViewEvent) {
-        this.viewEvent = viewEvent
+    override fun initState() = MutableStateFlow(true)
+    override fun loadFromNetwork() = intent.loadFromNetwork.filterNotNull()
+    override fun swipeToRefresh() = intent.swipeToRefresh.filterNotNull()
+    override fun selectContent() = intent.selectContent.filterNotNull()
+    override fun swipeContent() = intent.swipeContent.filterNotNull()
+    override fun labelContent() = intent.labelContent.filterNotNull()
+    override fun shareContent() = intent.shareContent.filterNotNull()
+    override fun openContentSource() = intent.openContentSource.filterNotNull()
+    override fun updateAds() = intent.updateAds.filterNotNull()
+    override fun render(state: FeedViewState) {
+        when (state) {
+            is Feed -> renderFeed(state)
+            is SwipeToRefresh -> renderSwipeToRefresh(state)
+            is OpenContent -> renderOpenContent(state)
+            is SignIn -> renderSignIn(state)
+            is SwipeContent -> renderSwipeContent(state)
+            is UpdateAds -> renderUpdateAds()
+            is ClearAdjacentAds -> renderClearAdjacentAds(state)
+            is ShareContent -> renderShareContent(state)
+            is OpenContentSource -> renderOpenContentSource(state)
+        }
     }
 
-    fun swipeToRefresh() {
-        viewEvent.swipeToRefresh(SwipeToRefresh(
-                feedType, homeViewModel.timeframe.value!!, homeViewModel.isRealtime.value!!))
+    fun initSwipeToRefresh() {
+        intent.swipeToRefresh.value = SwipeToRefresh(
+                feedType = feedType,
+                timeframe = homeViewModel.timeframe.value!!,
+                isRealtime = homeViewModel.isRealtime.value!!)
     }
 
-    private fun getFeedType() {
-        feedType = (requireArguments().getParcelable<ContentToPlay>(OPEN_CONTENT_FROM_NOTIFICATION_KEY)).let {
-            if (it == null) FeedType.valueOf(FeedFragmentArgs.fromBundle(requireArguments()).feedType)
-            else {
-                openContentFromNotification = true
-                openContentFromNotificationContentToPlay = it
-                it.content.feedType
+    private fun renderFeed(state: Feed) {
+        setToolbar(state.toolbarState)
+        adapter.submitList(state.feed)
+        setScreenEmpty(state.feed.isEmpty())
+        state.error?.let { setSnackbar(state.error) }
+        openFromNotification()
+    }
+
+    private fun renderSwipeToRefresh(state: SwipeToRefresh) {
+        homeViewModel.setSwipeToRefreshState(state.isEnabled)
+        if (state.isEnabled == false) homeViewModel.disableSwipeToRefresh()
+        state.error?.let { setSnackbar(state.error) }
+    }
+
+    private fun renderOpenContent(state: OpenContent) {
+        // Loading UI
+        if (state.isLoading) adapter.loadingIds.add(state.content.id)
+        else adapter.loadingIds.remove(state.content.id)
+        // Notify item changed
+        val position = getAdapterPosition(state.position)
+        if (homeViewModel.accountType.value == FREE)
+            moPubAdapter.notifyItemChanged(position)
+        else adapter.notifyItemChanged(position)
+
+        if (state.content.contentType != NONE) {
+            when (feedType) {
+                MAIN, DISMISSED ->
+                    if (childFragmentManager.findFragmentByTag(CONTENT_DIALOG_FRAGMENT_TAG) == null)
+                        ContentDialogFragment().newInstance(Bundle().apply {
+                            putParcelable(CONTENT_TO_PLAY_KEY, state)
+                        }).show(childFragmentManager, CONTENT_DIALOG_FRAGMENT_TAG)
+                // Launches content from saved bottom sheet screen via HomeFragment.
+                SAVED -> homeViewModel.setOpenFromSave(state)
             }
+        }
+        state.error?.let { setSnackbar(state.error) }
+    }
+
+    private fun renderSignIn(state: SignIn) {
+        val position = getAdapterPosition(state.position)
+        if (homeViewModel.accountType.value == FREE)
+            moPubAdapter.notifyItemChanged(position)
+        else adapter.notifyItemChanged(position)
+        SignInDialogFragment().newInstance(Bundle().apply {
+            putString(SIGNIN_TYPE_KEY, SignInType.DIALOG.name)
+        }).show(parentFragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
+    }
+
+    private fun renderSwipeContent(state: SwipeContent) {
+        val position = getAdapterPosition(state.position)
+        if (position != ERROR) {
+            val swipeContent = adapter.getContent(position)
+            val user = FirebaseAuth.getInstance().currentUser
+            if (swipeContent !== null && user !== null) {
+                intent.labelContent.value = LabelContent(
+                        feedType = feedType,
+                        actionType = state.actionType,
+                        user = user,
+                        position = position,
+                        content = adapter.getContent(position),
+                        isMainFeedEmptied = if (feedType == MAIN) adapter.itemCount == 1 else false
+                )
+            }
+        }
+    }
+
+    private fun renderUpdateAds() {
+        if (homeViewModel.accountType.value == FREE) {
+            moPubAdapter.loadAds(AD_UNIT_ID, RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build())
+            moPubAdapter.setAdLoadedListener(object : MoPubNativeAdLoadedListener {
+                override fun onAdRemoved(position: Int) {}
+                override fun onAdLoaded(position: Int) {
+                    if (moPubAdapter.isAd(position + 1) || moPubAdapter.isAd(position - 1))
+                        moPubAdapter.refreshAds(AD_UNIT_ID, RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build())
+                    if (clearAdjacentAds) {
+                        clearAdjacentAds = false
+                        if (homeViewModel.accountType.value == FREE)
+                            moPubAdapter.notifyDataSetChanged()
+                        else adapter.notifyDataSetChanged()
+                    }
+                }
+            })
+        }
+    }
+
+    private fun renderClearAdjacentAds(state: ClearAdjacentAds) {
+        if (homeViewModel.accountType.value == FREE && state.error == null) {
+            val moPubPosition = moPubAdapter.getAdjustedPosition(state.position)
+            if ((moPubAdapter.isAd(moPubPosition - 1)
+                            && moPubAdapter.isAd(moPubPosition + 1))) {
+                clearAdjacentAds = true
+                moPubAdapter.refreshAds(
+                        AD_UNIT_ID,
+                        RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build()
+                )
+            }
+        }
+        state.error?.let { setSnackbar(state.error) }
+    }
+
+    private fun renderShareContent(state: ShareContent) {
+        val action = Intent(ACTION_SEND)
+        action.type = CONTENT_SHARE_TYPE
+        action.putExtra(EXTRA_SUBJECT, CONTENT_SHARE_SUBJECT_PREFFIX + state.content?.title)
+        action.putExtra(EXTRA_TEXT, buildShareString(state, action))
+        val intent = createChooser(action, CONTENT_SHARE_DIALOG_TITLE)
+        intent.resolveActivity(requireContext().packageManager)
+        startActivity(intent)
+    }
+
+    private fun renderOpenContentSource(state: OpenContentSource) {
+        val intent = Intent(ACTION_VIEW)
+        intent.data = Uri.parse(state.url)
+        intent.resolveActivity(requireContext().packageManager)
+        startActivity(intent)
+    }
+
+    private fun getFeedType() =
+            (requireArguments().getParcelable<OpenContent>(OPEN_CONTENT_FROM_NOTIFICATION_KEY)).let {
+                if (it == null) FeedType.valueOf(FeedFragmentArgs.fromBundle(requireArguments()).feedType)
+                else {
+                    isOpenFromNotification = true
+                    openContentFromNotification = it
+                    it.content.feedType
+                }
+            }
+
+    private fun setToolbar(toolbarState: ToolbarState) {
+        binding.appbar.appBarLayout.visibility = toolbarState.visibility
+        binding.appbar.titleToolbar.text = context?.getString(toolbarState.titleRes)
+        if (toolbarState.isActionBarEnabled) {
+            binding.appbar.toolbar.title = ""
+            (activity as AppCompatActivity).setSupportActionBar(binding.appbar.toolbar)
+            (activity as AppCompatActivity).supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         }
     }
 
@@ -213,7 +360,7 @@ class FeedFragment : Fragment() {
         val paymentStatus = homeViewModel.accountType.value
         binding.contentRecyclerView.layoutManager = LinearLayoutManager(context)
         binding.contentRecyclerView.setHasFixedSize(true)
-        adapter = FeedAdapter(feedViewModel, viewEvent)
+        adapter = FeedAdapter(intent)
         moPubAdapter = MoPubRecyclerAdapter(
                 requireActivity(),
                 adapter,
@@ -260,230 +407,137 @@ class FeedFragment : Fragment() {
                 paymentStatus = paymentStatus!!,
                 feedType = feedType,
                 moPubAdapter = if (paymentStatus == FREE) moPubAdapter else null,
-                viewEvent = viewEvent
+                swipeContent = intent.swipeContent
         ).attachToRecyclerView(binding.contentRecyclerView)
     }
 
-    @ExperimentalCoroutinesApi
-    private fun initViewStates() {
-        setToolbar(feedViewModel.state.toolbarState)
-        feedViewModel.state.feedList.observe(viewLifecycleOwner) { pagedList ->
-            adapter.submitList(pagedList)
-            viewEvent.feedLoadComplete(FeedLoadComplete(pagedList.isNotEmpty()))
-            openContentFromNotification()
-        }
-        feedViewModel.state.contentToPlay.observe(viewLifecycleOwner) { contentToPlay ->
-            contentToPlay?.let {
-                when (feedType) {
-                    MAIN, DISMISSED ->
-                        if (childFragmentManager.findFragmentByTag(CONTENT_DIALOG_FRAGMENT_TAG) == null)
-                            ContentDialogFragment().newInstance(Bundle().apply {
-                                putParcelable(CONTENT_TO_PLAY_KEY, contentToPlay)
-                            }).show(childFragmentManager, CONTENT_DIALOG_FRAGMENT_TAG)
-                    // Launches content from saved bottom sheet screen via HomeFragment.
-                    SAVED -> homeViewModel.setSavedContentToPlay(contentToPlay)
-                }
-            }
-        }
-        feedViewModel.state.contentLabeledPosition.observe(viewLifecycleOwner) { position ->
-            //TODO: Undo feature
-            if (homeViewModel.accountType.value == FREE) {
-                position.let {
-                    val moPubPosition = moPubAdapter.getAdjustedPosition(position)
-                    if ((moPubAdapter.isAd(moPubPosition - 1)
-                                    && moPubAdapter.isAd(moPubPosition + 1))) {
-                        clearAdjacentAds = true
-                        moPubAdapter.refreshAds(AD_UNIT_ID, RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build())
-                    }
-                }
+    private fun getAdapterPosition(position: Int) =
+            if (homeViewModel.accountType.value!! == FREE) moPubAdapter.getOriginalPosition(position)
+            else position
+
+    private fun openFromNotification() {
+        if (isOpenFromNotification) {
+            openContentFromNotification?.let {
+                intent.selectContent.value = Event(SelectContent(it.content, it.position))
+                binding.contentRecyclerView.layoutManager?.scrollToPosition(it.position)
+                isOpenFromNotification = false
             }
         }
     }
 
-    @ExperimentalCoroutinesApi
-    private fun initViewEffects() {
-        feedViewModel.effect.signIn.observe(viewLifecycleOwner) {
-            SignInDialogFragment().newInstance(Bundle().apply {
-                putString(SIGNIN_TYPE_KEY, DIALOG.name)
-            }).show(parentFragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
+    private fun setSnackbar(error: String) {
+        when (feedType) {
+            MAIN -> snackbarWithText(resources, error, this.requireParentFragment().requireView())
+            SAVED, DISMISSED -> snackbarWithText(resources, error, binding.contentFragment)
         }
-        feedViewModel.effect.notifyItemChanged.observe(viewLifecycleOwner) {
-            adapter.notifyItemChanged(it.position)
-        }
-        feedViewModel.effect.enableSwipeToRefresh.observe(viewLifecycleOwner) {
-            homeViewModel.enableSwipeToRefresh(it.isEnabled)
-        }
-        feedViewModel.effect.swipeToRefresh.observe(viewLifecycleOwner) {
-            homeViewModel.setSwipeToRefreshState(it.isEnabled)
-        }
-        feedViewModel.effect.contentSwiped.observe(viewLifecycleOwner) {
-            val contentSwipedPosition = getAdapterPosition(it.position)
-            if (contentSwipedPosition != ERROR) {
-                val contentSwiped = adapter.getContent(contentSwipedPosition)
-                val user = FirebaseAuth.getInstance().currentUser
-                if (contentSwiped !== null && user !== null) {
-                    viewEvent.contentLabeled(ContentLabeled(
-                            feedType = feedType,
-                            actionType = it.actionType,
-                            user = user,
-                            position = contentSwipedPosition,
-                            content = adapter.getContent(contentSwipedPosition),
-                            isMainFeedEmptied = if (feedType == MAIN) adapter.itemCount == 1 else false))
-                }
-            }
-        }
-        feedViewModel.effect.snackBar.observe(viewLifecycleOwner) {
-            when (feedType) {
-                MAIN -> snackbarWithText(resources, it.text, this.requireParentFragment().requireView())
-                SAVED, DISMISSED -> snackbarWithText(resources, it.text, binding.contentFragment)
-            }
-        }
-        feedViewModel.effect.shareContentIntent.observe(viewLifecycleOwner) {
-            it.contentRequest.observe(viewLifecycleOwner) { content ->
-                val intent = createChooser(Intent(ACTION_SEND).apply {
-                    this.type = CONTENT_SHARE_TYPE
-                    this.putExtra(EXTRA_SUBJECT, CONTENT_SHARE_SUBJECT_PREFFIX + content.title)
-                    this.putExtra(EXTRA_TEXT,
-                            "$SHARED_VIA_COINVERSE '${content.title}' - ${content.creator}" +
-                                    content.audioUrl.let { audioUrl ->
-                                        if (!audioUrl.isNullOrBlank()) {
-                                            this.putExtra(EXTRA_STREAM, Uri.parse(content.previewImage))
-                                            this.type = SHARE_CONTENT_IMAGE_TYPE
-                                            this.addFlags(FLAG_GRANT_READ_URI_PERMISSION)
-                                            "$AUDIOCAST_SHARE_MESSAGE $audioUrl"
-                                        } else
-                                            if (content.contentType == YOUTUBE)
-                                                VIDEO_SHARE_MESSAGE + content.url
-                                            else SOURCE_SHARE_MESSAGE + content.url
-                                    })
-                }, CONTENT_SHARE_DIALOG_TITLE)
-                intent.resolveActivity(requireContext().packageManager)?.let {
-                    startActivity(intent)
-                }
-            }
-        }
-        feedViewModel.effect.openContentSourceIntent.observe(viewLifecycleOwner) {
-            val intent = Intent(ACTION_VIEW).setData(Uri.parse(it.url))
-            intent.resolveActivity(requireContext().packageManager)?.let {
-                startActivity(intent)
-            }
-        }
-        feedViewModel.effect.screenEmpty.observe(viewLifecycleOwner) {
-            val emptyFeedView = binding.emptyFeedLayout.emptyFeedView
-            if (!it.isEmpty)
-                emptyFeedView.visibility = GONE
-            else {
-                if (emptyFeedView.visibility == GONE) {
-                    val fadeIn = AnimationUtils.loadAnimation(context, fade_in)
-                    emptyFeedView.startAnimation(fadeIn)
-                    fadeIn.setAnimationListener(object : Animation.AnimationListener {
-                        override fun onAnimationRepeat(animation: Animation?) {/*Do something.*/
-                        }
+    }
 
-                        override fun onAnimationEnd(animation: Animation?) {
-                            emptyFeedView.visibility = VISIBLE
-                            binding.contentRecyclerView.visibility = VISIBLE
-                        }
-
-                        override fun onAnimationStart(animation: Animation?) {
-                            binding.contentRecyclerView.visibility = INVISIBLE
-                        }
-                    })
-                }
-                binding.emptyFeedLayout.confirmation.setOnClickListener { view: View ->
-                    if (feedType == SAVED && homeViewModel.bottomSheetState.value == STATE_EXPANDED) {
-                        //TODO: Add to HomeViewModel ViewState.
-                        homeViewModel.setBottomSheetState(STATE_COLLAPSED)
-                    } else if (feedType == DISMISSED) view.findNavController().navigateUp()
-                }
-                when (feedType) {
-                    MAIN -> {
-                        binding.emptyFeedLayout.shootingStarOne.visibility = VISIBLE
-                        binding.emptyFeedLayout.earth.visibility = VISIBLE
-                        binding.emptyFeedLayout.title.text = getString(no_content_title)
-                        binding.emptyFeedLayout.emptyInstructions.text = getString(no_feed_content_instructions)
-                    }
-                    SAVED -> {
-
-                        binding.emptyFeedLayout.shootingStarOne.visibility = GONE
-                        binding.emptyFeedLayout.earth.visibility = GONE
-                        binding.emptyFeedLayout.emptyImage.setImageDrawable(getDrawable(requireContext(),
-                                ic_coinverse_48dp))
-                        binding.emptyFeedLayout.title.text = getString(no_saved_content_title)
-                        binding.emptyFeedLayout.swipeRightOne.setImageDrawable(getDrawable(requireContext(),
-                                ic_chevron_right_color_accent_24dp))
-                        binding.emptyFeedLayout.swipeRightTwo.setImageDrawable(getDrawable(requireContext(),
-                                ic_chevron_right_color_accent_fade_one_24dp))
-                        binding.emptyFeedLayout.swipeRightThree.setImageDrawable(getDrawable(requireContext(),
-                                ic_chevron_right_color_accent_fade_two_24dp))
-                        binding.emptyFeedLayout.swipeRightFour.setImageDrawable(getDrawable(requireContext(),
-                                ic_chevron_right_color_accent_fade_three_24dp))
-                        binding.emptyFeedLayout.swipeRightFive.setImageDrawable(getDrawable(requireContext(),
-                                ic_chevron_right_color_accent_fade_four_24dp))
-                        binding.emptyFeedLayout.emptyInstructions.text = getString(no_saved_content_instructions)
-                        binding.emptyFeedLayout.confirmation.visibility = VISIBLE
-                    }
-                    DISMISSED -> {
-                        binding.emptyFeedLayout.shootingStarOne.visibility = GONE
-                        binding.emptyFeedLayout.earth.visibility = GONE
-                        binding.emptyFeedLayout.emptyImage.setImageDrawable(getDrawable(requireContext(),
-                                ic_dismiss_planet_light_48dp))
-                        binding.emptyFeedLayout.title.text = getString(no_dismissed_content_title)
-                        binding.emptyFeedLayout.swipeRightOne.setImageDrawable(getDrawable(requireContext(),
-                                ic_chevron_left_color_accent_24dp))
-                        binding.emptyFeedLayout.swipeRightTwo.setImageDrawable(getDrawable(requireContext(),
-                                ic_chevron_left_color_accent_fade_one_24dp))
-                        binding.emptyFeedLayout.swipeRightThree.setImageDrawable(getDrawable(requireContext(),
-                                ic_chevron_left_color_accent_fade_two_24dp))
-                        binding.emptyFeedLayout.swipeRightFour.setImageDrawable(getDrawable(requireContext(),
-                                ic_chevron_left_color_accent_fade_three_24dp))
-                        binding.emptyFeedLayout.swipeRightFive.setImageDrawable(getDrawable(requireContext(),
-                                ic_chevron_left_color_accent_fade_four_24dp))
-                        binding.emptyFeedLayout.emptyInstructions.text = getString(no_dismissed_content_instructions)
-                        binding.emptyFeedLayout.confirmation.visibility = VISIBLE
-                    }
-                }
-            }
+    fun buildShareString(state: ShareContent, action: Intent): String? {
+        val prefix = "$SHARED_VIA_COINVERSE '${state.content?.title}' - ${state.content?.creator}"
+        val postfix = state.content?.audioUrl.let { audioUrl ->
+            if (!audioUrl.isNullOrBlank()) {
+                action.putExtra(EXTRA_STREAM, Uri.parse(state.content?.previewImage))
+                action.type = SHARE_CONTENT_IMAGE_TYPE
+                action.addFlags(FLAG_GRANT_READ_URI_PERMISSION)
+                "$AUDIOCAST_SHARE_MESSAGE $audioUrl"
+            } else
+                if (state.content?.contentType == YOUTUBE)
+                    VIDEO_SHARE_MESSAGE + state.content.url
+                else SOURCE_SHARE_MESSAGE + state.content?.url
         }
-        feedViewModel.effect.updateAds.observe(viewLifecycleOwner) {
-            if (homeViewModel.accountType.value == FREE) {
-                moPubAdapter.loadAds(AD_UNIT_ID, RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build())
-                moPubAdapter.setAdLoadedListener(object : MoPubNativeAdLoadedListener {
-                    override fun onAdRemoved(position: Int) {}
-                    override fun onAdLoaded(position: Int) {
-                        if (moPubAdapter.isAd(position + 1) || moPubAdapter.isAd(position - 1))
-                            moPubAdapter.refreshAds(AD_UNIT_ID, RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build())
-                        if (clearAdjacentAds) {
-                            clearAdjacentAds = false
-                            adapter.notifyDataSetChanged()
-                        }
+        return prefix + postfix
+    }
+
+    private fun setScreenEmpty(isEmpty: Boolean) {
+        val emptyFeedView = binding.emptyFeedLayout.emptyFeedView
+        if (!isEmpty) emptyFeedView.visibility = GONE
+        else {
+            if (emptyFeedView.visibility == GONE) {
+                val fadeIn = AnimationUtils.loadAnimation(context, fade_in)
+                emptyFeedView.startAnimation(fadeIn)
+                fadeIn.setAnimationListener(object : Animation.AnimationListener {
+                    override fun onAnimationRepeat(animation: Animation?) {}
+                    override fun onAnimationEnd(animation: Animation?) {
+                        emptyFeedView.visibility = VISIBLE
+                        binding.contentRecyclerView.visibility = VISIBLE
+                    }
+
+                    override fun onAnimationStart(animation: Animation?) {
+                        binding.contentRecyclerView.visibility = INVISIBLE
                     }
                 })
             }
-        }
-    }
-
-    private fun setToolbar(toolbarState: ToolbarState) {
-        binding.appbar.appBarLayout.visibility = feedViewModel.state.toolbarState.visibility
-        binding.appbar.titleToolbar.text = context?.getString(feedViewModel.state.toolbarState.titleRes)
-        if (toolbarState.isActionBarEnabled) {
-            binding.appbar.toolbar.title = ""
-            (activity as AppCompatActivity).setSupportActionBar(binding.appbar.toolbar)
-            (activity as AppCompatActivity).supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-        }
-    }
-
-    private fun getAdapterPosition(originalPosition: Int) =
-            if (homeViewModel.accountType.value!! == FREE)
-                moPubAdapter.getOriginalPosition(originalPosition)
-            else originalPosition
-
-    private fun openContentFromNotification() {
-        if (openContentFromNotification)
-            openContentFromNotificationContentToPlay?.let {
-                viewEvent.contentSelected(ContentSelected(it.content, it.position))
-                binding.contentRecyclerView.layoutManager?.scrollToPosition(it.position)
-                openContentFromNotification = false
+            binding.emptyFeedLayout.confirmation.setOnClickListener { view: View ->
+                if (feedType == SAVED && homeViewModel.bottomSheetState.value == STATE_EXPANDED)
+                    homeViewModel.setBottomSheetState(STATE_COLLAPSED)
+                else if (feedType == DISMISSED) view.findNavController().navigateUp()
             }
+            when (feedType) {
+                MAIN -> {
+                    binding.emptyFeedLayout.shootingStarOne.visibility = VISIBLE
+                    binding.emptyFeedLayout.earth.visibility = VISIBLE
+                    binding.emptyFeedLayout.title.text = getString(string.no_content_title)
+                    binding.emptyFeedLayout.emptyInstructions.text = getString(string.no_feed_content_instructions)
+                }
+                SAVED -> {
+                    binding.emptyFeedLayout.shootingStarOne.visibility = GONE
+                    binding.emptyFeedLayout.earth.visibility = GONE
+                    binding.emptyFeedLayout.emptyImage.setImageDrawable(
+                            AppCompatResources.getDrawable(requireContext(), ic_coinverse_48dp)
+                    )
+                    binding.emptyFeedLayout.title.text = getString(string.no_saved_content_title)
+                    binding.emptyFeedLayout.swipeRightOne.setImageDrawable(
+                            AppCompatResources.getDrawable(requireContext(),
+                                    ic_chevron_right_color_accent_24dp)
+                    )
+                    binding.emptyFeedLayout.swipeRightTwo.setImageDrawable(
+                            AppCompatResources.getDrawable(requireContext(),
+                                    ic_chevron_right_color_accent_fade_one_24dp)
+                    )
+                    binding.emptyFeedLayout.swipeRightThree.setImageDrawable(
+                            AppCompatResources.getDrawable(requireContext(),
+                                    ic_chevron_right_color_accent_fade_two_24dp)
+                    )
+                    binding.emptyFeedLayout.swipeRightFour.setImageDrawable(
+                            AppCompatResources.getDrawable(requireContext(),
+                                    ic_chevron_right_color_accent_fade_three_24dp)
+                    )
+                    binding.emptyFeedLayout.swipeRightFive.setImageDrawable(
+                            AppCompatResources.getDrawable(requireContext(),
+                                    ic_chevron_right_color_accent_fade_four_24dp)
+                    )
+                    binding.emptyFeedLayout.emptyInstructions.text = getString(string.no_saved_content_instructions)
+                    binding.emptyFeedLayout.confirmation.visibility = VISIBLE
+                }
+                DISMISSED -> {
+                    binding.emptyFeedLayout.shootingStarOne.visibility = GONE
+                    binding.emptyFeedLayout.earth.visibility = GONE
+                    binding.emptyFeedLayout.emptyImage.setImageDrawable(
+                            AppCompatResources.getDrawable(requireContext(),
+                                    ic_dismiss_planet_light_48dp))
+                    binding.emptyFeedLayout.title.text = getString(string.no_dismissed_content_title)
+                    binding.emptyFeedLayout.swipeRightOne.setImageDrawable(
+                            AppCompatResources.getDrawable(requireContext(),
+                                    ic_chevron_left_color_accent_24dp)
+                    )
+                    binding.emptyFeedLayout.swipeRightTwo.setImageDrawable(
+                            AppCompatResources.getDrawable(requireContext(),
+                                    ic_chevron_left_color_accent_fade_one_24dp))
+                    binding.emptyFeedLayout.swipeRightThree.setImageDrawable(
+                            AppCompatResources.getDrawable(requireContext(),
+                                    ic_chevron_left_color_accent_fade_two_24dp)
+                    )
+                    binding.emptyFeedLayout.swipeRightFour.setImageDrawable(
+                            AppCompatResources.getDrawable(requireContext(),
+                                    ic_chevron_left_color_accent_fade_three_24dp)
+                    )
+                    binding.emptyFeedLayout.swipeRightFive.setImageDrawable(
+                            AppCompatResources.getDrawable(requireContext(),
+                                    ic_chevron_left_color_accent_fade_four_24dp))
+                    binding.emptyFeedLayout.emptyInstructions.text = getString(string.no_dismissed_content_instructions)
+                    binding.emptyFeedLayout.confirmation.visibility = VISIBLE
+                }
+            }
+        }
     }
 }

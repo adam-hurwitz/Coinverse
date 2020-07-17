@@ -1,13 +1,13 @@
-package app.coinverse.feed
+package app.coinverse.feed.data
 
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.liveData
 import androidx.paging.PagedList
 import androidx.paging.toLiveData
 import app.coinverse.BuildConfig
-import app.coinverse.feed.models.Content
-import app.coinverse.feed.models.FeedViewEventType
-import app.coinverse.feed.room.FeedDao
+import app.coinverse.feed.Content
+import app.coinverse.feed.state.FeedViewIntentType.SelectContent
+import app.coinverse.feed.state.FeedViewState.OpenContent
 import app.coinverse.firebase.COLLECTIONS_DOCUMENT
 import app.coinverse.firebase.DISMISS_COLLECTION
 import app.coinverse.firebase.SAVE_COLLECTION
@@ -47,6 +47,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query.Direction.DESCENDING
 import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.functions.FirebaseFunctionsException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.collect
@@ -55,8 +56,9 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
+@ExperimentalCoroutinesApi
 @Singleton
-class FeedRepository @Inject constructor(private val feedDao: FeedDao) {
+class FeedRepository @Inject constructor(private val dao: FeedDao) {
     private val LOG_TAG = FeedRepository::class.java.simpleName
 
     fun getMainFeedNetwork(isRealtime: Boolean, timeframe: Timestamp) = flow<Resource<Flow<PagedList<Content>>>> {
@@ -72,33 +74,35 @@ class FeedRepository @Inject constructor(private val feedDao: FeedDao) {
     }
 
     fun getMainFeedRoom(timestamp: Timestamp) =
-            feedDao.getMainFeedRoom(timestamp, MAIN).toLiveData(pagedListConfig).asFlow()
+            dao.getMainFeedRoom(timestamp, MAIN).toLiveData(pagedListConfig).asFlow()
 
     fun getLabeledFeedRoom(feedType: FeedType) =
-            feedDao.getLabeledFeedRoom(feedType).toLiveData(pagedListConfig).asFlow()
+            dao.getLabeledFeedRoom(feedType).toLiveData(pagedListConfig).asFlow()
 
     fun getContent(contentId: String) = liveData {
         emit(contentEnCollection.document(contentId).get().await()?.toObject(Content::class.java)!!)
     }
 
-    fun getAudiocast(contentSelected: FeedViewEventType.ContentSelected) = flow {
+    fun getAudiocast(selectContent: SelectContent) = flow {
         emit(loading(null))
         try {
-            val content = contentSelected.content
+            val content = selectContent.content
             FirebaseFunctions.getInstance(firebaseApp(true))
                     .getHttpsCallable(GET_AUDIOCAST_FUNCTION).call(
                             hashMapOf(
                                     BUILD_TYPE_PARAM to BuildConfig.BUILD_TYPE,
                                     CONTENT_ID_PARAM to content.id,
                                     CONTENT_TITLE_PARAM to content.title,
-                                    CONTENT_PREVIEW_IMAGE_PARAM to content.previewImage))
-                    .continueWith { task -> (task.result?.data as HashMap<String, String>) }
+                                    CONTENT_PREVIEW_IMAGE_PARAM to content.previewImage
+                            )
+                    ).continueWith { task -> (task.result?.data as HashMap<String, String>) }
                     .await().also { response ->
                         if (response?.get(ERROR_PATH_PARAM).isNullOrEmpty())
-                            emit(success((app.coinverse.feed.models.ContentToPlay(
-                                    position = contentSelected.position,
-                                    content = contentSelected.content,
-                                    filePath = response?.get(FILE_PATH_PARAM)))))
+                            emit(success((OpenContent(
+                                    position = selectContent.position,
+                                    content = selectContent.content,
+                                    filePath = response?.get(FILE_PATH_PARAM)
+                            ))))
                         else emit(error(response?.get(ERROR_PATH_PARAM)!!, null))
                     }
         } catch (error: FirebaseFunctionsException) {
@@ -158,7 +162,7 @@ class FeedRepository @Inject constructor(private val feedDao: FeedDao) {
                     labeledSet.add(content.id)
                 }
             }
-            feedDao.insertFeed(contentList)
+            dao.insertFeed(contentList)
         } else
             flow.emit(error("Error retrieving user save_collection: " + response.error.localizedMessage, null))
     }
@@ -173,21 +177,23 @@ class FeedRepository @Inject constructor(private val feedDao: FeedDao) {
             val contentList = response.packet?.documentChanges
                     ?.map { change -> change.document.toObject(Content::class.java) }
                     ?.filter { content -> !labeledSet.contains(content.id) }
-            feedDao.insertFeed(contentList)
+            dao.insertFeed(contentList)
             flow.emit(success(getMainFeedRoom(timeframe)))
         } else flow.emit(error(CONTENT_LOGGED_IN_REALTIME_ERROR + response.error.localizedMessage, null))
     }
 
-    private suspend fun getLoggedInNonRealtimeContent(timeframe: Timestamp,
-                                                      labeledSet: HashSet<String>,
-                                                      flow: FlowCollector<Resource<Flow<PagedList<Content>>>>) =
+    private suspend fun getLoggedInNonRealtimeContent(
+            timeframe: Timestamp,
+            labeledSet: HashSet<String>,
+            flow: FlowCollector<Resource<Flow<PagedList<Content>>>>
+    ) =
             try {
                 val contentList = contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
                         .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe).get().await()
                         .documentChanges
                         .map { change -> change.document.toObject(Content::class.java) }
                         .filter { content -> !labeledSet.contains(content.id) }
-                feedDao.insertFeed(contentList)
+                dao.insertFeed(contentList)
                 flow.emit(success(getMainFeedRoom(timeframe)))
             } catch (error: FirebaseFirestoreException) {
                 flow.emit(error("CONTENT_LOGGED_IN_NON_REALTIME_ERROR ${error.localizedMessage}", null))
@@ -200,7 +206,7 @@ class FeedRepository @Inject constructor(private val feedDao: FeedDao) {
                         .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe).get().await()
                         .documentChanges
                         .map { change -> change.document.toObject(Content::class.java) }
-                feedDao.insertFeed(contentList)
+                dao.insertFeed(contentList)
                 flow.emit(success(getMainFeedRoom(timeframe)))
             } catch (error: FirebaseFirestoreException) {
                 flow.emit(error(CONTENT_LOGGED_OUT_NON_REALTIME_ERROR + error.localizedMessage, null))
@@ -217,7 +223,7 @@ class FeedRepository @Inject constructor(private val feedDao: FeedDao) {
             userCollection.document(COLLECTIONS_DOCUMENT).collection(collection)
                     .document(content!!.id)
                     .set(content).await()
-            feedDao.updateContent(content)
+            dao.updateContent(content)
             emit(success(position))
         } catch (error: FirebaseFirestoreException) {
             emit(error("'${content?.title}' failed to be added to collection $collection", null))

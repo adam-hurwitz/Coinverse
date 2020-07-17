@@ -1,15 +1,15 @@
 package app.coinverse.feedViewModel.tests
 
 import app.coinverse.analytics.Analytics
-import app.coinverse.feed.FeedRepository
+import app.coinverse.feed.FeedViewEventType.ContentSwipeDrawed
+import app.coinverse.feed.FeedViewEventType.ContentSwiped
+import app.coinverse.feed.FeedViewEventType.LabelContent
 import app.coinverse.feed.FeedViewModel
+import app.coinverse.feed.data.FeedRepository
 import app.coinverse.feed.models.FeedViewEffectType.ContentSwipedEffect
 import app.coinverse.feed.models.FeedViewEffectType.NotifyItemChangedEffect
 import app.coinverse.feed.models.FeedViewEffectType.SignInEffect
 import app.coinverse.feed.models.FeedViewEffectType.SnackBarEffect
-import app.coinverse.feed.models.FeedViewEventType.ContentLabeled
-import app.coinverse.feed.models.FeedViewEventType.ContentSwipeDrawed
-import app.coinverse.feed.models.FeedViewEventType.ContentSwiped
 import app.coinverse.feedViewModel.LabelContentTest
 import app.coinverse.feedViewModel.mockEditContentLabels
 import app.coinverse.feedViewModel.mockGetMainFeedList
@@ -49,7 +49,7 @@ import org.junit.jupiter.params.provider.MethodSource
 
 @ExperimentalCoroutinesApi
 @ExtendWith(ContentTestExtension::class)
-class LabelContentTests(
+class LabelContentContentTests(
         val testDispatcher: TestCoroutineDispatcher,
         val testScope: TestCoroutineScope
 ) {
@@ -85,7 +85,7 @@ class LabelContentTests(
             assertEnableSwipeToRefresh()
         }
         ContentSwiped(test.feedType, test.actionType, test.adapterPosition).also { event ->
-            feedViewModel.contentSwiped(event)
+            feedViewModel.swipeContent(event)
             assertContentLabeled(test)
         }
         verifyTests(test)
@@ -99,8 +99,8 @@ class LabelContentTests(
 
     private fun assertEnableSwipeToRefresh() {
         HomeViewModel().apply {
-            enableSwipeToRefresh(feedViewModel.effect.enableSwipeToRefresh.getOrAwaitValue().isEnabled)
-            assertThat(isSwipeToRefreshEnabled.getOrAwaitValue()).isEqualTo(false)
+            disableSwipeToRefresh(feedViewModel.effect.enableSwipeToRefresh.getOrAwaitValue().isEnabled)
+            assertThat(disableSwipeToRefresh.getOrAwaitValue()).isEqualTo(false)
         }
     }
 
@@ -110,14 +110,14 @@ class LabelContentTests(
                     feedType = test.feedType,
                     actionType = test.actionType,
                     position = test.adapterPosition))
-            ContentLabeled(
+            LabelContent(
                     feedType = contentSwipedEffect.feedType,
                     actionType = contentSwipedEffect.actionType,
                     user = test.mockUser(),
                     position = contentSwipedEffect.position,
                     content = test.mockContent,
                     isMainFeedEmptied = false).also { event ->
-                feedViewModel.contentLabeled(event)
+                feedViewModel.labelContent(event)
                 if (test.isUserSignedIn) {
                     when (test.status) {
                         SUCCESS -> {

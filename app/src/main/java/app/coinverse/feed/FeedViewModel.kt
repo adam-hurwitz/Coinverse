@@ -1,7 +1,6 @@
 package app.coinverse.feed
 
 import android.util.Log.ERROR
-import android.view.View
 import android.widget.ProgressBar.GONE
 import android.widget.ProgressBar.VISIBLE
 import androidx.lifecycle.ViewModel
@@ -9,35 +8,23 @@ import app.coinverse.R.string.app_name
 import app.coinverse.R.string.dismissed
 import app.coinverse.R.string.saved
 import app.coinverse.analytics.Analytics
-import app.coinverse.feed.models.ContentToPlay
-import app.coinverse.feed.models.FeedViewEffect
-import app.coinverse.feed.models.FeedViewEffectType.ContentSwipedEffect
-import app.coinverse.feed.models.FeedViewEffectType.EnableSwipeToRefreshEffect
-import app.coinverse.feed.models.FeedViewEffectType.NotifyItemChangedEffect
-import app.coinverse.feed.models.FeedViewEffectType.OpenContentSourceIntentEffect
-import app.coinverse.feed.models.FeedViewEffectType.ScreenEmptyEffect
-import app.coinverse.feed.models.FeedViewEffectType.ShareContentIntentEffect
-import app.coinverse.feed.models.FeedViewEffectType.SignInEffect
-import app.coinverse.feed.models.FeedViewEffectType.SnackBarEffect
-import app.coinverse.feed.models.FeedViewEffectType.SwipeToRefreshEffect
-import app.coinverse.feed.models.FeedViewEffectType.UpdateAdsEffect
-import app.coinverse.feed.models.FeedViewEvent
-import app.coinverse.feed.models.FeedViewEventType
-import app.coinverse.feed.models.FeedViewEventType.ContentLabeled
-import app.coinverse.feed.models.FeedViewEventType.ContentSelected
-import app.coinverse.feed.models.FeedViewEventType.ContentShared
-import app.coinverse.feed.models.FeedViewEventType.ContentSourceOpened
-import app.coinverse.feed.models.FeedViewEventType.ContentSwipeDrawed
-import app.coinverse.feed.models.FeedViewEventType.ContentSwiped
-import app.coinverse.feed.models.FeedViewEventType.FeedLoad
-import app.coinverse.feed.models.FeedViewEventType.FeedLoadComplete
-import app.coinverse.feed.models.FeedViewEventType.SwipeToRefresh
-import app.coinverse.feed.models.FeedViewEventType.UpdateAds
-import app.coinverse.feed.models.FeedViewState
-import app.coinverse.feed.models._FeedViewEffect
-import app.coinverse.feed.models._FeedViewState
+import app.coinverse.dependencyInjection.getViewModelScope
+import app.coinverse.feed.data.FeedRepository
+import app.coinverse.feed.state.FeedView
+import app.coinverse.feed.state.FeedViewIntentType.FeedLoad
+import app.coinverse.feed.state.FeedViewIntentType.LabelContent
+import app.coinverse.feed.state.FeedViewIntentType.SelectContent
+import app.coinverse.feed.state.FeedViewIntentType.SwipeToRefresh
+import app.coinverse.feed.state.FeedViewState
+import app.coinverse.feed.state.FeedViewState.ClearAdjacentAds
+import app.coinverse.feed.state.FeedViewState.Feed
+import app.coinverse.feed.state.FeedViewState.OpenContent
+import app.coinverse.feed.state.FeedViewState.OpenContentSource
+import app.coinverse.feed.state.FeedViewState.ShareContent
+import app.coinverse.feed.state.FeedViewState.SignIn
+import app.coinverse.feed.state.FeedViewState.SwipeContent
+import app.coinverse.feed.state.FeedViewState.UpdateAds
 import app.coinverse.utils.CONTENT_LABEL_ERROR
-import app.coinverse.utils.CONTENT_PLAY_ERROR
 import app.coinverse.utils.CONTENT_REQUEST_NETWORK_ERROR
 import app.coinverse.utils.CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR
 import app.coinverse.utils.ContentType.ARTICLE
@@ -50,19 +37,19 @@ import app.coinverse.utils.FeedType.SAVED
 import app.coinverse.utils.Status
 import app.coinverse.utils.Status.LOADING
 import app.coinverse.utils.Status.SUCCESS
-import app.coinverse.utils.TTS_CHAR_LIMIT_ERROR
 import app.coinverse.utils.TTS_CHAR_LIMIT_ERROR_MESSAGE
 import app.coinverse.utils.Timeframe
 import app.coinverse.utils.ToolbarState
 import app.coinverse.utils.getTimeframe
-import app.coinverse.utils.viewmodel.getViewModelScope
+import app.coinverse.utils.onEachEvent
 import com.crashlytics.android.Crashlytics
-import com.google.firebase.Timestamp
 import com.squareup.inject.assisted.Assisted
 import com.squareup.inject.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -74,8 +61,7 @@ class FeedViewModel @AssistedInject constructor(
         @Assisted private val isRealtime: Boolean,
         private val repository: FeedRepository,
         private val analytics: Analytics
-) : ViewModel(), FeedViewEvent {
-    private val LOG_TAG = FeedViewModel::class.java.simpleName
+) : ViewModel() {
 
     @AssistedInject.Factory
     interface Factory {
@@ -87,122 +73,53 @@ class FeedViewModel @AssistedInject constructor(
         ): FeedViewModel
     }
 
+    private val LOG_TAG = FeedViewModel::class.java.simpleName
     private val coroutineScope = getViewModelScope(coroutineScopeProvider)
+    private val state = MutableStateFlow<FeedViewState?>(null)
+    private val toolbarState = setToolbar(feedType)
+    private var isContentSwiped = false
 
-    private val _state = _FeedViewState(feedType, setToolbar(feedType))
-    val state = FeedViewState(_state)
-    private val _effect = _FeedViewEffect()
-    val effect = FeedViewEffect(_effect)
+    fun bindIntents(view: FeedView) {
+        view.initState().onEach {
+            state.filterNotNull().collect { view.render(it) }
+        }.launchIn(coroutineScope)
 
-    init {
-        getFeed(FeedLoad(feedType, timeframe, isRealtime))
-        _effect._updateAds.value = UpdateAdsEffect()
+        view.loadFromNetwork().onEach {
+            loadFromNetwork(FeedLoad(feedType, timeframe, isRealtime))
+            state.value = UpdateAds()
+        }.launchIn(coroutineScope)
+
+        view.swipeToRefresh().onEach {
+            swipeToRefresh(it)
+        }.launchIn(coroutineScope)
+
+        view.selectContent().onEachEvent { selectContent ->
+            selectContent(selectContent)
+        }.launchIn(coroutineScope)
+
+        view.swipeContent().onEach { swipeContent ->
+            isContentSwiped = true
+            if (swipeContent.isSwiped)
+                state.value = SwipeContent(swipeContent.actionType, swipeContent.position)
+            else state.value = FeedViewState.SwipeToRefresh(false)
+        }.launchIn(coroutineScope)
+
+        view.labelContent().onEach { labelContent ->
+            labelContent(labelContent)
+        }.launchIn(coroutineScope)
+
+        view.shareContent().onEach { shareContent ->
+            state.value = ShareContent(shareContent)
+        }.launchIn(coroutineScope)
+
+        view.openContentSource().onEach { url ->
+            state.value = OpenContentSource(url)
+        }.launchIn(coroutineScope)
+
+        view.updateAds().onEach {
+            state.value = UpdateAds()
+        }.launchIn(coroutineScope)
     }
-
-    /** View events */
-    fun launchViewEvents(fragment: FeedFragment) {
-        fragment.attachViewEvents(this)
-    }
-
-    override fun feedLoadComplete(event: FeedLoadComplete) {
-        _effect._screenEmpty.value = ScreenEmptyEffect(!event.hasContent)
-    }
-
-    override fun swipeToRefresh(event: SwipeToRefresh) {
-        getFeed(SwipeToRefresh(feedType, timeframe, isRealtime))
-    }
-
-    override fun contentSelected(event: ContentSelected) {
-        val contentSelected = ContentSelected(event.content, event.position)
-        when (contentSelected.content.contentType) {
-            ARTICLE -> repository.getAudiocast(contentSelected).onEach { resource ->
-                when (resource.status) {
-                    LOADING -> {
-                        setContentLoadingStatus(contentSelected.content.id, VISIBLE)
-                        _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
-                    }
-                    SUCCESS -> {
-                        setContentLoadingStatus(contentSelected.content.id, GONE)
-                        _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
-                        _state._contentToPlay.value = resource.data
-                    }
-                    Status.ERROR -> {
-                        setContentLoadingStatus(contentSelected.content.id, GONE)
-                        _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
-                        _effect._snackBar.value = SnackBarEffect(
-                                if (resource.message.equals(TTS_CHAR_LIMIT_ERROR))
-                                    TTS_CHAR_LIMIT_ERROR_MESSAGE
-                                else CONTENT_PLAY_ERROR)
-                    }
-                }
-            }.launchIn(coroutineScope)
-            YOUTUBE -> {
-                setContentLoadingStatus(contentSelected.content.id, View.GONE)
-                _effect._notifyItemChanged.value = NotifyItemChangedEffect(contentSelected.position)
-                _state._contentToPlay.value =
-                        ContentToPlay(contentSelected.position, contentSelected.content, "")
-            }
-            NONE -> throw IllegalArgumentException("contentType expected, contentType is 'NONE'")
-        }
-    }
-
-    override fun contentSwipeDrawed(event: ContentSwipeDrawed) {
-        _effect._enableSwipeToRefresh.value = EnableSwipeToRefreshEffect(false)
-    }
-
-    override fun contentSwiped(event: ContentSwiped) {
-        _effect._contentSwiped.value = ContentSwipedEffect(event.feedType, event.actionType, event.position)
-    }
-
-    override fun contentLabeled(event: ContentLabeled) {
-        if (event.user != null && !event.user.isAnonymous) {
-            repository.editContentLabels(
-                    feedType = event.feedType,
-                    actionType = event.actionType,
-                    content = event.content,
-                    user = event.user,
-                    position = event.position).onEach { resource ->
-                when (resource.status) {
-                    SUCCESS -> {
-                        if (event.feedType == MAIN) {
-                            analytics.labelContentFirebaseAnalytics(event.content!!)
-                            //TODO: Move to Cloud Function.
-                            // Use with WorkManager.
-                            // Return error in ContentLabeled.
-                            analytics.updateActionAnalytics(event.actionType, event.content, event.user)
-                            if (event.isMainFeedEmptied)
-                                analytics.updateFeedEmptiedActionsAndAnalytics(event.user.uid)
-                        }
-                        _state._contentLabeledPosition.value = event.position
-                    }
-                    Status.ERROR -> {
-                        _state._contentLabeledPosition.value = null
-                        _effect._snackBar.value = SnackBarEffect(CONTENT_LABEL_ERROR)
-                        Crashlytics.log(ERROR, LOG_TAG, resource.message)
-                    }
-                }
-            }.launchIn(coroutineScope)
-        } else {
-            _effect._notifyItemChanged.value = NotifyItemChangedEffect(event.position)
-            _effect._signIn.value = SignInEffect(true)
-        }
-    }
-
-    override fun contentShared(event: ContentShared) {
-        _effect._shareContentIntent.value =
-                ShareContentIntentEffect(repository.getContent(event.content.id))
-    }
-
-    override fun contentSourceOpened(event: ContentSourceOpened) {
-        _effect._openContentSourceIntent.value = OpenContentSourceIntentEffect(event.url)
-    }
-
-    override fun updateAds(event: UpdateAds) {
-        _effect._updateAds.value = UpdateAdsEffect()
-    }
-
-    fun getContentLoadingStatus(contentId: String?) =
-            if (effect.contentLoadingIds.contains(contentId)) VISIBLE else GONE
 
     private fun setToolbar(feedType: FeedType) = ToolbarState(
             visibility = when (feedType) {
@@ -219,53 +136,115 @@ class FeedViewModel @AssistedInject constructor(
                 DISMISSED -> true
             })
 
-    // private suspend fun getFeed(event: FeedViewEventType) {
-    private fun getFeed(event: FeedViewEventType) {
-        val timeframe =
-                if (event is FeedLoad) getTimeframe(event.timeframe)
-                else if (event is SwipeToRefresh) getTimeframe(event.timeframe)
-                else null
+    private fun loadFromNetwork(event: FeedLoad) {
+        val timeframe = getTimeframe(event.timeframe)
         if (feedType == MAIN)
-            repository.getMainFeedNetwork(isRealtime, timeframe!!).onEach { resource ->
+            repository.getMainFeedNetwork(isRealtime, timeframe).onEach { resource ->
                 when (resource.status) {
-                    LOADING -> {
-                        if (event is SwipeToRefresh)
-                            _effect._swipeToRefresh.value = SwipeToRefreshEffect(true)
-                        getMainFeedLocal(timeframe)
-                    }
-                    SUCCESS -> {
-                        if (event is SwipeToRefresh)
-                            _effect._swipeToRefresh.value = SwipeToRefreshEffect(false)
-                        resource.data?.collect { pagedList ->
-                            _state._feedList.value = pagedList
-                        }
+                    LOADING -> repository.getMainFeedRoom(timeframe).onEach { pagedList ->
+                        if (feedType == MAIN && isContentSwiped == false)
+                            state.value = Feed(toolbarState = toolbarState, feed = pagedList)
+                    }.launchIn(coroutineScope)
+                    SUCCESS -> resource.data?.collect { pagedList ->
+                        if (feedType == MAIN)
+                            state.value = Feed(toolbarState = toolbarState, feed = pagedList)
                     }
                     Status.ERROR -> {
                         Crashlytics.log(ERROR, LOG_TAG, resource.message)
-                        if (event is SwipeToRefresh)
-                            _effect._swipeToRefresh.value = SwipeToRefreshEffect(false)
-                        _effect._snackBar.value = SnackBarEffect(
-                                if (event is FeedLoad) CONTENT_REQUEST_NETWORK_ERROR
-                                else CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR)
-                        getMainFeedLocal(timeframe)
+                        repository.getMainFeedRoom(timeframe).onEach { pagedList ->
+                            if (feedType == MAIN)
+                                state.value = Feed(
+                                        toolbarState = toolbarState,
+                                        feed = pagedList,
+                                        error = CONTENT_REQUEST_NETWORK_ERROR
+                                )
+                        }.launchIn(coroutineScope)
                     }
                 }
+                isContentSwiped = false
             }.launchIn(coroutineScope)
-        else
-            repository.getLabeledFeedRoom(feedType).onEach { pagedList ->
-                _effect._screenEmpty.value = ScreenEmptyEffect(pagedList.isEmpty())
-                _state._feedList.value = pagedList
-            }.launchIn(coroutineScope)
-    }
-
-    private fun getMainFeedLocal(timeframe: Timestamp) {
-        repository.getMainFeedRoom(timeframe).onEach { pagedList ->
-            _state._feedList.value = pagedList
+        else repository.getLabeledFeedRoom(feedType).onEach { pagedList ->
+            state.value = Feed(toolbarState = toolbarState, feed = pagedList)
         }.launchIn(coroutineScope)
     }
 
-    private fun setContentLoadingStatus(contentId: String, visibility: Int) {
-        if (visibility == VISIBLE) _effect._contentLoadingIds.add(contentId)
-        else _effect._contentLoadingIds.remove(contentId)
+    private fun swipeToRefresh(swipeToRefresh: SwipeToRefresh) {
+        repository.getMainFeedNetwork(isRealtime, getTimeframe(swipeToRefresh.timeframe)).onEach {
+            when (it.status) {
+                LOADING -> state.value = FeedViewState.SwipeToRefresh(true)
+                SUCCESS -> FeedViewState.SwipeToRefresh(false)
+                Status.ERROR -> FeedViewState.SwipeToRefresh(
+                        false, CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR)
+            }
+        }.launchIn(coroutineScope)
+    }
+
+    private fun selectContent(selectContent: SelectContent) {
+        when (selectContent.content.contentType) {
+            ARTICLE -> repository.getAudiocast(selectContent).onEach { resource ->
+                when (resource.status) {
+                    LOADING -> state.value = OpenContent(
+                            isLoading = true,
+                            position = selectContent.position,
+                            content = Content(id = selectContent.content.id)
+                    )
+                    SUCCESS -> state.value = OpenContent(
+                            isLoading = false,
+                            position = selectContent.position,
+                            content = resource.data?.content!!,
+                            filePath = resource.data.filePath
+                    )
+                    Status.ERROR -> state.value = OpenContent(
+                            isLoading = false,
+                            position = selectContent.position,
+                            content = Content(id = selectContent.content.id),
+                            error = TTS_CHAR_LIMIT_ERROR_MESSAGE
+                    )
+                }
+            }.launchIn(coroutineScope)
+            YOUTUBE -> state.value = OpenContent(
+                    isLoading = false,
+                    position = selectContent.position,
+                    content = selectContent.content)
+            NONE -> throw IllegalArgumentException("contentType expected, contentType is 'NONE'")
+        }
+    }
+
+    private fun labelContent(labelContent: LabelContent) {
+        if (labelContent.user != null && !labelContent.user.isAnonymous)
+            repository.editContentLabels(
+                    feedType = labelContent.feedType,
+                    actionType = labelContent.actionType,
+                    content = labelContent.content,
+                    user = labelContent.user,
+                    position = labelContent.position
+            ).onEach { resource ->
+                when (resource.status) {
+                    SUCCESS -> {
+                        if (labelContent.feedType == MAIN) {
+                            analytics.labelContentFirebaseAnalytics(labelContent.content!!)
+                            analytics.updateActionAnalytics(
+                                    actionType = labelContent.actionType,
+                                    content = labelContent.content,
+                                    user = labelContent.user
+                            )
+                            if (labelContent.isMainFeedEmptied)
+                                analytics.updateFeedEmptiedActionsAndAnalytics(labelContent.user.uid)
+                        }
+                        state.value = ClearAdjacentAds(labelContent.position)
+                    }
+                    Status.ERROR -> {
+                        Crashlytics.log(ERROR, LOG_TAG, resource.message)
+                        state.value = ClearAdjacentAds(
+                                position = app.coinverse.utils.ERROR,
+                                error = CONTENT_LABEL_ERROR
+                        )
+                    }
+                }
+            }.launchIn(coroutineScope)
+        else {
+            state.value = SignIn(position = labelContent.position)
+            isContentSwiped = false
+        }
     }
 }

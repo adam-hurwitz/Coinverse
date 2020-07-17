@@ -10,14 +10,22 @@ import app.coinverse.priceGraph.PriceRepository
 import app.coinverse.priceGraph.models.PercentDifference
 import app.coinverse.priceGraph.models.PriceGraphData
 import app.coinverse.priceGraph.models.PricePair
-import app.coinverse.utils.*
-import app.coinverse.utils.Exchange.*
+import app.coinverse.utils.Currency
+import app.coinverse.utils.Exchange
+import app.coinverse.utils.Exchange.BINANCE
+import app.coinverse.utils.Exchange.COINBASE
+import app.coinverse.utils.Exchange.EMPTY
+import app.coinverse.utils.Exchange.GEMINI
+import app.coinverse.utils.Exchange.KRAKEN
+import app.coinverse.utils.OrderType
 import app.coinverse.utils.OrderType.BID
+import app.coinverse.utils.Timeframe
+import app.coinverse.utils.buildTypeTimescale
 import com.jjoe64.graphview.series.LineGraphSeries
 import kotlinx.coroutines.launch
 
 /**
- * TODO: Remove price graphs and replace with content search bar.
+ * Todo: Remove price graphs and replace with content search bar.
  */
 class PriceViewModel(val repository: PriceRepository) : ViewModel() {
     val pricePair = PricePair(Currency.ETH, Currency.BTC)

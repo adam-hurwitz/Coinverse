@@ -1,13 +1,17 @@
 package app.coinverse.content.viewmodel
 
 import android.util.Log
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
+import app.coinverse.content.AudioFragment
 import app.coinverse.content.AudioViewEventType.AudioPlayerLoad
 import app.coinverse.content.AudioViewEvents
+import app.coinverse.content.ContentPlayer
 import app.coinverse.content.ContentRepository
-import app.coinverse.content.views.AudioFragment
-import app.coinverse.feed.models.Content
-import app.coinverse.feed.models.ContentPlayer
+import app.coinverse.feed.Content
 import app.coinverse.utils.Resource.Companion.error
 import app.coinverse.utils.Resource.Companion.success
 import app.coinverse.utils.Status.ERROR
@@ -16,8 +20,8 @@ import com.crashlytics.android.Crashlytics
 import kotlinx.coroutines.flow.collect
 
 /**
- * TODO: Refactor with Unidirectional Data Flow. See [FeedViewModel].
- * See more: https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
+ * Todo: Refactor with Model-View-Intent.
+ * See [app.coinverse.feed.FeedViewModel].
  **/
 class AudioViewModel(val repository: ContentRepository) : ViewModel(), AudioViewEvents {
     val LOG_TAG = AudioViewModel::class.java.simpleName

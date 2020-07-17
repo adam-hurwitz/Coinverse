@@ -39,10 +39,10 @@ import app.coinverse.R.string.first_open
 import app.coinverse.R.string.logged_out
 import app.coinverse.R.string.mail_to
 import app.coinverse.analytics.models.UserActionCount
-import app.coinverse.content.views.ContentDialogFragment
+import app.coinverse.content.ContentDialogFragment
 import app.coinverse.databinding.FragmentHomeBinding
 import app.coinverse.feed.FeedFragment
-import app.coinverse.feed.models.ContentToPlay
+import app.coinverse.feed.state.FeedViewState.OpenContent
 import app.coinverse.firebase.ACCOUNT_DOCUMENT
 import app.coinverse.firebase.ACTIONS_DOCUMENT
 import app.coinverse.firebase.firebaseApp
@@ -108,11 +108,8 @@ import java.util.*
 private val LOG_TAG = HomeFragment::class.java.simpleName
 
 /**
- * TODO: Refactor
- *  1. Refactor with Unidirectional Data Flow. See [app.coinverse.feed.ContentFragment].
- *  https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
- *  2. Move Firebase calls to Repository.
- *  3. Move Firebase user calls to Cloud Functions.
+ * Todo: Refactor with Model-View-Intent.
+ * See [app.coinverse.feed.FeedFragment].
  **/
 
 class HomeFragment : Fragment() {
@@ -160,7 +157,7 @@ class HomeFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.getParcelable<ContentToPlay>(OPEN_CONTENT_FROM_NOTIFICATION_KEY)?.let {
+        arguments?.getParcelable<OpenContent>(OPEN_CONTENT_FROM_NOTIFICATION_KEY)?.let {
             openFromNotificaitonFeedType = it.content.feedType
         }
     }
@@ -180,7 +177,7 @@ class HomeFragment : Fragment() {
         initSavedBottomSheetContainer(savedInstanceState)
         setClickListeners()
         initSwipeToRefresh()
-        observeSavedContentSelected()
+        observeOpenFromSave()
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -387,7 +384,7 @@ class HomeFragment : Fragment() {
         if (homeViewModel.accountType.value == FREE) getLocationPermissionCheck()
         childFragmentManager.beginTransaction().replace(
                 contentContainer.id,
-                FeedFragment().newInstance(Bundle().apply {
+                FeedFragment.newInstance(Bundle().apply {
                     putString(FEED_TYPE_KEY, MAIN.name)
                     openFromNotificaitonFeedType?.let { if (it == MAIN) putAll(arguments) }
                 }), CONTENT_FEED_FRAGMENT_TAG
@@ -397,7 +394,7 @@ class HomeFragment : Fragment() {
     private fun initSavedContentFragment() {
         childFragmentManager.beginTransaction().replace(
                 savedContentContainer.id,
-                FeedFragment().newInstance(Bundle().apply {
+                FeedFragment.newInstance(Bundle().apply {
                     putString(FEED_TYPE_KEY, SAVED.name)
                     if (openFromNotificaitonFeedType == SAVED) {
                         bottomSheetBehavior.state = STATE_EXPANDED
@@ -428,8 +425,8 @@ class HomeFragment : Fragment() {
     }
 
     private fun initSwipeToRefresh() {
-        homeViewModel.isSwipeToRefreshEnabled.observe(viewLifecycleOwner) { isEnabled: Boolean ->
-            swipeToRefresh.isEnabled = isEnabled
+        homeViewModel.disableSwipeToRefresh.observe(viewLifecycleOwner) {
+            swipeToRefresh.isEnabled = false
         }
         homeViewModel.isRefreshing.observe(viewLifecycleOwner) { isRefreshing: Boolean ->
             swipeToRefresh.isRefreshing = isRefreshing
@@ -439,12 +436,12 @@ class HomeFragment : Fragment() {
             (childFragmentManager.findFragmentById(R.id.priceContainer) as PriceFragment)
                     .getPrices(homeViewModel.isRealtime.value!!, false)
             (childFragmentManager.findFragmentById(R.id.contentContainer) as FeedFragment)
-                    .swipeToRefresh()
+                    .initSwipeToRefresh()
         }
     }
 
-    private fun observeSavedContentSelected() {
-        homeViewModel.savedContentToPlay.observe(viewLifecycleOwner) { contentToPlay ->
+    private fun observeOpenFromSave() {
+        homeViewModel.openContentFromSave.observe(viewLifecycleOwner) { contentToPlay ->
             if (childFragmentManager.findFragmentByTag(CONTENT_DIALOG_FRAGMENT_TAG) == null)
                 ContentDialogFragment().newInstance(Bundle().apply {
                     putParcelable(CONTENT_TO_PLAY_KEY, contentToPlay)

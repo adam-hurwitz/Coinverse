@@ -13,8 +13,8 @@ import kotlinx.coroutines.tasks.await
 private val LOG_TAG = UserViewModel::class.java.simpleName
 
 /**
- * TODO: Refactor with Unidirectional Data Flow. See [app.coinverse.feed.viewmodel.FeedViewModel].
- * See more: https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
+ * Todo: Refactor with Model-View-Intent.
+ * See [app.coinverse.feed.FeedViewModel].
  **/
 
 class UserViewModel(val repository: UserRepository) : ViewModel() {
@@ -24,7 +24,7 @@ class UserViewModel(val repository: UserRepository) : ViewModel() {
             emit(SUCCESS)
         } catch (e: FirebaseFunctionsException) {
             emit(ERROR)
-            Log.e(LOG_TAG, "Failed to delete user error: ${e?.localizedMessage}")
+            Log.e(LOG_TAG, "Failed to delete user error: ${e.localizedMessage}")
         }
     }
 }

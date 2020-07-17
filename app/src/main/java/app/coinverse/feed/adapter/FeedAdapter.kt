@@ -1,7 +1,9 @@
 package app.coinverse.feed.adapter
 
 import android.view.LayoutInflater
+import android.view.View.GONE
 import android.view.View.OnClickListener
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.DiffUtil
@@ -11,12 +13,10 @@ import app.coinverse.R.id.openSource
 import app.coinverse.R.id.preview
 import app.coinverse.R.id.share
 import app.coinverse.databinding.CellContentBinding
-import app.coinverse.feed.FeedViewModel
-import app.coinverse.feed.models.Content
-import app.coinverse.feed.models.FeedViewEvent
-import app.coinverse.feed.models.FeedViewEventType.ContentSelected
-import app.coinverse.feed.models.FeedViewEventType.ContentShared
-import app.coinverse.feed.models.FeedViewEventType.ContentSourceOpened
+import app.coinverse.feed.Content
+import app.coinverse.feed.state.FeedViewIntentType
+import app.coinverse.feed.state.FeedViewIntentType.SelectContent
+import app.coinverse.utils.Event
 import app.coinverse.utils.setContentTypeIcon
 import app.coinverse.utils.setImageUrlRounded
 import app.coinverse.utils.setTimePostedAgo
@@ -34,11 +34,13 @@ private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Content>() {
 }
 
 @ExperimentalCoroutinesApi
-class FeedAdapter(val viewModel: FeedViewModel, val viewEvent: FeedViewEvent)
-    : PagedListAdapter<Content, FeedAdapter.ViewHolder>(DIFF_CALLBACK) {
+class FeedAdapter(
+        private val intent: FeedViewIntentType
+) : PagedListAdapter<Content, FeedAdapter.ViewHolder>(DIFF_CALLBACK) {
+    val loadingIds: HashSet<String> = hashSetOf()
 
     class ViewHolder(private var binding: CellContentBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(viewModel: FeedViewModel, content: Content, onClickListener: OnClickListener) {
+        fun bind(content: Content, loadingIds: HashSet<String>, onClickListener: OnClickListener) {
             binding.cellContentFeed.setOnClickListener(onClickListener)
             binding.creator.text = content.creator
             binding.timeAgo.setTimePostedAgo(content.timestamp.toDate().time)
@@ -47,7 +49,7 @@ class FeedAdapter(val viewModel: FeedViewModel, val viewEvent: FeedViewEvent)
             binding.contentTypeLogo.setOnClickListener(onClickListener)
             binding.preview.setImageUrlRounded(content.previewImage)
             binding.preview.setOnClickListener(onClickListener)
-            binding.progressBar.visibility = viewModel.getContentLoadingStatus(content.id)
+            binding.progressBar.visibility = if (loadingIds.contains(content.id)) VISIBLE else GONE
             binding.titleToolbar.text = content.title
             binding.openSource.setOnClickListener(onClickListener)
             binding.share.setOnClickListener(onClickListener)
@@ -62,18 +64,16 @@ class FeedAdapter(val viewModel: FeedViewModel, val viewEvent: FeedViewEvent)
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         getItem(position)?.let { content ->
-            holder.bind(viewModel, content, createOnClickListener(content, position))
+            holder.bind(content, loadingIds, createOnClickListener(content, position))
         }
     }
 
     private fun createOnClickListener(content: Content, position: Int) = OnClickListener { view ->
         when (view.id) {
-            preview, contentTypeLogo -> {
-                val contentSelected = ContentSelected(content, position)
-                viewEvent.contentSelected(contentSelected)
-            }
-            share -> viewEvent.contentShared(ContentShared(content))
-            openSource -> viewEvent.contentSourceOpened(ContentSourceOpened(content.url))
+            preview, contentTypeLogo -> intent.selectContent.value =
+                    Event(SelectContent(content, position))
+            share -> intent.shareContent.value = content
+            openSource -> intent.openContentSource.value = content.url
         }
     }
 

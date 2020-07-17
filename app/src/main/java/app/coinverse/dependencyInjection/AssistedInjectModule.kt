@@ -1,4 +1,4 @@
-package app.coinverse.utils.viewmodel
+package app.coinverse.dependencyInjection
 
 import com.squareup.inject.assisted.dagger2.AssistedModule
 import dagger.Module

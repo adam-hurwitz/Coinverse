@@ -56,7 +56,7 @@ import javax.inject.Inject
 private val dataPointRadiusValue = TypedValue()
 
 /**
- * TODO: Remove price graphs and replace with content search bar.
+ * Todo: Remove price graphs and replace with content search bar.
  */
 class PriceFragment : Fragment() {
     @Inject

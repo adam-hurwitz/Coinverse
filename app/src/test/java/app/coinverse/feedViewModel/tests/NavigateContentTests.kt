@@ -1,13 +1,14 @@
 package app.coinverse.feedViewModel.tests
 
 import app.coinverse.analytics.Analytics
-import app.coinverse.feed.FeedRepository
+import app.coinverse.feed.FeedViewEventType.OpenContentSource
+import app.coinverse.feed.FeedViewEventType.ShareContent
+import app.coinverse.feed.FeedViewEventType.UpdateAds
 import app.coinverse.feed.FeedViewModel
-import app.coinverse.feed.models.FeedViewEffectType.OpenContentSourceIntentEffect
+import app.coinverse.feed.data.FeedRepository
+import app.coinverse.feed.models.FeedViewEffectType.OpenSourceIntentEffect
 import app.coinverse.feed.models.FeedViewEffectType.UpdateAdsEffect
-import app.coinverse.feed.models.FeedViewEventType.ContentShared
-import app.coinverse.feed.models.FeedViewEventType.ContentSourceOpened
-import app.coinverse.feed.models.FeedViewEventType.UpdateAds
+import app.coinverse.feed.state.FeedViewState
 import app.coinverse.feedViewModel.NavigateContentTest
 import app.coinverse.feedViewModel.mockGetContent
 import app.coinverse.feedViewModel.mockGetMainFeedList
@@ -18,7 +19,6 @@ import app.coinverse.utils.FeedType.DISMISSED
 import app.coinverse.utils.FeedType.MAIN
 import app.coinverse.utils.FeedType.SAVED
 import app.coinverse.utils.Status.SUCCESS
-import app.coinverse.utils.getOrAwaitValue
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -57,15 +57,15 @@ class NavigateContentTests(
                 analytics = analytics)
         println("NavigateContent: ${test.mockContent.contentType}")
         assertContentList(test)
-        ContentShared(test.mockContent).also { event ->
-            feedViewModel.contentShared(event)
+        FeedViewState.ShareContent(test.mockContent).also { event ->
+            feedViewModel.shareContent(event)
             assertThat(feedViewModel.effect.shareContentIntent.getOrAwaitValue().contentRequest.getOrAwaitValue())
                     .isEqualTo(test.mockContent)
         }
-        ContentSourceOpened(test.mockContent.url).also { event ->
-            feedViewModel.contentSourceOpened(event)
-            assertThat(feedViewModel.effect.openContentSourceIntent.getOrAwaitValue())
-                    .isEqualTo(OpenContentSourceIntentEffect(test.mockContent.url))
+        OpenContentSource(test.mockContent.url).also { event ->
+            feedViewModel.openContentSource(event)
+            assertThat(feedViewModel.effect.openSourceIntent.getOrAwaitValue())
+                    .isEqualTo(OpenSourceIntentEffect(test.mockContent.url))
         }
         // Occurs on Fragment 'onViewStateRestored'
         UpdateAds().also { event ->

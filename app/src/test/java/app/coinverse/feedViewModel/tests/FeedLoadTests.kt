@@ -6,13 +6,13 @@ import app.coinverse.R.string.app_name
 import app.coinverse.R.string.dismissed
 import app.coinverse.R.string.saved
 import app.coinverse.analytics.Analytics
-import app.coinverse.feed.FeedRepository
+import app.coinverse.feed.FeedViewEventType.FeedLoadComplete
 import app.coinverse.feed.FeedViewModel
+import app.coinverse.feed.data.FeedRepository
 import app.coinverse.feed.models.FeedViewEffectType.ScreenEmptyEffect
 import app.coinverse.feed.models.FeedViewEffectType.SnackBarEffect
 import app.coinverse.feed.models.FeedViewEffectType.SwipeToRefreshEffect
 import app.coinverse.feed.models.FeedViewEffectType.UpdateAdsEffect
-import app.coinverse.feed.models.FeedViewEventType.FeedLoadComplete
 import app.coinverse.feedViewModel.FeedLoadTest
 import app.coinverse.feedViewModel.mockGetMainFeedList
 import app.coinverse.feedViewModel.mockQueryMainContentListFlow
@@ -34,7 +34,6 @@ import app.coinverse.utils.Status.ERROR
 import app.coinverse.utils.Status.LOADING
 import app.coinverse.utils.Status.SUCCESS
 import app.coinverse.utils.ToolbarState
-import app.coinverse.utils.getOrAwaitValue
 import com.crashlytics.android.Crashlytics
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import io.mockk.coEvery

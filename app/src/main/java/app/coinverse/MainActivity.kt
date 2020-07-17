@@ -8,7 +8,7 @@ import androidx.navigation.fragment.findNavController
 import app.coinverse.R.id.dismissedContentFragment
 import app.coinverse.R.id.homeFragment
 import app.coinverse.databinding.ActivityMainBinding
-import app.coinverse.feed.models.ContentToPlay
+import app.coinverse.feed.state.FeedViewState.OpenContent
 import app.coinverse.home.HomeViewModel
 import app.coinverse.utils.FeedType.DISMISSED
 import app.coinverse.utils.FeedType.MAIN
@@ -41,7 +41,7 @@ class MainActivity : AppCompatActivity() {
     private fun openContentFromNotification() {
         if (intent.action == OPEN_FROM_NOTIFICATION_ACTION)
             when (
-                intent.getParcelableExtra<ContentToPlay>(OPEN_CONTENT_FROM_NOTIFICATION_KEY)?.let {
+                intent.getParcelableExtra<OpenContent>(OPEN_CONTENT_FROM_NOTIFICATION_KEY)?.let {
                     it.content.feedType
                 }) {
                 MAIN, SAVED ->

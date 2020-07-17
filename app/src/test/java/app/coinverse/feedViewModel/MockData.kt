@@ -3,7 +3,7 @@ package app.coinverse.feedViewModel
 import android.net.Uri
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.liveData
-import app.coinverse.feed.models.Content
+import app.coinverse.feed.Content
 import app.coinverse.feed.models.ContentPlayer
 import app.coinverse.feed.models.ContentToPlay
 import app.coinverse.utils.ContentType.ARTICLE

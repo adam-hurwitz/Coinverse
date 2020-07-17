@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package app.coinverse.content.views
+package app.coinverse.content
 
 import android.content.ComponentName
 import android.content.Context
@@ -34,13 +34,11 @@ import androidx.lifecycle.observe
 import app.coinverse.App
 import app.coinverse.analytics.Analytics
 import app.coinverse.content.AudioViewEventType.AudioPlayerLoad
-import app.coinverse.content.AudioViewEvents
-import app.coinverse.content.ContentRepository
 import app.coinverse.content.viewmodel.AudioViewModel
 import app.coinverse.content.viewmodel.AudioViewModelFactory
 import app.coinverse.databinding.FragmentAudioDialogBinding
 import app.coinverse.feed.AudioService
-import app.coinverse.feed.models.ContentToPlay
+import app.coinverse.feed.state.FeedViewState.OpenContent
 import app.coinverse.utils.AUDIOCAST_VIEW
 import app.coinverse.utils.CONTENT_SELECTED_ACTION
 import app.coinverse.utils.CONTENT_SELECTED_BITMAP_KEY
@@ -61,8 +59,8 @@ import javax.inject.Inject
 private val LOG_TAG = AudioFragment::class.java.simpleName
 
 /**
- * TODO: Refactor with Unidirectional Data Flow. See [FeedFragment].
- *  https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
+ * Todo: Refactor with Model-View-Intent.
+ * See [app.coinverse.feed.FeedFragment].
  **/
 class AudioFragment : Fragment() {
     @Inject
@@ -75,7 +73,7 @@ class AudioFragment : Fragment() {
     }
     private var player: SimpleExoPlayer? = null
     private lateinit var viewEvents: AudioViewEvents
-    private lateinit var contentToPlay: ContentToPlay
+    private lateinit var openContent: OpenContent
 
     fun newInstance(bundle: Bundle) = AudioFragment().apply { arguments = bundle }
 
@@ -95,12 +93,12 @@ class AudioFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        contentToPlay = requireArguments().getParcelable(CONTENT_TO_PLAY_KEY)!!
+        openContent = requireArguments().getParcelable(CONTENT_TO_PLAY_KEY)!!
         audioViewModel.attachEvents(this)
         if (savedInstanceState == null)
             viewEvents.audioPlayerLoad(AudioPlayerLoad(
-                    contentToPlay.content.id, contentToPlay.filePath!!,
-                    contentToPlay.content.previewImage))
+                    openContent.content.id, openContent.filePath!!,
+                    openContent.content.previewImage))
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -131,8 +129,8 @@ class AudioFragment : Fragment() {
 
     private fun setPlayerView() {
         playerView.requestFocus()
-        playerView.preview.setImageUrlRounded(requireContext(), contentToPlay.content.previewImage)
-        playerView.titleToolbar.text = contentToPlay.content.title
+        playerView.preview.setImageUrlRounded(requireContext(), openContent.content.previewImage)
+        playerView.titleToolbar.text = openContent.content.title
         playerView.showController()
     }
 
@@ -155,7 +153,7 @@ class AudioFragment : Fragment() {
 
     private fun observeViewState() {
         audioViewModel.contentPlayer.observe(viewLifecycleOwner) { contentPlayer ->
-            if (contentToPlay.content.id != audioViewModel.contentPlaying.id)
+            if (openContent.content.id != audioViewModel.contentPlaying.id)
                 if (SDK_INT >= VERSION_CODES.O)
                     context?.startService(Intent(context, AudioService::class.java).apply {
                         action = PLAYER_ACTION
@@ -163,11 +161,11 @@ class AudioFragment : Fragment() {
                             putExtra(PLAYER_KEY, PlayerActionType.STOP.name)
                     })
                 else context?.stopService(Intent(context, AudioService::class.java))
-            audioViewModel.contentPlaying = contentToPlay.content
+            audioViewModel.contentPlaying = openContent.content
             context?.bindService(
                     Intent(context, AudioService::class.java).apply {
                         action = CONTENT_SELECTED_ACTION
-                        putExtra(CONTENT_TO_PLAY_KEY, contentToPlay.apply {
+                        putExtra(CONTENT_TO_PLAY_KEY, openContent.apply {
                             content.audioUrl = contentPlayer.uri.toString()
                         })
                         putExtra(CONTENT_SELECTED_BITMAP_KEY, contentPlayer.image)
@@ -176,7 +174,7 @@ class AudioFragment : Fragment() {
                     requireContext(),
                     Intent(context, AudioService::class.java).apply {
                         action = CONTENT_SELECTED_ACTION
-                        putExtra(CONTENT_TO_PLAY_KEY, contentToPlay.apply {
+                        putExtra(CONTENT_TO_PLAY_KEY, openContent.apply {
                             content.audioUrl = contentPlayer.uri.toString()
                         })
                         putExtra(CONTENT_SELECTED_BITMAP_KEY, contentPlayer.image)

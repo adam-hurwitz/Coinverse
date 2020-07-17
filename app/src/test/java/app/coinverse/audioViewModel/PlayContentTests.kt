@@ -5,16 +5,16 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import app.coinverse.analytics.Analytics
 import app.coinverse.content.AudioViewEventType.AudioPlayerLoad
+import app.coinverse.content.ContentPlayer
 import app.coinverse.content.ContentRepository
 import app.coinverse.content.viewmodel.AudioViewModel
-import app.coinverse.feed.FeedRepository
+import app.coinverse.feed.Content
+import app.coinverse.feed.FeedViewEventType.ContentSelected
 import app.coinverse.feed.FeedViewModel
-import app.coinverse.feed.models.Content
-import app.coinverse.feed.models.ContentPlayer
-import app.coinverse.feed.models.ContentToPlay
+import app.coinverse.feed.data.FeedRepository
 import app.coinverse.feed.models.FeedViewEffectType.NotifyItemChangedEffect
 import app.coinverse.feed.models.FeedViewEffectType.SnackBarEffect
-import app.coinverse.feed.models.FeedViewEventType.ContentSelected
+import app.coinverse.feed.state.FeedViewState.OpenContent
 import app.coinverse.feedViewModel.PlayContentTest
 import app.coinverse.feedViewModel.mockBitmapToByteArray
 import app.coinverse.feedViewModel.mockGetAudiocast
@@ -97,7 +97,7 @@ class PlayContentTests constructor(
         audioViewModel = AudioViewModel(repository = contentRepository)
         assertContentList(test)
         ContentSelected(test.mockContent, test.mockPosition).also { event ->
-            feedViewModel.contentSelected(event)
+            feedViewModel.selectContent(event)
             assertContentSelected(test)
         }
         if (test.mockContent.contentType == ARTICLE)
@@ -157,7 +157,7 @@ class PlayContentTests constructor(
                                 .isEqualTo(VISIBLE)
                     }
                     SUCCESS -> {
-                        assertThat(feedViewModel.state.contentToPlay.getOrAwaitValue()).isEqualTo(ContentToPlay(
+                        assertThat(feedViewModel.state.contentToPlay.getOrAwaitValue()).isEqualTo(OpenContent(
                                 position = test.mockPosition,
                                 content = test.mockContent,
                                 filePath = MOCK_TXT_FILE_PATH))
@@ -177,20 +177,20 @@ class PlayContentTests constructor(
                     }
                 }
                 SAVED -> HomeViewModel().also { homeViewModel ->
-                    ContentToPlay(
+                    OpenContent(
                             position = test.mockPosition,
                             content = test.mockContent,
                             filePath = test.mockFilePath
                     ).also { mockContentToPlay ->
-                        homeViewModel.setSavedContentToPlay(mockContentToPlay)
-                        assertThat(homeViewModel.savedContentToPlay.getOrAwaitValue())
+                        homeViewModel.setOpenFromSave(mockContentToPlay)
+                        assertThat(homeViewModel.openContentFromSave.getOrAwaitValue())
                                 .isEqualTo(mockContentToPlay)
                     }
                 }
             }
             YOUTUBE -> when (test.feedType) {
                 MAIN, DISMISSED -> {
-                    assertThat(feedViewModel.state.contentToPlay.getOrAwaitValue()).isEqualTo(ContentToPlay(
+                    assertThat(feedViewModel.state.contentToPlay.getOrAwaitValue()).isEqualTo(OpenContent(
                             position = test.mockPosition,
                             content = test.mockContent,
                             filePath = test.mockFilePath))
@@ -200,13 +200,13 @@ class PlayContentTests constructor(
                 }
                 SAVED -> {
                     HomeViewModel().apply {
-                        ContentToPlay(
+                        OpenContent(
                                 position = test.mockPosition,
                                 content = test.mockContent,
                                 filePath = test.mockFilePath
                         ).also { mockContentToPlay ->
-                            this.setSavedContentToPlay(mockContentToPlay)
-                            assertThat(this.savedContentToPlay.getOrAwaitValue()).isEqualTo(mockContentToPlay)
+                            this.setOpenFromSave(mockContentToPlay)
+                            assertThat(this.openContentFromSave.getOrAwaitValue()).isEqualTo(mockContentToPlay)
                         }
                     }
 

@@ -16,8 +16,7 @@ import app.coinverse.R.drawable.ic_coinverse_notification_24dp
 import app.coinverse.R.string.app_name
 import app.coinverse.R.string.notification_channel_description
 import app.coinverse.analytics.Analytics
-import app.coinverse.feed.models.Content
-import app.coinverse.feed.models.ContentToPlay
+import app.coinverse.feed.state.FeedViewState.OpenContent
 import app.coinverse.utils.CONTENT_SELECTED_ACTION
 import app.coinverse.utils.CONTENT_SELECTED_BITMAP_KEY
 import app.coinverse.utils.CONTENT_TO_PLAY_KEY
@@ -97,7 +96,7 @@ class AudioService : Service() {
         player?.setHandleWakeLock(true)
         player?.addListener(PlayerEventListener())
         buildNotification(
-                contentToPlay = intent!!.getParcelableExtra(CONTENT_TO_PLAY_KEY),
+                openContent = intent!!.getParcelableExtra(CONTENT_TO_PLAY_KEY),
                 bitmap = intent.getByteArrayExtra(CONTENT_SELECTED_BITMAP_KEY).byteArrayToBitmap(applicationContext))
     }
 
@@ -112,10 +111,10 @@ class AudioService : Service() {
         val intent = intent.apply {
             when (intent?.action) {
                 CONTENT_SELECTED_ACTION -> {
-                    val contentToPlay = this?.getParcelableExtra<ContentToPlay>(CONTENT_TO_PLAY_KEY)
+                    val open = this?.getParcelableExtra<OpenContent>(CONTENT_TO_PLAY_KEY)
                     /** New content playing */
-                    if (!contentToPlay?.content?.equals(content)!!) {
-                        content = contentToPlay.content
+                    if (!open?.content?.equals(content)!!) {
+                        content = open.content
                         seekToPositionMillis = 0
                         analytics.updateStartActionsAndAnalytics(content)
                         player?.prepare(ProgressiveMediaSource.Factory(
@@ -159,10 +158,10 @@ class AudioService : Service() {
                         audioRendererEventListener))
     }
 
-    private fun buildNotification(contentToPlay: ContentToPlay, bitmap: Bitmap?) {
+    private fun buildNotification(openContent: OpenContent, bitmap: Bitmap?) {
         playerNotificationManager = PlayerNotificationManager.createWithNotificationChannel(
                 applicationContext,
-                contentToPlay.content.title,
+                openContent.content.title,
                 app_name,
                 notification_channel_description,
                 EXOPLAYER_NOTIFICATION_ID,
@@ -172,13 +171,13 @@ class AudioService : Service() {
                             0,
                             Intent(applicationContext, MainActivity::class.java).apply {
                                 action = OPEN_FROM_NOTIFICATION_ACTION
-                                putExtra(OPEN_CONTENT_FROM_NOTIFICATION_KEY, contentToPlay)
+                                putExtra(OPEN_CONTENT_FROM_NOTIFICATION_KEY, openContent)
                             },
                             PendingIntent.FLAG_UPDATE_CURRENT)
 
-                    override fun getCurrentContentText(player: Player) = contentToPlay.content.description
+                    override fun getCurrentContentText(player: Player) = openContent.content.description
 
-                    override fun getCurrentContentTitle(player: Player) = contentToPlay.content.title
+                    override fun getCurrentContentTitle(player: Player) = openContent.content.title
 
                     override fun getCurrentLargeIcon(player: Player, callback: PlayerNotificationManager.BitmapCallback) = bitmap
                 },

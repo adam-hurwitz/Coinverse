@@ -8,7 +8,9 @@
     android:layout_height="match_parent"
     tools:context="app.coinverse.user.UserFragment">
 
-    <include layout="@layout/toolbar_app" />
+    <include
+        android:id="@+id/appbar"
+        layout="@layout/toolbar_app" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"

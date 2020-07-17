@@ -28,11 +28,6 @@ android {
         release {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro',
                     'proguard.cfg'
-            // TODO: FIXME
-            /*minifyEnabled true
-            shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
-                    'proguard-rules.pro', 'proguard.cfg'*/
         }
         debug {
             applicationIdSuffix ".staging"
@@ -56,6 +51,8 @@ dependencies {
     kapt "com.google.dagger:dagger-compiler:$dagger_version"
     implementation "com.squareup.inject:assisted-inject-annotations-dagger2:$dagger_assistedinject_version"
     kapt "com.squareup.inject:assisted-inject-processor-dagger2:$dagger_assistedinject_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlin_coroutines_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:$kotlin_coroutines_play_services_version"
     implementation "androidx.fragment:fragment-ktx:$fragment_version"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
@@ -63,7 +60,6 @@ dependencies {
     kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
     implementation "androidx.paging:paging-runtime-ktx:2.1.2"
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.1.1'
     implementation "com.google.android.gms:play-services-auth:18.0.0"
     implementation "com.google.android.gms:play-services-location:$play_services_version"
     implementation 'com.firebase:firebase-client-android:2.5.2'

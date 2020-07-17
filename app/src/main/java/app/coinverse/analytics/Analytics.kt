@@ -5,8 +5,8 @@ import android.os.Bundle
 import android.util.Log
 import app.coinverse.analytics.models.ContentAction
 import app.coinverse.analytics.models.UserAction
-import app.coinverse.feed.models.Content
-import app.coinverse.feed.room.FeedDao
+import app.coinverse.feed.Content
+import app.coinverse.feed.data.FeedDao
 import app.coinverse.firebase.ACTIONS_DOCUMENT
 import app.coinverse.firebase.CLEAR_FEED_COUNT
 import app.coinverse.firebase.CONSUME_ACTION_COLLECTION

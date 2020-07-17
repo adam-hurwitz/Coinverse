@@ -1,4 +1,4 @@
-package app.coinverse.utils.viewmodel
+package app.coinverse.dependencyInjection
 
 import android.os.Bundle
 import androidx.annotation.IdRes

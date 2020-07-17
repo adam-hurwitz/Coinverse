@@ -3,7 +3,6 @@ package app.coinverse.content
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import app.coinverse.feed.models.ContentPlayer
 import app.coinverse.firebase.contentEnCollection
 import app.coinverse.firebase.firebaseApp
 import app.coinverse.utils.AUDIO_URL

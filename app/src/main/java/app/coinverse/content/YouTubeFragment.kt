@@ -1,4 +1,4 @@
-package app.coinverse.content.views
+package app.coinverse.content
 
 import android.content.Context
 import android.os.Bundle
@@ -13,9 +13,9 @@ import app.coinverse.BuildConfig
 import app.coinverse.R.id.dialog_content
 import app.coinverse.analytics.Analytics
 import app.coinverse.databinding.FragmentContentDialogBinding
-import app.coinverse.feed.models.ContentToPlay
+import app.coinverse.feed.state.FeedViewState.OpenContent
+import app.coinverse.utils.BuildType
 import app.coinverse.utils.BuildType.debug
-import app.coinverse.utils.BuildType.open
 import app.coinverse.utils.BuildType.release
 import app.coinverse.utils.CONTENT_TO_PLAY_KEY
 import app.coinverse.utils.YOUTUBE_ID_REGEX
@@ -33,8 +33,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * TODO: Refactor with Unidirectional Data Flow. See [FeedFragment]
- * See more: https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
+ * Todo: Refactor with Model-View-Intent.
+ * See [app.coinverse.feed.FeedFragment].
  **/
 class YouTubeFragment : Fragment() {
     @Inject
@@ -42,7 +42,7 @@ class YouTubeFragment : Fragment() {
 
     private var LOG_TAG = YouTubeFragment::class.java.simpleName
 
-    private lateinit var contentToPlay: ContentToPlay
+    private lateinit var openContent: OpenContent
     private lateinit var binding: FragmentContentDialogBinding
     private lateinit var youtubePlayer: YouTubePlayer
 
@@ -57,7 +57,7 @@ class YouTubeFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        contentToPlay = requireArguments().getParcelable(CONTENT_TO_PLAY_KEY)!!
+        openContent = requireArguments().getParcelable(CONTENT_TO_PLAY_KEY)!!
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -69,7 +69,7 @@ class YouTubeFragment : Fragment() {
                 when (BuildConfig.BUILD_TYPE) {
                     debug.name -> APP_API_KEY_STAGING
                     release.name -> APP_API_KEY_PRODUCTION
-                    open.name -> APP_API_KEY_OPEN_SHARED
+                    BuildType.open.name -> APP_API_KEY_OPEN_SHARED
                     else -> APP_API_KEY_STAGING
                 },
                 object : YouTubePlayer.OnInitializedListener {
@@ -80,7 +80,7 @@ class YouTubeFragment : Fragment() {
                             youtubePlayer = player
                             player.setPlayerStateChangeListener(PlayerStateChangeListener())
                             player.setPlaybackEventListener(PlaybackEventListener())
-                            val youTubeId = Regex(YOUTUBE_ID_REGEX).replace(contentToPlay.content.id, "")
+                            val youTubeId = Regex(YOUTUBE_ID_REGEX).replace(openContent.content.id, "")
                             player.loadVideo(youTubeId)
                         }
                     }
@@ -99,7 +99,7 @@ class YouTubeFragment : Fragment() {
         override fun onLoaded(videoId: String) {}
         override fun onAdStarted() {}
         override fun onVideoStarted() {
-            analytics.updateStartActionsAndAnalytics(contentToPlay.content)
+            analytics.updateStartActionsAndAnalytics(openContent.content)
         }
 
         override fun onVideoEnded() {}
@@ -122,7 +122,7 @@ class YouTubeFragment : Fragment() {
             val watchPercent = getWatchPercent()
             if (watchPercent != YOUTUBE_WATCH_PERCENT_ERROR)
                 lifecycleScope.launch(Dispatchers.IO) {
-                    analytics.updateActionsAndAnalytics(contentToPlay.content, watchPercent)
+                    analytics.updateActionsAndAnalytics(openContent.content, watchPercent)
                 }
         }
     }

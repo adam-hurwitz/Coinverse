@@ -3,7 +3,7 @@ package app.coinverse.dependencyInjection
 import android.app.Application
 import android.content.Context
 import androidx.room.Room
-import app.coinverse.feed.room.CoinverseDatabase
+import app.coinverse.feed.data.CoinverseDatabase
 import app.coinverse.utils.DATABASE_NAME
 import app.coinverse.utils.ROOM_MIGRATION_1_2
 import app.coinverse.utils.ROOM_MIGRATION_2_3
