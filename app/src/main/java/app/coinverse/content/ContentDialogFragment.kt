@@ -32,7 +32,12 @@ class ContentDialogFragment : DialogFragment() {
     private lateinit var openContent: OpenContent
     private lateinit var binding: FragmentContentDialogBinding
 
-    fun newInstance(bundle: Bundle) = ContentDialogFragment().apply { arguments = bundle }
+    companion object {
+        @JvmStatic
+        fun newInstance(bundle: Bundle) = ContentDialogFragment().apply {
+            arguments = bundle
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,7 +50,7 @@ class ContentDialogFragment : DialogFragment() {
         if (savedInstanceState == null && childFragmentManager.findFragmentById(dialog_content) == null)
             childFragmentManager.beginTransaction().replace(dialog_content,
                     when (openContent.content.contentType) {
-                        ARTICLE -> AudioFragment().newInstance(requireArguments())
+                        ARTICLE -> AudioFragment.newInstance(requireArguments())
                         YOUTUBE -> {
                             // ContextCompat.startForegroundService(...) is not used because Service
                             // is being stopped here.
@@ -53,7 +58,7 @@ class ContentDialogFragment : DialogFragment() {
                                 action = PLAYER_ACTION
                                 putExtra(PLAYER_KEY, STOP.name)
                             })
-                            YouTubeFragment().newInstance(requireArguments())
+                            YouTubeFragment.newInstance(requireArguments())
                         }
                         NONE -> throw(IllegalArgumentException("contentType expected, contentType is 'NONE'"))
                     }

@@ -246,7 +246,7 @@ class FeedFragment : Fragment(), FeedView {
             when (feedType) {
                 MAIN, DISMISSED ->
                     if (childFragmentManager.findFragmentByTag(CONTENT_DIALOG_FRAGMENT_TAG) == null)
-                        ContentDialogFragment().newInstance(Bundle().apply {
+                        ContentDialogFragment.newInstance(Bundle().apply {
                             putParcelable(CONTENT_TO_PLAY_KEY, state)
                         }).show(childFragmentManager, CONTENT_DIALOG_FRAGMENT_TAG)
                 // Launches content from saved bottom sheet screen via HomeFragment.
@@ -261,7 +261,7 @@ class FeedFragment : Fragment(), FeedView {
         if (homeViewModel.accountType.value == FREE)
             moPubAdapter.notifyItemChanged(position)
         else adapter.notifyItemChanged(position)
-        SignInDialogFragment().newInstance(Bundle().apply {
+        SignInDialogFragment.newInstance(Bundle().apply {
             putString(SIGNIN_TYPE_KEY, SignInType.DIALOG.name)
         }).show(parentFragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
     }

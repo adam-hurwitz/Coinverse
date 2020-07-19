@@ -185,7 +185,7 @@ class HomeFragment : Fragment() {
         if (savedInstanceState == null
                 && childFragmentManager.findFragmentByTag(PRICEGRAPH_FRAGMENT_TAG) == null) {
             childFragmentManager.beginTransaction()
-                    .replace(priceContainer.id, PriceFragment().newInstance(), PRICEGRAPH_FRAGMENT_TAG)
+                    .replace(priceContainer.id, PriceFragment.newInstance(), PRICEGRAPH_FRAGMENT_TAG)
                     .commit()
         }
     }
@@ -225,7 +225,7 @@ class HomeFragment : Fragment() {
                 && (homeViewModel.user.value == null || homeViewModel.user.value!!.isAnonymous))
             childFragmentManager.beginTransaction().replace(
                     R.id.savedContentContainer,
-                    SignInDialogFragment().newInstance(Bundle().apply {
+                    SignInDialogFragment.newInstance(Bundle().apply {
                         putString(SIGNIN_TYPE_KEY, FULLSCREEN.name)
                     })).commit()
         bottomSheetBehavior.setBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
@@ -278,7 +278,7 @@ class HomeFragment : Fragment() {
                 view.findNavController().navigate(R.id.action_homeFragment_to_userFragment,
                         actionHomeFragmentToUserFragment(user!!).apply { user = user }.arguments)
             else
-                SignInDialogFragment().newInstance(Bundle().apply {
+                SignInDialogFragment.newInstance(Bundle().apply {
                     putString(SIGNIN_TYPE_KEY, DIALOG.name)
                 }).show(childFragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
         }
@@ -416,7 +416,7 @@ class HomeFragment : Fragment() {
                     putBoolean(getString(first_open), false)
                     apply()
                 }
-                PermissionsDialogFragment().newInstance().show(childFragmentManager, null)
+                PermissionsDialogFragment.newInstance().show(childFragmentManager, null)
                 homeViewModel.showLocationPermission.observe(viewLifecycleOwner) { showPermission ->
                     if (showPermission) requestPermissions(arrayOf(ACCESS_COARSE_LOCATION), REQUEST_CODE_LOC_PERMISSION)
                 }
@@ -443,7 +443,7 @@ class HomeFragment : Fragment() {
     private fun observeOpenFromSave() {
         homeViewModel.openContentFromSave.observe(viewLifecycleOwner) { contentToPlay ->
             if (childFragmentManager.findFragmentByTag(CONTENT_DIALOG_FRAGMENT_TAG) == null)
-                ContentDialogFragment().newInstance(Bundle().apply {
+                ContentDialogFragment.newInstance(Bundle().apply {
                     putParcelable(CONTENT_TO_PLAY_KEY, contentToPlay)
                 }).show(childFragmentManager, CONTENT_DIALOG_FRAGMENT_TAG)
         }

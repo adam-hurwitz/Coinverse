@@ -75,7 +75,10 @@ class AudioFragment : Fragment() {
     private lateinit var viewEvents: AudioViewEvents
     private lateinit var openContent: OpenContent
 
-    fun newInstance(bundle: Bundle) = AudioFragment().apply { arguments = bundle }
+    companion object {
+        @JvmStatic
+        fun newInstance(bundle: Bundle) = AudioFragment().apply { arguments = bundle }
+    }
 
     private val serviceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {

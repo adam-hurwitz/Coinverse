@@ -48,7 +48,12 @@ class YouTubeFragment : Fragment() {
 
     private var seekToPositionMillis = 0
 
-    fun newInstance(bundle: Bundle) = YouTubeFragment().apply { arguments = bundle }
+    companion object {
+        @JvmStatic
+        fun newInstance(bundle: Bundle) = YouTubeFragment().apply {
+            arguments = bundle
+        }
+    }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
