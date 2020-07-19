@@ -53,7 +53,6 @@ import app.coinverse.analytics.Analytics
 import app.coinverse.content.ContentDialogFragment
 import app.coinverse.databinding.FragmentFeedBinding
 import app.coinverse.dependencyInjection.Component
-import app.coinverse.dependencyInjection.fragmentSavedStateViewModels
 import app.coinverse.feed.adapter.FeedAdapter
 import app.coinverse.feed.adapter.initItemTouchHelper
 import app.coinverse.feed.state.FeedView
@@ -98,6 +97,7 @@ import app.coinverse.utils.SignInType
 import app.coinverse.utils.ToolbarState
 import app.coinverse.utils.VIDEO_SHARE_MESSAGE
 import app.coinverse.utils.snackbarWithText
+import app.topcafes.dependencyinjection.fragmentSavedStateViewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
 import com.google.firebase.auth.FirebaseAuth

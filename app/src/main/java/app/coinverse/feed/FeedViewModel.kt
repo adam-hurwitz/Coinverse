@@ -8,7 +8,6 @@ import app.coinverse.R.string.app_name
 import app.coinverse.R.string.dismissed
 import app.coinverse.R.string.saved
 import app.coinverse.analytics.Analytics
-import app.coinverse.dependencyInjection.getViewModelScope
 import app.coinverse.feed.data.FeedRepository
 import app.coinverse.feed.state.FeedView
 import app.coinverse.feed.state.FeedViewIntentType.FeedLoad
@@ -42,6 +41,7 @@ import app.coinverse.utils.Timeframe
 import app.coinverse.utils.ToolbarState
 import app.coinverse.utils.getTimeframe
 import app.coinverse.utils.onEachEvent
+import app.topcafes.dependencyinjection.getViewModelScope
 import com.crashlytics.android.Crashlytics
 import com.squareup.inject.assisted.Assisted
 import com.squareup.inject.assisted.AssistedInject
