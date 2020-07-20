@@ -47,6 +47,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
+// Todo: Refactor with Model-View-Intent.
+
 @ExperimentalCoroutinesApi
 @ExtendWith(ContentTestExtension::class)
 class LabelContentContentTests(

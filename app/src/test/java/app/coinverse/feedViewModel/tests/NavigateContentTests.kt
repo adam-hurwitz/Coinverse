@@ -32,6 +32,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
+// Todo: Refactor with Model-View-Intent.
+
 @ExperimentalCoroutinesApi
 @ExtendWith(ContentTestExtension::class)
 class NavigateContentTests(
@@ -62,13 +64,13 @@ class NavigateContentTests(
             assertThat(feedViewModel.effect.shareContentIntent.getOrAwaitValue().contentRequest.getOrAwaitValue())
                     .isEqualTo(test.mockContent)
         }
-        OpenContentSource(test.mockContent.url).also { event ->
+        FeedViewState.OpenContentSource(test.mockContent.url).also { event ->
             feedViewModel.openContentSource(event)
             assertThat(feedViewModel.effect.openSourceIntent.getOrAwaitValue())
                     .isEqualTo(OpenSourceIntentEffect(test.mockContent.url))
         }
         // Occurs on Fragment 'onViewStateRestored'
-        UpdateAds().also { event ->
+        FeedViewState.UpdateAds().also { event ->
             feedViewModel.updateAds(event)
             assertThat(feedViewModel.effect.updateAds.getOrAwaitValue().javaClass).isEqualTo(UpdateAdsEffect::class.java)
         }
