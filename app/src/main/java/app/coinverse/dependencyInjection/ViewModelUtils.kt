@@ -105,6 +105,10 @@ fun ViewModel.getViewModelScope(coroutineScope: CoroutineScope?) =
 
 /**
  * Configure Dispatchers injection for production and testing.
+ *
+ * See 'Unit Testing Coroutine Suspend Functions using TestCoroutineDispatcher' > 'DispatcherProvider'
+ * [https://craigrussell.io/2019/11/unit-testing-coroutine-suspend-functions-using-testcoroutinedispatcher/#dispatcherprovider]
+ * Author: Craig Russell [https://twitter.com/trionkidnapper]
  */
 interface DispatcherProvider {
     fun main(): CoroutineDispatcher = Dispatchers.Main
