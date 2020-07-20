@@ -1,68 +1,8 @@
 package app.coinverse.audioViewModel
 
-import android.net.Uri
-import android.view.View.GONE
-import android.view.View.VISIBLE
-import app.coinverse.analytics.Analytics
-import app.coinverse.content.AudioViewEventType.AudioPlayerLoad
-import app.coinverse.content.ContentPlayer
-import app.coinverse.content.ContentRepository
-import app.coinverse.content.viewmodel.AudioViewModel
-import app.coinverse.feed.Content
-import app.coinverse.feed.FeedViewEventType.ContentSelected
-import app.coinverse.feed.FeedViewModel
-import app.coinverse.feed.data.FeedRepository
-import app.coinverse.feed.models.FeedViewEffectType.NotifyItemChangedEffect
-import app.coinverse.feed.models.FeedViewEffectType.SnackBarEffect
-import app.coinverse.feed.state.FeedViewState.OpenContent
-import app.coinverse.feedViewModel.PlayContentTest
-import app.coinverse.feedViewModel.mockBitmapToByteArray
-import app.coinverse.feedViewModel.mockGetAudiocast
-import app.coinverse.feedViewModel.mockGetContentUri
-import app.coinverse.feedViewModel.mockGetMainFeedList
-import app.coinverse.feedViewModel.mockQueryMainContentListFlow
-import app.coinverse.home.HomeViewModel
-import app.coinverse.utils.CONSTANTS_CLASS_COMPILED_JAVA
-import app.coinverse.utils.CONTENT_PLAY_ERROR
-import app.coinverse.utils.ContentTestExtension
-import app.coinverse.utils.ContentType.ARTICLE
-import app.coinverse.utils.ContentType.YOUTUBE
-import app.coinverse.utils.FeedType.DISMISSED
-import app.coinverse.utils.FeedType.MAIN
-import app.coinverse.utils.FeedType.SAVED
-import app.coinverse.utils.MOCK_CONTENT_PLAY_ERROR
-import app.coinverse.utils.MOCK_TTS_CHAR_LIMIT_ERROR
-import app.coinverse.utils.MOCK_TTS_CHAR_LIMIT_ERROR_MESSAGE
-import app.coinverse.utils.MOCK_TXT_FILE_PATH
-import app.coinverse.utils.Status.ERROR
-import app.coinverse.utils.Status.LOADING
-import app.coinverse.utils.Status.SUCCESS
-import app.coinverse.utils.TTS_CHAR_LIMIT_ERROR
-import app.coinverse.utils.TTS_CHAR_LIMIT_ERROR_MESSAGE
-import app.coinverse.utils.getOrAwaitValue
-import com.crashlytics.android.Crashlytics
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.confirmVerified
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkClass
-import io.mockk.mockkStatic
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.TestCoroutineScope
-import kotlinx.coroutines.test.runBlockingTest
-import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.MethodSource
-
 // Todo: Refactor with Model-View-Intent.
 
-@ExperimentalCoroutinesApi
+/*@ExperimentalCoroutinesApi
 @ExtendWith(ContentTestExtension::class)
 class PlayContentTests constructor(
         val testDispatcher: TestCoroutineDispatcher,
@@ -254,4 +194,4 @@ class PlayContentTests constructor(
         confirmVerified(feedRepository)
         confirmVerified(contentRepository)
     }
-}
+}*/

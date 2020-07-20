@@ -1,40 +1,8 @@
 package app.coinverse.feedViewModel.tests
 
-import app.coinverse.analytics.Analytics
-import app.coinverse.feed.FeedViewEventType.OpenContentSource
-import app.coinverse.feed.FeedViewEventType.ShareContent
-import app.coinverse.feed.FeedViewEventType.UpdateAds
-import app.coinverse.feed.FeedViewModel
-import app.coinverse.feed.data.FeedRepository
-import app.coinverse.feed.models.FeedViewEffectType.OpenSourceIntentEffect
-import app.coinverse.feed.models.FeedViewEffectType.UpdateAdsEffect
-import app.coinverse.feed.state.FeedViewState
-import app.coinverse.feedViewModel.NavigateContentTest
-import app.coinverse.feedViewModel.mockGetContent
-import app.coinverse.feedViewModel.mockGetMainFeedList
-import app.coinverse.feedViewModel.mockQueryMainContentListFlow
-import app.coinverse.feedViewModel.testCases.navigateContentTestCases
-import app.coinverse.utils.ContentTestExtension
-import app.coinverse.utils.FeedType.DISMISSED
-import app.coinverse.utils.FeedType.MAIN
-import app.coinverse.utils.FeedType.SAVED
-import app.coinverse.utils.Status.SUCCESS
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.every
-import io.mockk.mockkClass
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.TestCoroutineScope
-import kotlinx.coroutines.test.runBlockingTest
-import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.MethodSource
-
 // Todo: Refactor with Model-View-Intent.
 
-@ExperimentalCoroutinesApi
+/*@ExperimentalCoroutinesApi
 @ExtendWith(ContentTestExtension::class)
 class NavigateContentTests(
         val testDispatcher: TestCoroutineDispatcher,
@@ -102,4 +70,4 @@ class NavigateContentTests(
             }
         }
     }
-}
+}*/

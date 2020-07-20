@@ -1,55 +1,8 @@
 package app.coinverse.feedViewModel.tests
 
-import app.coinverse.analytics.Analytics
-import app.coinverse.feed.FeedViewEventType.ContentSwipeDrawed
-import app.coinverse.feed.FeedViewEventType.ContentSwiped
-import app.coinverse.feed.FeedViewEventType.LabelContent
-import app.coinverse.feed.FeedViewModel
-import app.coinverse.feed.data.FeedRepository
-import app.coinverse.feed.models.FeedViewEffectType.ContentSwipedEffect
-import app.coinverse.feed.models.FeedViewEffectType.NotifyItemChangedEffect
-import app.coinverse.feed.models.FeedViewEffectType.SignInEffect
-import app.coinverse.feed.models.FeedViewEffectType.SnackBarEffect
-import app.coinverse.feedViewModel.LabelContentTest
-import app.coinverse.feedViewModel.mockEditContentLabels
-import app.coinverse.feedViewModel.mockGetMainFeedList
-import app.coinverse.feedViewModel.mockQueryMainContentListFlow
-import app.coinverse.feedViewModel.testCases.labelContentTestCases
-import app.coinverse.home.HomeViewModel
-import app.coinverse.utils.CONSTANTS_CLASS_COMPILED_JAVA
-import app.coinverse.utils.CONTENT_LABEL_ERROR
-import app.coinverse.utils.ContentTestExtension
-import app.coinverse.utils.FeedType.DISMISSED
-import app.coinverse.utils.FeedType.MAIN
-import app.coinverse.utils.FeedType.SAVED
-import app.coinverse.utils.MOCK_CONTENT_LABEL_ERROR
-import app.coinverse.utils.Status.ERROR
-import app.coinverse.utils.Status.SUCCESS
-import app.coinverse.utils.getOrAwaitValue
-import app.coinverse.utils.mockUser
-import com.crashlytics.android.Crashlytics
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.confirmVerified
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkClass
-import io.mockk.mockkStatic
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.TestCoroutineScope
-import kotlinx.coroutines.test.runBlockingTest
-import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.MethodSource
-
 // Todo: Refactor with Model-View-Intent.
 
-@ExperimentalCoroutinesApi
+/*@ExperimentalCoroutinesApi
 @ExtendWith(ContentTestExtension::class)
 class LabelContentContentTests(
         val testDispatcher: TestCoroutineDispatcher,
@@ -184,4 +137,4 @@ class LabelContentContentTests(
         }
         confirmVerified(repository)
     }
-}
+}*/
