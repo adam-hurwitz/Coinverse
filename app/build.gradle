@@ -14,8 +14,8 @@ android {
         applicationId "app.coinverse"
         minSdkVersion 24
         targetSdkVersion 29
-        versionCode 60
-        versionName "0.60"
+        versionCode 61
+        versionName "0.61"
         kotlinOptions { jvmTarget = '1.8' }
         javaCompileOptions {
             annotationProcessorOptions {
