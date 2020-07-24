@@ -1,7 +1,6 @@
 package app.coinverse.feed.data
 
 import androidx.lifecycle.asFlow
-import androidx.lifecycle.liveData
 import androidx.paging.PagedList
 import androidx.paging.toLiveData
 import app.coinverse.BuildConfig
@@ -79,10 +78,6 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
     fun getLabeledFeedRoom(feedType: FeedType) =
             dao.getLabeledFeedRoom(feedType).toLiveData(pagedListConfig).asFlow()
 
-    fun getContent(contentId: String) = liveData {
-        emit(contentEnCollection.document(contentId).get().await()?.toObject(Content::class.java)!!)
-    }
-
     fun getAudiocast(selectContent: SelectContent) = flow {
         emit(loading(null))
         try {
@@ -114,8 +109,11 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
         }
     }
 
-    fun editContentLabels(feedType: FeedType, actionType: UserActionType, content: Content?,
-                          user: FirebaseUser, position: Int) = flow {
+    fun editContentLabels(
+            feedType: FeedType,
+            actionType: UserActionType,
+            content: Content?,
+            user: FirebaseUser, position: Int) = flow {
         val userReference = usersDocument.collection(user.uid)
         content?.feedType =
                 if (actionType == SAVE) SAVED
@@ -148,9 +146,22 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
         }
     }
 
-    private suspend fun syncLabeledContent(user: CollectionReference, timeframe: Timestamp,
-                                           labeledSet: HashSet<String>, collection: String,
-                                           flow: FlowCollector<Resource<Flow<PagedList<Content>>>>) {
+    /**
+     * Updates a logged-in user's labeled feeds on the backend to the local data.
+     *
+     * @param user CollectionReference user's Firestore document
+     * @param timeframe Timestamp of feed to query
+     * @param labeledSet HashSet<String> of new unique content IDs to add to the local feed
+     * @param collection String type of labeled feed
+     * @param flow FlowCollector<Resource<Flow<PagedList<Content>>>> to emit status of request
+     */
+    private suspend fun syncLabeledContent(
+            user: CollectionReference,
+            timeframe: Timestamp,
+            labeledSet: HashSet<String>,
+            collection: String,
+            flow: FlowCollector<Resource<Flow<PagedList<Content>>>>
+    ) {
         val response = user.document(COLLECTIONS_DOCUMENT)
                 .collection(collection)
                 .orderBy(TIMESTAMP, DESCENDING)
@@ -162,14 +173,25 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
                     labeledSet.add(content.id)
                 }
             }
-            dao.insertFeed(contentList)
+            dao.updateFeed(contentList)
         } else
-            flow.emit(error("Error retrieving user save_collection: " + response.error.localizedMessage, null))
+            flow.emit(error("Error retrieving user save_collection: "
+                    + response.error.localizedMessage, null))
     }
 
-    private suspend fun getLoggedInAndRealtimeContent(timeframe: Timestamp,
-                                                      labeledSet: HashSet<String>,
-                                                      flow: FlowCollector<Resource<Flow<PagedList<Content>>>>) {
+    /**
+     * Updates the main local feed data from the the backend when the user is logged-in and realtime
+     * content is enabled.
+     *
+     * @param timeframe Timestamp of feed to query
+     * @param labeledSet HashSet<String> of new unique content IDs to add to the local feed
+     * @param flow FlowCollector<Resource<Flow<PagedList<Content>>>> to emit status of request
+     */
+    private suspend fun getLoggedInAndRealtimeContent(
+            timeframe: Timestamp,
+            labeledSet: HashSet<String>,
+            flow: FlowCollector<Resource<Flow<PagedList<Content>>>>
+    ) {
         val response = contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
                 .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe)
                 .awaitRealtime()
@@ -182,6 +204,14 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
         } else flow.emit(error(CONTENT_LOGGED_IN_REALTIME_ERROR + response.error.localizedMessage, null))
     }
 
+    /**
+     * Updates the main local feed data from the the backend when the user is logged-in and realtime
+     * content is disabled.
+     *
+     * @param timeframe Timestamp of feed to query
+     * @param labeledSet HashSet<String> of new unique content IDs to add to the local feed
+     * @param flow FlowCollector<Resource<Flow<PagedList<Content>>>> to emit status of request
+     */
     private suspend fun getLoggedInNonRealtimeContent(
             timeframe: Timestamp,
             labeledSet: HashSet<String>,
@@ -199,8 +229,17 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
                 flow.emit(error("CONTENT_LOGGED_IN_NON_REALTIME_ERROR ${error.localizedMessage}", null))
             }
 
-    private suspend fun getLoggedOutNonRealtimeContent(timeframe: Timestamp,
-                                                       flow: FlowCollector<Resource<Flow<PagedList<Content>>>>) =
+    /**
+     * Updates the main local feed data from the the backend when the user is logged-out and
+     * realtime content is disabled.
+     *
+     * @param timeframe Timestamp of feed to query
+     * @param flow FlowCollector<Resource<Flow<PagedList<Content>>>> to emit status of request
+     */
+    private suspend fun getLoggedOutNonRealtimeContent(
+            timeframe: Timestamp,
+            flow: FlowCollector<Resource<Flow<PagedList<Content>>>>
+    ) =
             try {
                 val contentList = contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
                         .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe).get().await()
@@ -212,8 +251,10 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
                 flow.emit(error(CONTENT_LOGGED_OUT_NON_REALTIME_ERROR + error.localizedMessage, null))
             }
 
-    private fun addContentLabel(actionType: UserActionType, userCollection: CollectionReference,
-                                content: Content?, position: Int) = flow {
+    private fun addContentLabel(
+            actionType: UserActionType,
+            userCollection: CollectionReference,
+            content: Content?, position: Int) = flow {
         emit(loading(null))
         val collection =
                 if (actionType == SAVE) SAVE_COLLECTION
@@ -230,8 +271,10 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
         }
     }
 
-    private fun removeContentLabel(userReference: CollectionReference, collection: String,
-                                   content: Content?, position: Int) = flow {
+    private fun removeContentLabel(
+            userReference: CollectionReference,
+            collection: String,
+            content: Content?, position: Int) = flow {
         emit(loading(null))
         try {
             userReference.document(COLLECTIONS_DOCUMENT)

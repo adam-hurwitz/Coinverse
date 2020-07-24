@@ -40,7 +40,6 @@ class AudioViewModel(val repository: ContentRepository) : ViewModel(), AudioView
         _contentPlayer = getAudioPlayer(event.contentId, event.filePath, event.previewImageUrl)
     }
 
-    //TODO: Refactor MediatorLiveData to Coroutine Flow - https://kotlinlang.org/docs/reference/coroutines/flow.html
     /**
      * Get audiocast player for PlayerNotificationManager in [AudioService].
      *
