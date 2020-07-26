@@ -23,8 +23,5 @@ interface FeedDao {
     suspend fun insertFeed(feed: List<Content>?)
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun updateFeed(feed: List<Content>?)
-
-    @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun updateContent(content: Content)
 }

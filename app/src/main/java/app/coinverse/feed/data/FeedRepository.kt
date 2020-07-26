@@ -62,13 +62,13 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
 
     fun getMainFeedNetwork(isRealtime: Boolean, timeframe: Timestamp) = flow<Resource<Flow<PagedList<Content>>>> {
         emit(loading(null))
-        val labeledSet = HashSet<String>()
+        val labelsSet = HashSet<String>()
         if (getInstance().currentUser != null && !getInstance().currentUser!!.isAnonymous) {
             val user = usersDocument.collection(getInstance().currentUser!!.uid)
-            syncLabeledContent(user, timeframe, labeledSet, SAVE_COLLECTION, this)
-            syncLabeledContent(user, timeframe, labeledSet, DISMISS_COLLECTION, this)
-            if (isRealtime) getLoggedInAndRealtimeContent(timeframe, labeledSet, this)
-            else getLoggedInNonRealtimeContent(timeframe, labeledSet, this)
+            syncLabeledContent(user, timeframe, labelsSet, SAVE_COLLECTION, this)
+            syncLabeledContent(user, timeframe, labelsSet, DISMISS_COLLECTION, this)
+            if (isRealtime) getLoggedInAndRealtimeContent(timeframe, labelsSet, this)
+            else getLoggedInNonRealtimeContent(timeframe, labelsSet, this)
         } else getLoggedOutNonRealtimeContent(timeframe, this)
     }
 
@@ -151,32 +151,34 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
      *
      * @param user CollectionReference user's Firestore document
      * @param timeframe Timestamp of feed to query
-     * @param labeledSet HashSet<String> of new unique content IDs to add to the local feed
+     * @param labelsSet HashSet<String> of content IDs with a label to filter from the main feed
      * @param collection String type of labeled feed
      * @param flow FlowCollector<Resource<Flow<PagedList<Content>>>> to emit status of request
      */
     private suspend fun syncLabeledContent(
             user: CollectionReference,
             timeframe: Timestamp,
-            labeledSet: HashSet<String>,
+            labelsSet: HashSet<String>,
             collection: String,
             flow: FlowCollector<Resource<Flow<PagedList<Content>>>>
     ) {
-        val response = user.document(COLLECTIONS_DOCUMENT)
+        val labelsResponse = user.document(COLLECTIONS_DOCUMENT)
                 .collection(collection)
                 .orderBy(TIMESTAMP, DESCENDING)
-                .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe)
                 .awaitRealtime()
-        if (response.error == null) {
-            val contentList = response.packet?.documentChanges?.map { doc ->
-                doc.document.toObject(Content::class.java).also { content ->
-                    labeledSet.add(content.id)
-                }
+        if (labelsResponse.error == null) {
+            val labelsList = labelsResponse.packet?.documentChanges?.map { doc ->
+                val content = doc.document.toObject(Content::class.java)
+                // Only add content to labelsSet if it is newer than the specified timeframe.
+                // labelsSet used to filter labeled content out of the main feed.
+                if (content.timestamp > timeframe) labelsSet.add(content.id)
+                content
             }
-            dao.updateFeed(contentList)
+            // Add all content with a label to the local storage.
+            if (labelsList!!.isNotEmpty()) dao.insertFeed(labelsList)
         } else
             flow.emit(error("Error retrieving user save_collection: "
-                    + response.error.localizedMessage, null))
+                    + labelsResponse.error.localizedMessage, null))
     }
 
     /**
