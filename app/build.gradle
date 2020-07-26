@@ -52,6 +52,7 @@ dependencies {
     implementation "com.squareup.inject:assisted-inject-annotations-dagger2:$dagger_assistedinject_version"
     kapt "com.squareup.inject:assisted-inject-processor-dagger2:$dagger_assistedinject_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlin_coroutines_version"
+    // Use with Firebase
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:$kotlin_coroutines_play_services_version"
     implementation "androidx.fragment:fragment-ktx:$fragment_version"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
@@ -90,21 +91,13 @@ dependencies {
     implementation "com.flurry.android:analytics:$flurry_version"
     implementation "com.mopub.mediation:flurry:$mopub_flurry_mediation_version"
 
-    // Testing
-
+    // Test
     // Local Unit
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_version"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_version"
     testImplementation "org.junit.jupiter:junit-jupiter-params:$junit_version"
     testImplementation "io.mockk:mockk:$mockk_version"
-    testImplementation "org.assertj:assertj-core:$assertj_version"
-    debugImplementation "androidx.fragment:fragment-testing:$fragment_version"
     testImplementation "androidx.arch.core:core-testing:$lifecycle_test_version"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$kotlin_coroutines_test_version"
-
-    // AndroidX - JVM
-    testImplementation "androidx.test:core-ktx:$androidx_ktx_test_version"
-    testImplementation "androidx.test.ext:junit-ktx:$androidx_test_junit_version"
-    testImplementation "androidx.test:rules:$test_rules_core_version"
-    testImplementation "androidx.test:core:$test_rules_core_version"
+    testImplementation "org.assertj:assertj-core:$assertj_version"
 }
