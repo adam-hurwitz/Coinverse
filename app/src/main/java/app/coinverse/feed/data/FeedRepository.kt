@@ -47,7 +47,6 @@ import com.google.firebase.firestore.Query.Direction.DESCENDING
 import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.functions.FirebaseFunctionsException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
@@ -60,7 +59,7 @@ import javax.inject.Singleton
 class FeedRepository @Inject constructor(private val dao: FeedDao) {
     private val LOG_TAG = FeedRepository::class.java.simpleName
 
-    fun getMainFeedNetwork(isRealtime: Boolean, timeframe: Timestamp) = flow<Resource<Flow<PagedList<Content>>>> {
+    fun getMainFeedNetwork(isRealtime: Boolean, timeframe: Timestamp) = flow<Resource<PagedList<Content>>> {
         emit(loading(null))
         val labelsSet = HashSet<String>()
         if (getInstance().currentUser != null && !getInstance().currentUser!!.isAnonymous) {
@@ -160,7 +159,7 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
             timeframe: Timestamp,
             labelsSet: HashSet<String>,
             collection: String,
-            flow: FlowCollector<Resource<Flow<PagedList<Content>>>>
+            flow: FlowCollector<Resource<PagedList<Content>>>
     ) {
         val labelsResponse = user.document(COLLECTIONS_DOCUMENT)
                 .collection(collection)
@@ -192,7 +191,7 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
     private suspend fun getLoggedInAndRealtimeContent(
             timeframe: Timestamp,
             labeledSet: HashSet<String>,
-            flow: FlowCollector<Resource<Flow<PagedList<Content>>>>
+            flow: FlowCollector<Resource<PagedList<Content>>>
     ) {
         val response = contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
                 .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe)
@@ -202,7 +201,9 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
                     ?.map { change -> change.document.toObject(Content::class.java) }
                     ?.filter { content -> !labeledSet.contains(content.id) }
             dao.insertFeed(contentList)
-            flow.emit(success(getMainFeedRoom(timeframe)))
+            getMainFeedRoom(timeframe).collect {
+                flow.emit(success(it))
+            }
         } else flow.emit(error(CONTENT_LOGGED_IN_REALTIME_ERROR + response.error.localizedMessage, null))
     }
 
@@ -217,7 +218,7 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
     private suspend fun getLoggedInNonRealtimeContent(
             timeframe: Timestamp,
             labeledSet: HashSet<String>,
-            flow: FlowCollector<Resource<Flow<PagedList<Content>>>>
+            flow: FlowCollector<Resource<PagedList<Content>>>
     ) =
             try {
                 val contentList = contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
@@ -226,7 +227,9 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
                         .map { change -> change.document.toObject(Content::class.java) }
                         .filter { content -> !labeledSet.contains(content.id) }
                 dao.insertFeed(contentList)
-                flow.emit(success(getMainFeedRoom(timeframe)))
+                getMainFeedRoom(timeframe).collect {
+                    flow.emit(success(it))
+                }
             } catch (error: FirebaseFirestoreException) {
                 flow.emit(error("CONTENT_LOGGED_IN_NON_REALTIME_ERROR ${error.localizedMessage}", null))
             }
@@ -240,7 +243,7 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
      */
     private suspend fun getLoggedOutNonRealtimeContent(
             timeframe: Timestamp,
-            flow: FlowCollector<Resource<Flow<PagedList<Content>>>>
+            flow: FlowCollector<Resource<PagedList<Content>>>
     ) =
             try {
                 val contentList = contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
@@ -248,7 +251,9 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
                         .documentChanges
                         .map { change -> change.document.toObject(Content::class.java) }
                 dao.insertFeed(contentList)
-                flow.emit(success(getMainFeedRoom(timeframe)))
+                getMainFeedRoom(timeframe).collect {
+                    flow.emit(success(it))
+                }
             } catch (error: FirebaseFirestoreException) {
                 flow.emit(error(CONTENT_LOGGED_OUT_NON_REALTIME_ERROR + error.localizedMessage, null))
             }

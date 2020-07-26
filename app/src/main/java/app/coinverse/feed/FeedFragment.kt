@@ -115,7 +115,6 @@ import com.mopub.nativeads.MoPubVideoNativeAdRenderer
 import com.mopub.nativeads.RequestParameters
 import com.mopub.nativeads.ViewBinder
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import javax.inject.Inject
 
@@ -188,7 +187,7 @@ class FeedFragment : Fragment(), FeedView {
         super.onDestroy()
     }
 
-    override fun initState() = MutableStateFlow(true)
+    override fun initState() = intent.initState
     override fun loadFromNetwork() = intent.loadFromNetwork.filterNotNull()
     override fun swipeToRefresh() = intent.swipeToRefresh.filterNotNull()
     override fun selectContent() = intent.selectContent.filterNotNull()

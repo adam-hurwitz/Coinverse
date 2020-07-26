@@ -145,10 +145,8 @@ class FeedViewModel @AssistedInject constructor(
                         if (feedType == MAIN && isContentSwiped == false)
                             state.value = Feed(toolbarState = toolbarState, feed = pagedList)
                     }.launchIn(coroutineScope)
-                    SUCCESS -> resource.data?.collect { pagedList ->
-                        if (feedType == MAIN)
-                            state.value = Feed(toolbarState = toolbarState, feed = pagedList)
-                    }
+                    SUCCESS -> if (feedType == MAIN)
+                        state.value = Feed(toolbarState = toolbarState, feed = resource.data!!)
                     Status.ERROR -> {
                         Crashlytics.log(ERROR, LOG_TAG, resource.message)
                         repository.getMainFeedRoom(timeframe).onEach { pagedList ->

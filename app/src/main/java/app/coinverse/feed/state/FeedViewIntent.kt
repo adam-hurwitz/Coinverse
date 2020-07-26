@@ -14,6 +14,7 @@ class FeedViewIntent : FeedViewIntentType()
 
 @ExperimentalCoroutinesApi
 sealed class FeedViewIntentType(
+        val initState: MutableStateFlow<Boolean> = MutableStateFlow(true),
         val loadFromNetwork: MutableStateFlow<Boolean?> = MutableStateFlow(null),
         val swipeToRefresh: MutableStateFlow<SwipeToRefresh?> = MutableStateFlow(null),
         val selectContent: MutableStateFlow<Event<SelectContent?>> = MutableStateFlow(Event(null)),
