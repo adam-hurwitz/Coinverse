@@ -57,24 +57,14 @@ fun <T> LiveData<T>.getOrAwaitValue(
     return data as T
 }
 
-/**
- * Observes a [LiveData] until the `block` is done executing.
- */
-fun <T> LiveData<T>.observeForTesting(block: () -> Unit) {
-    val observer = Observer<T> { }
-    try {
-        observeForever(observer)
-        block()
-    } finally {
-        removeObserver(observer)
-    }
-}
-
-fun <T> List<T>.asPagedList() = LivePagedListBuilder<Int, T>(createMockDataSourceFactory(this),
-        Config(enablePlaceholders = false,
+fun <T> List<T>.asPagedList() = LivePagedListBuilder<Int, T>(
+        createMockDataSourceFactory(this),
+        Config(
+                enablePlaceholders = false,
                 prefetchDistance = 24,
-                pageSize = if (size == 0) 1 else size))
-        .build().getOrAwaitValue()
+                pageSize = if (size == 0) 1 else size
+        )
+).build().getOrAwaitValue()
 
 private fun <T> createMockDataSourceFactory(itemList: List<T>): DataSource.Factory<Int, T> =
         object : DataSource.Factory<Int, T>() {
@@ -86,12 +76,16 @@ private val mockQuery = mockk<RoomSQLiteQuery> { every { sql } returns "" }
 private val mockDb =
         mockk<RoomDatabase> { every { invalidationTracker } returns mockk(relaxUnitFun = true) }
 
-class MockLimitDataSource<T>(private val itemList: List<T>)
-    : LimitOffsetDataSource<T>(mockDb, mockQuery, false, null) {
+class MockLimitDataSource<T>(private val itemList: List<T>) :
+        LimitOffsetDataSource<T>(mockDb, mockQuery, false, null) {
     override fun convertRows(cursor: Cursor?): MutableList<T> = itemList.toMutableList()
     override fun countItems(): Int = itemList.count()
     override fun isInvalid(): Boolean = false
-    override fun loadRange(params: LoadRangeParams, callback: LoadRangeCallback<T>) { /* Not implemented */
+    override fun loadRange(
+            params: LoadRangeParams,
+            callback: LoadRangeCallback<T>
+    ) {
+        /* Not implemented */
     }
 
     override fun loadRange(startPosition: Int, loadCount: Int) =

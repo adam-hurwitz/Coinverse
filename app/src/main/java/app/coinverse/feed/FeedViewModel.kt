@@ -1,8 +1,8 @@
 package app.coinverse.feed
 
-import android.util.Log.ERROR
-import android.widget.ProgressBar.GONE
-import android.widget.ProgressBar.VISIBLE
+import android.content.SharedPreferences
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import androidx.lifecycle.ViewModel
 import app.coinverse.R.string.app_name
 import app.coinverse.R.string.dismissed
@@ -29,10 +29,12 @@ import app.coinverse.utils.CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR
 import app.coinverse.utils.ContentType.ARTICLE
 import app.coinverse.utils.ContentType.NONE
 import app.coinverse.utils.ContentType.YOUTUBE
+import app.coinverse.utils.ERROR
 import app.coinverse.utils.FeedType
 import app.coinverse.utils.FeedType.DISMISSED
 import app.coinverse.utils.FeedType.MAIN
 import app.coinverse.utils.FeedType.SAVED
+import app.coinverse.utils.PLAYER_OPEN_STATUS_KEY
 import app.coinverse.utils.Status
 import app.coinverse.utils.Status.LOADING
 import app.coinverse.utils.Status.SUCCESS
@@ -43,6 +45,7 @@ import app.coinverse.utils.getTimeframe
 import app.coinverse.utils.onEachEvent
 import app.topcafes.dependencyinjection.getViewModelScope
 import com.crashlytics.android.Crashlytics
+import com.google.firebase.Timestamp
 import com.squareup.inject.assisted.Assisted
 import com.squareup.inject.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineScope
@@ -59,6 +62,7 @@ class FeedViewModel @AssistedInject constructor(
         @Assisted private val feedType: FeedType,
         @Assisted private val timeframe: Timeframe,
         @Assisted private val isRealtime: Boolean,
+        private val sharedPreferences: SharedPreferences,
         private val repository: FeedRepository,
         private val analytics: Analytics
 ) : ViewModel() {
@@ -77,11 +81,13 @@ class FeedViewModel @AssistedInject constructor(
     private val coroutineScope = getViewModelScope(coroutineScopeProvider)
     private val state = MutableStateFlow<FeedViewState?>(null)
     private val toolbarState = setToolbar(feedType)
-    private var isContentSwiped = false
+    private var isContentSwipe = false
 
     fun bindIntents(view: FeedView) {
         view.initState().onEach {
-            state.filterNotNull().collect { view.render(it) }
+            state.filterNotNull().collect {
+                view.render(it)
+            }
         }.launchIn(coroutineScope)
 
         view.loadFromNetwork().onEach {
@@ -89,7 +95,7 @@ class FeedViewModel @AssistedInject constructor(
             state.value = UpdateAds()
         }.launchIn(coroutineScope)
 
-        view.swipeToRefresh().onEach {
+        view.swipeToRefresh().onEachEvent {
             swipeToRefresh(it)
         }.launchIn(coroutineScope)
 
@@ -98,7 +104,7 @@ class FeedViewModel @AssistedInject constructor(
         }.launchIn(coroutineScope)
 
         view.swipeContent().onEach { swipeContent ->
-            isContentSwiped = true
+            isContentSwipe = true
             if (swipeContent.isSwiped)
                 state.value = SwipeContent(swipeContent.actionType, swipeContent.position)
             else state.value = FeedViewState.SwipeToRefresh(false)
@@ -116,7 +122,7 @@ class FeedViewModel @AssistedInject constructor(
             state.value = OpenContentSource(url)
         }.launchIn(coroutineScope)
 
-        view.updateAds().onEach {
+        view.updateAds().onEachEvent {
             state.value = UpdateAds()
         }.launchIn(coroutineScope)
     }
@@ -141,28 +147,29 @@ class FeedViewModel @AssistedInject constructor(
         if (feedType == MAIN)
             repository.getMainFeedNetwork(isRealtime, timeframe).onEach { resource ->
                 when (resource.status) {
-                    LOADING -> repository.getMainFeedRoom(timeframe).onEach { pagedList ->
-                        if (feedType == MAIN && isContentSwiped == false)
-                            state.value = Feed(toolbarState = toolbarState, feed = pagedList)
-                    }.launchIn(coroutineScope)
-                    SUCCESS -> if (feedType == MAIN)
-                        state.value = Feed(toolbarState = toolbarState, feed = resource.data!!)
+                    LOADING -> getMainFeedLocal(timeframe, null)
+                    SUCCESS -> state.value = Feed(toolbarState = toolbarState, feed = resource.data!!)
                     Status.ERROR -> {
                         Crashlytics.log(ERROR, LOG_TAG, resource.message)
-                        repository.getMainFeedRoom(timeframe).onEach { pagedList ->
-                            if (feedType == MAIN)
-                                state.value = Feed(
-                                        toolbarState = toolbarState,
-                                        feed = pagedList,
-                                        error = CONTENT_REQUEST_NETWORK_ERROR
-                                )
-                        }.launchIn(coroutineScope)
+                        getMainFeedLocal(timeframe, CONTENT_REQUEST_NETWORK_ERROR)
                     }
                 }
-                isContentSwiped = false
             }.launchIn(coroutineScope)
-        else repository.getLabeledFeedRoom(feedType).onEach { pagedList ->
+        else repository.getLabelFeedRoom(feedType).onEach { pagedList ->
             state.value = Feed(toolbarState = toolbarState, feed = pagedList)
+        }.launchIn(coroutineScope)
+        isContentSwipe = false
+    }
+
+    private fun getMainFeedLocal(timeframe: Timestamp, error: String?) {
+        repository.getMainFeedRoom(timeframe).onEach { pagedList ->
+            val isContentOpen = sharedPreferences.getBoolean(PLAYER_OPEN_STATUS_KEY, false)
+            if (!isContentSwipe && !isContentOpen)
+                state.value = Feed(
+                        toolbarState = toolbarState,
+                        feed = pagedList,
+                        error = if (error != null) error else null
+                )
         }.launchIn(coroutineScope)
     }
 
@@ -170,8 +177,8 @@ class FeedViewModel @AssistedInject constructor(
         repository.getMainFeedNetwork(isRealtime, getTimeframe(swipeToRefresh.timeframe)).onEach {
             when (it.status) {
                 LOADING -> state.value = FeedViewState.SwipeToRefresh(true)
-                SUCCESS -> FeedViewState.SwipeToRefresh(false)
-                Status.ERROR -> FeedViewState.SwipeToRefresh(
+                SUCCESS -> state.value = FeedViewState.SwipeToRefresh(false)
+                Status.ERROR -> state.value = FeedViewState.SwipeToRefresh(
                         false, CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR)
             }
         }.launchIn(coroutineScope)
@@ -184,18 +191,19 @@ class FeedViewModel @AssistedInject constructor(
                     LOADING -> state.value = OpenContent(
                             isLoading = true,
                             position = selectContent.position,
-                            content = Content(id = selectContent.content.id)
+                            contentId = selectContent.content.id
                     )
                     SUCCESS -> state.value = OpenContent(
                             isLoading = false,
                             position = selectContent.position,
+                            contentId = selectContent.content.id,
                             content = resource.data?.content!!,
                             filePath = resource.data.filePath
                     )
                     Status.ERROR -> state.value = OpenContent(
                             isLoading = false,
                             position = selectContent.position,
-                            content = Content(id = selectContent.content.id),
+                            contentId = selectContent.content.id,
                             error = TTS_CHAR_LIMIT_ERROR_MESSAGE
                     )
                 }
@@ -234,7 +242,7 @@ class FeedViewModel @AssistedInject constructor(
                     Status.ERROR -> {
                         Crashlytics.log(ERROR, LOG_TAG, resource.message)
                         state.value = ClearAdjacentAds(
-                                position = app.coinverse.utils.ERROR,
+                                position = ERROR,
                                 error = CONTENT_LABEL_ERROR
                         )
                     }
@@ -242,7 +250,7 @@ class FeedViewModel @AssistedInject constructor(
             }.launchIn(coroutineScope)
         else {
             state.value = SignIn(position = labelContent.position)
-            isContentSwiped = false
+            isContentSwipe = false
         }
     }
 }

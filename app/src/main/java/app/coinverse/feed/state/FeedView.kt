@@ -30,7 +30,7 @@ interface FeedView {
      *
      * @return A flow that inits loading the feed state from the network
      */
-    fun swipeToRefresh(): Flow<SwipeToRefresh>
+    fun swipeToRefresh(): Flow<Event<SwipeToRefresh?>>
 
     /**
      * Intent to select content from the feed
@@ -72,7 +72,7 @@ interface FeedView {
      *
      * @return A flow that inits update the feed's ads
      */
-    fun updateAds(): Flow<Boolean>
+    fun updateAds(): Flow<Event<Boolean?>>
 
     /**
      * Renders the feed view state

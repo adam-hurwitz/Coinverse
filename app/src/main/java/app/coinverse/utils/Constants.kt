@@ -91,6 +91,7 @@ val SHARE_CONTENT_IMAGE_TYPE = getInstance().getString("share_content_image_type
 val BITMAP_COMPRESSION_QUALITY = getInstance().getDouble("bitmap_compression_quality").toInt()
 val AUDIO_URL_TOKEN_REGEX = "&token.+"
 val YOUTUBE_ID_REGEX = "yt-\\b"
+const val PLAYER_OPEN_STATUS_KEY = "playerOpenStatusKey"
 const val EXOPLAYER_NOTIFICATION_ID = 2052020
 const val BUILD_TYPE_PARAM = "buildTypeParam"
 const val RIGHT_SWIPE = 8

@@ -1,12 +1,15 @@
 package app.coinverse.content
 
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
+import app.coinverse.App
 import app.coinverse.R.id.dialog_content
 import app.coinverse.databinding.FragmentContentDialogBinding
 import app.coinverse.feed.AudioService
@@ -17,9 +20,11 @@ import app.coinverse.utils.ContentType.NONE
 import app.coinverse.utils.ContentType.YOUTUBE
 import app.coinverse.utils.PLAYER_ACTION
 import app.coinverse.utils.PLAYER_KEY
+import app.coinverse.utils.PLAYER_OPEN_STATUS_KEY
 import app.coinverse.utils.PlayerActionType.STOP
 import app.coinverse.utils.getDialogDisplayHeight
 import app.coinverse.utils.getDialogDisplayWidth
+import javax.inject.Inject
 
 
 /**
@@ -28,6 +33,9 @@ import app.coinverse.utils.getDialogDisplayWidth
  **/
 class ContentDialogFragment : DialogFragment() {
     private var LOG_TAG = ContentDialogFragment::class.java.simpleName
+
+    @Inject
+    lateinit var sharedPreferences: SharedPreferences
 
     private lateinit var openContent: OpenContent
     private lateinit var binding: FragmentContentDialogBinding
@@ -39,8 +47,14 @@ class ContentDialogFragment : DialogFragment() {
         }
     }
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        (context.applicationContext as App).component.inject(this)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        sharedPreferences.edit().putBoolean(PLAYER_OPEN_STATUS_KEY, true).apply()
         openContent = requireArguments().getParcelable(CONTENT_TO_PLAY_KEY)!!
     }
 
@@ -69,6 +83,11 @@ class ContentDialogFragment : DialogFragment() {
     override fun onResume() {
         super.onResume()
         dialog!!.window!!.setLayout(getDialogDisplayWidth(requireContext()), getDialogDisplayHeight(requireContext()))
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        sharedPreferences.edit().putBoolean(PLAYER_OPEN_STATUS_KEY, false).apply()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

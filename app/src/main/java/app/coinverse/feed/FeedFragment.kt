@@ -77,7 +77,7 @@ import app.coinverse.utils.CONTENT_SHARE_DIALOG_TITLE
 import app.coinverse.utils.CONTENT_SHARE_SUBJECT_PREFFIX
 import app.coinverse.utils.CONTENT_SHARE_TYPE
 import app.coinverse.utils.CONTENT_TO_PLAY_KEY
-import app.coinverse.utils.ContentType.NONE
+import app.coinverse.utils.ContentType
 import app.coinverse.utils.ContentType.YOUTUBE
 import app.coinverse.utils.ERROR
 import app.coinverse.utils.Event
@@ -147,7 +147,7 @@ class FeedFragment : Fragment(), FeedView {
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
         if (homeViewModel.accountType.value == FREE)
-            intent.updateAds.value = true
+            intent.updateAds.value = Event(true)
     }
 
     override fun onAttach(context: Context) {
@@ -211,10 +211,10 @@ class FeedFragment : Fragment(), FeedView {
     }
 
     fun initSwipeToRefresh() {
-        intent.swipeToRefresh.value = SwipeToRefresh(
+        intent.swipeToRefresh.value = Event(SwipeToRefresh(
                 feedType = feedType,
                 timeframe = homeViewModel.timeframe.value!!,
-                isRealtime = homeViewModel.isRealtime.value!!)
+                isRealtime = homeViewModel.isRealtime.value!!))
     }
 
     private fun renderFeed(state: Feed) {
@@ -233,15 +233,14 @@ class FeedFragment : Fragment(), FeedView {
 
     private fun renderOpenContent(state: OpenContent) {
         // Loading UI
-        if (state.isLoading) adapter.loadingIds.add(state.content.id)
-        else adapter.loadingIds.remove(state.content.id)
+        if (state.isLoading) adapter.loadingIds.add(state.contentId)
+        else adapter.loadingIds.remove(state.contentId)
         // Notify item changed
         val position = getAdapterPosition(state.position)
         if (homeViewModel.accountType.value == FREE)
             moPubAdapter.notifyItemChanged(position)
         else adapter.notifyItemChanged(position)
-
-        if (state.content.contentType != NONE) {
+        if (state.content.contentType != ContentType.NONE)
             when (feedType) {
                 MAIN, DISMISSED ->
                     if (childFragmentManager.findFragmentByTag(CONTENT_DIALOG_FRAGMENT_TAG) == null)
@@ -251,7 +250,6 @@ class FeedFragment : Fragment(), FeedView {
                 // Launches content from saved bottom sheet screen via HomeFragment.
                 SAVED -> homeViewModel.setOpenFromSave(state)
             }
-        }
         state.error?.let { setSnackbar(state.error) }
     }
 

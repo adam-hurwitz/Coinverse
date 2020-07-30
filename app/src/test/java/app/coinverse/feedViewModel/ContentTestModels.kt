@@ -1,17 +1,24 @@
 package app.coinverse.feedViewModel
 
 import app.coinverse.feed.Content
+import app.coinverse.feed.state.FeedViewState.OpenContent
+import app.coinverse.feed.state.FeedViewState.SwipeToRefresh
 import app.coinverse.utils.FeedType
 import app.coinverse.utils.Status
 import app.coinverse.utils.Timeframe
 import app.coinverse.utils.UserActionType
 
-data class FeedLoadTest(
+// Expect values
+data class FeedViewTest(
+        val status: Status,
         val isRealtime: Boolean,
         val feedType: FeedType,
         val timeframe: Timeframe,
-        val status: Status,
-        val mockFeedList: List<Content>)
+        val mockFeedList: List<Content>,
+        val error: String? = null,
+        val swipeToRefresh: SwipeToRefresh = SwipeToRefresh(),
+        val openContent: OpenContent? = null
+)
 
 data class PlayContentTest(
         val isRealtime: Boolean,

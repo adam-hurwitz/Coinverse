@@ -1,6 +1,7 @@
 package app.coinverse.dependencyInjection
 
 import app.coinverse.content.AudioFragment
+import app.coinverse.content.ContentDialogFragment
 import app.coinverse.content.YouTubeFragment
 import app.coinverse.feed.AudioService
 import app.coinverse.feed.FeedFragment
@@ -18,6 +19,7 @@ interface Component {
     fun inject(userFragment: UserFragment)
     fun inject(priceFragment: PriceFragment)
     fun inject(feedFragment: FeedFragment)
+    fun inject(contentDialogFragment: ContentDialogFragment)
     fun inject(audioFragment: AudioFragment)
     fun inject(audioService: AudioService)
     fun inject(youTubeFragment: YouTubeFragment)

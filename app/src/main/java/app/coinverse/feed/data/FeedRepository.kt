@@ -30,6 +30,7 @@ import app.coinverse.utils.Resource
 import app.coinverse.utils.Resource.Companion.error
 import app.coinverse.utils.Resource.Companion.loading
 import app.coinverse.utils.Resource.Companion.success
+import app.coinverse.utils.Status
 import app.coinverse.utils.Status.ERROR
 import app.coinverse.utils.Status.SUCCESS
 import app.coinverse.utils.TIMESTAMP
@@ -47,8 +48,8 @@ import com.google.firebase.firestore.Query.Direction.DESCENDING
 import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.functions.FirebaseFunctionsException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -64,17 +65,23 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
         val labelsSet = HashSet<String>()
         if (getInstance().currentUser != null && !getInstance().currentUser!!.isAnonymous) {
             val user = usersDocument.collection(getInstance().currentUser!!.uid)
-            syncLabeledContent(user, timeframe, labelsSet, SAVE_COLLECTION, this)
-            syncLabeledContent(user, timeframe, labelsSet, DISMISS_COLLECTION, this)
-            if (isRealtime) getLoggedInAndRealtimeContent(timeframe, labelsSet, this)
-            else getLoggedInNonRealtimeContent(timeframe, labelsSet, this)
-        } else getLoggedOutNonRealtimeContent(timeframe, this)
+            // Sync feeds with labels
+            val saveSyncStatus = syncLabeledContent(user, timeframe, labelsSet, SAVE_COLLECTION)
+            if (saveSyncStatus.status == ERROR)
+                emit(error(saveSyncStatus.message!!, null))
+            val dismissSyncStatus = syncLabeledContent(user, timeframe, labelsSet, DISMISS_COLLECTION)
+            if (dismissSyncStatus.status == ERROR)
+                emit(error(dismissSyncStatus.message!!, null))
+            // Build main feed
+            if (isRealtime) emitAll(getLoggedInAndRealtimeContent(timeframe, labelsSet))
+            else emitAll(getLoggedInNonRealtimeContent(timeframe, labelsSet))
+        } else emitAll(getLoggedOutNonRealtimeContent(timeframe))
     }
 
     fun getMainFeedRoom(timestamp: Timestamp) =
             dao.getMainFeedRoom(timestamp, MAIN).toLiveData(pagedListConfig).asFlow()
 
-    fun getLabeledFeedRoom(feedType: FeedType) =
+    fun getLabelFeedRoom(feedType: FeedType) =
             dao.getLabeledFeedRoom(feedType).toLiveData(pagedListConfig).asFlow()
 
     fun getAudiocast(selectContent: SelectContent) = flow {
@@ -158,9 +165,8 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
             user: CollectionReference,
             timeframe: Timestamp,
             labelsSet: HashSet<String>,
-            collection: String,
-            flow: FlowCollector<Resource<PagedList<Content>>>
-    ) {
+            collection: String
+    ): Resource<Status> {
         val labelsResponse = user.document(COLLECTIONS_DOCUMENT)
                 .collection(collection)
                 .orderBy(TIMESTAMP, DESCENDING)
@@ -175,9 +181,10 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
             }
             // Add all content with a label to the local storage.
             if (labelsList!!.isNotEmpty()) dao.insertFeed(labelsList)
-        } else
-            flow.emit(error("Error retrieving user save_collection: "
-                    + labelsResponse.error.localizedMessage, null))
+            return success(null)
+        } else return error(
+                "Error retrieving user save_collection: "
+                        + labelsResponse.error.localizedMessage, null)
     }
 
     /**
@@ -190,9 +197,8 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
      */
     private suspend fun getLoggedInAndRealtimeContent(
             timeframe: Timestamp,
-            labeledSet: HashSet<String>,
-            flow: FlowCollector<Resource<PagedList<Content>>>
-    ) {
+            labeledSet: HashSet<String>
+    ) = flow {
         val response = contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
                 .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe)
                 .awaitRealtime()
@@ -202,9 +208,9 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
                     ?.filter { content -> !labeledSet.contains(content.id) }
             dao.insertFeed(contentList)
             getMainFeedRoom(timeframe).collect {
-                flow.emit(success(it))
+                emit(success(it))
             }
-        } else flow.emit(error(CONTENT_LOGGED_IN_REALTIME_ERROR + response.error.localizedMessage, null))
+        } else emit(error(CONTENT_LOGGED_IN_REALTIME_ERROR + response.error.localizedMessage, null))
     }
 
     /**
@@ -217,22 +223,22 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
      */
     private suspend fun getLoggedInNonRealtimeContent(
             timeframe: Timestamp,
-            labeledSet: HashSet<String>,
-            flow: FlowCollector<Resource<PagedList<Content>>>
-    ) =
-            try {
-                val contentList = contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
-                        .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe).get().await()
-                        .documentChanges
-                        .map { change -> change.document.toObject(Content::class.java) }
-                        .filter { content -> !labeledSet.contains(content.id) }
-                dao.insertFeed(contentList)
-                getMainFeedRoom(timeframe).collect {
-                    flow.emit(success(it))
-                }
-            } catch (error: FirebaseFirestoreException) {
-                flow.emit(error("CONTENT_LOGGED_IN_NON_REALTIME_ERROR ${error.localizedMessage}", null))
+            labeledSet: HashSet<String>
+    ) = flow {
+        try {
+            val contentList = contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
+                    .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe).get().await()
+                    .documentChanges
+                    .map { change -> change.document.toObject(Content::class.java) }
+                    .filter { content -> !labeledSet.contains(content.id) }
+            dao.insertFeed(contentList)
+            getMainFeedRoom(timeframe).collect {
+                emit(success(it))
             }
+        } catch (error: FirebaseFirestoreException) {
+            emit(error("CONTENT_LOGGED_IN_NON_REALTIME_ERROR ${error.localizedMessage}", null))
+        }
+    }
 
     /**
      * Updates the main local feed data from the the backend when the user is logged-out and
@@ -241,22 +247,20 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
      * @param timeframe Timestamp of feed to query
      * @param flow FlowCollector<Resource<Flow<PagedList<Content>>>> to emit status of request
      */
-    private suspend fun getLoggedOutNonRealtimeContent(
-            timeframe: Timestamp,
-            flow: FlowCollector<Resource<PagedList<Content>>>
-    ) =
-            try {
-                val contentList = contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
-                        .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe).get().await()
-                        .documentChanges
-                        .map { change -> change.document.toObject(Content::class.java) }
-                dao.insertFeed(contentList)
-                getMainFeedRoom(timeframe).collect {
-                    flow.emit(success(it))
-                }
-            } catch (error: FirebaseFirestoreException) {
-                flow.emit(error(CONTENT_LOGGED_OUT_NON_REALTIME_ERROR + error.localizedMessage, null))
+    private suspend fun getLoggedOutNonRealtimeContent(timeframe: Timestamp) = flow {
+        try {
+            val contentList = contentEnCollection.orderBy(TIMESTAMP, DESCENDING)
+                    .whereGreaterThanOrEqualTo(TIMESTAMP, timeframe).get().await()
+                    .documentChanges
+                    .map { change -> change.document.toObject(Content::class.java) }
+            dao.insertFeed(contentList)
+            getMainFeedRoom(timeframe).collect {
+                emit(success(it))
             }
+        } catch (error: FirebaseFirestoreException) {
+            emit(error(CONTENT_LOGGED_OUT_NON_REALTIME_ERROR + error.localizedMessage, null))
+        }
+    }
 
     private fun addContentLabel(
             actionType: UserActionType,
