@@ -11,7 +11,8 @@
 
 ### Architecture & Libraries
 #### Client - Kotlin
-- Unidirectional Data Flow w/ Data Binding, ViewModels, LiveData, and Coroutines
+- Model-View-Intent (MVI), Unidirectional Data Flow (UDF), ViewModels, Kotlin Coroutines, and LiveData architecture
+- JUnit 5 tests 100% coverage for newsfeeds' logic
 - Navigation component
 - PagedListAdapter with Room SQL library
 - ExoPlayer for audiocasts in Foreground service
@@ -20,7 +21,7 @@
 - Interactive graph of price data
 - YouTube data API
 - Content quality scores based on user interaction
-- Published with latest App Bundle format
+- Published with App Bundle format
 
 #### Backend - Kotlin, Node.js
 _Kotlin: Jar_
