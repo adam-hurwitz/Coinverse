@@ -1,7 +1,11 @@
-package app.coinverse.utils
+package app.coinverse.feedViewModel
 
 import androidx.arch.core.executor.ArchTaskExecutor
 import androidx.arch.core.executor.TaskExecutor
+import app.coinverse.utils.TEST_COROUTINE_DISPATCHER_KEY
+import app.coinverse.utils.TEST_COROUTINE_DISPATCHER_NAMESPACE
+import app.coinverse.utils.TEST_COROUTINE_SCOPE_KEY
+import app.coinverse.utils.TEST_COROUTINE_SCOPE_NAMESPACE
 import io.mockk.unmockkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -9,26 +13,20 @@ import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
-import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.jupiter.api.extension.ParameterResolver
 
-class ContentTestExtension : AfterAllCallback, BeforeEachCallback, AfterEachCallback, ParameterResolver {
+@ExperimentalCoroutinesApi
+class FeedViewTestExtension : BeforeEachCallback, AfterEachCallback, ParameterResolver {
 
-    override fun afterAll(context: ExtensionContext?) {
-        unmockkAll()
-    }
-
-    @ExperimentalCoroutinesApi
     override fun beforeEach(context: ExtensionContext?) {
-        // Set Coroutine Dispatcher.
+        // Set TestCoroutineDispatcher.
         Dispatchers.setMain(context?.root
                 ?.getStore(TEST_COROUTINE_DISPATCHER_NAMESPACE)
                 ?.get(TEST_COROUTINE_DISPATCHER_KEY, TestCoroutineDispatcher::class.java)!!)
-
         // Set LiveData Executor.
         ArchTaskExecutor.getInstance().setDelegate(object : TaskExecutor() {
             override fun executeOnDiskIO(runnable: Runnable) = runnable.run()
@@ -37,28 +35,33 @@ class ContentTestExtension : AfterAllCallback, BeforeEachCallback, AfterEachCall
         })
     }
 
-    @ExperimentalCoroutinesApi
     override fun afterEach(context: ExtensionContext?) {
-        // Reset Coroutine Dispatcher.
+        // Reset TestCoroutineDispatcher.
         Dispatchers.resetMain()
         context?.root
                 ?.getStore(TEST_COROUTINE_DISPATCHER_NAMESPACE)
                 ?.get(TEST_COROUTINE_DISPATCHER_KEY, TestCoroutineDispatcher::class.java)!!
                 .cleanupTestCoroutines()
-
+        context.root
+                ?.getStore(TEST_COROUTINE_SCOPE_NAMESPACE)
+                ?.get(TEST_COROUTINE_SCOPE_KEY, TestCoroutineScope::class.java)!!
+                .cleanupTestCoroutines()
         // Clear LiveData Executor
         ArchTaskExecutor.getInstance().setDelegate(null)
+        unmockkAll()
     }
 
-    @ExperimentalCoroutinesApi
-    override fun supportsParameter(parameterContext: ParameterContext?,
-                                   extensionContext: ExtensionContext?) =
+    override fun supportsParameter(
+            parameterContext: ParameterContext?,
+            extensionContext: ExtensionContext?
+    ) =
             parameterContext?.parameter?.type == TestCoroutineDispatcher::class.java
                     || parameterContext?.parameter?.type == TestCoroutineScope::class.java
 
-    @ExperimentalCoroutinesApi
-    override fun resolveParameter(parameterContext: ParameterContext?,
-                                  extensionContext: ExtensionContext?) =
+    override fun resolveParameter(
+            parameterContext: ParameterContext?,
+            extensionContext: ExtensionContext?
+    ) =
             if (parameterContext?.parameter?.type == TestCoroutineDispatcher::class.java)
                 getTestCoroutineDispatcher(extensionContext).let { dipatcher ->
                     if (dipatcher == null) saveAndReturnTestCoroutineDispatcher(extensionContext)
@@ -71,13 +74,10 @@ class ContentTestExtension : AfterAllCallback, BeforeEachCallback, AfterEachCall
                 }
             else null
 
-
-    @ExperimentalCoroutinesApi
     private fun getTestCoroutineDispatcher(context: ExtensionContext?) = context?.root
             ?.getStore(TEST_COROUTINE_DISPATCHER_NAMESPACE)
             ?.get(TEST_COROUTINE_DISPATCHER_KEY, TestCoroutineDispatcher::class.java)
 
-    @ExperimentalCoroutinesApi
     private fun saveAndReturnTestCoroutineDispatcher(extensionContext: ExtensionContext?) =
             TestCoroutineDispatcher().apply {
                 extensionContext?.root

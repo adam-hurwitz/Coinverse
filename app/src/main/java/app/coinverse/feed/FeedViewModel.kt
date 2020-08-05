@@ -12,12 +12,11 @@ import app.coinverse.feed.data.FeedRepository
 import app.coinverse.feed.state.FeedView
 import app.coinverse.feed.state.FeedViewIntentType.FeedLoad
 import app.coinverse.feed.state.FeedViewIntentType.LabelContent
-import app.coinverse.feed.state.FeedViewIntentType.SelectContent
+import app.coinverse.feed.state.FeedViewIntentType.OpenContent
 import app.coinverse.feed.state.FeedViewIntentType.SwipeToRefresh
 import app.coinverse.feed.state.FeedViewState
 import app.coinverse.feed.state.FeedViewState.ClearAdjacentAds
 import app.coinverse.feed.state.FeedViewState.Feed
-import app.coinverse.feed.state.FeedViewState.OpenContent
 import app.coinverse.feed.state.FeedViewState.OpenContentSource
 import app.coinverse.feed.state.FeedViewState.ShareContent
 import app.coinverse.feed.state.FeedViewState.SignIn
@@ -27,7 +26,6 @@ import app.coinverse.utils.CONTENT_LABEL_ERROR
 import app.coinverse.utils.CONTENT_REQUEST_NETWORK_ERROR
 import app.coinverse.utils.CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR
 import app.coinverse.utils.ContentType.ARTICLE
-import app.coinverse.utils.ContentType.NONE
 import app.coinverse.utils.ContentType.YOUTUBE
 import app.coinverse.utils.ERROR
 import app.coinverse.utils.FeedType
@@ -99,26 +97,26 @@ class FeedViewModel @AssistedInject constructor(
             swipeToRefresh(it)
         }.launchIn(coroutineScope)
 
-        view.selectContent().onEachEvent { selectContent ->
-            selectContent(selectContent)
+        view.openContent().onEachEvent { openContent ->
+            openContent(openContent)
         }.launchIn(coroutineScope)
 
-        view.swipeContent().onEach { swipeContent ->
+        view.swipeContent().onEachEvent { swipeContent ->
             isContentSwipe = true
             if (swipeContent.isSwiped)
                 state.value = SwipeContent(swipeContent.actionType, swipeContent.position)
             else state.value = FeedViewState.SwipeToRefresh(false)
         }.launchIn(coroutineScope)
 
-        view.labelContent().onEach { labelContent ->
+        view.labelContent().onEachEvent { labelContent ->
             labelContent(labelContent)
         }.launchIn(coroutineScope)
 
-        view.shareContent().onEach { shareContent ->
+        view.shareContent().onEachEvent { shareContent ->
             state.value = ShareContent(shareContent)
         }.launchIn(coroutineScope)
 
-        view.openContentSource().onEach { url ->
+        view.openContentSource().onEachEvent { url ->
             state.value = OpenContentSource(url)
         }.launchIn(coroutineScope)
 
@@ -142,8 +140,8 @@ class FeedViewModel @AssistedInject constructor(
                 DISMISSED -> true
             })
 
-    private fun loadFromNetwork(event: FeedLoad) {
-        val timeframe = getTimeframe(event.timeframe)
+    private fun loadFromNetwork(feedLoad: FeedLoad) {
+        val timeframe = getTimeframe(feedLoad.timeframe)
         if (feedType == MAIN)
             repository.getMainFeedNetwork(isRealtime, timeframe).onEach { resource ->
                 when (resource.status) {
@@ -184,35 +182,35 @@ class FeedViewModel @AssistedInject constructor(
         }.launchIn(coroutineScope)
     }
 
-    private fun selectContent(selectContent: SelectContent) {
-        when (selectContent.content.contentType) {
-            ARTICLE -> repository.getAudiocast(selectContent).onEach { resource ->
+    private fun openContent(openContent: OpenContent) {
+        when (openContent.content.contentType) {
+            ARTICLE -> repository.getAudiocast(openContent).onEach { resource ->
                 when (resource.status) {
-                    LOADING -> state.value = OpenContent(
+                    LOADING -> state.value = FeedViewState.OpenContent(
                             isLoading = true,
-                            position = selectContent.position,
-                            contentId = selectContent.content.id
+                            position = openContent.position,
+                            contentId = openContent.content.id
                     )
-                    SUCCESS -> state.value = OpenContent(
+                    SUCCESS -> state.value = FeedViewState.OpenContent(
                             isLoading = false,
-                            position = selectContent.position,
-                            contentId = selectContent.content.id,
+                            position = openContent.position,
+                            contentId = openContent.content.id,
                             content = resource.data?.content!!,
                             filePath = resource.data.filePath
                     )
-                    Status.ERROR -> state.value = OpenContent(
+                    Status.ERROR -> state.value = FeedViewState.OpenContent(
                             isLoading = false,
-                            position = selectContent.position,
-                            contentId = selectContent.content.id,
+                            position = openContent.position,
+                            contentId = openContent.content.id,
                             error = TTS_CHAR_LIMIT_ERROR_MESSAGE
                     )
                 }
             }.launchIn(coroutineScope)
-            YOUTUBE -> state.value = OpenContent(
+            YOUTUBE -> state.value = FeedViewState.OpenContent(
                     isLoading = false,
-                    position = selectContent.position,
-                    content = selectContent.content)
-            NONE -> throw IllegalArgumentException("contentType expected, contentType is 'NONE'")
+                    position = openContent.position,
+                    contentId = openContent.content.id,
+                    content = openContent.content)
         }
     }
 

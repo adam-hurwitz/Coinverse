@@ -14,14 +14,14 @@ class FeedViewIntent : FeedViewIntentType()
 
 @ExperimentalCoroutinesApi
 sealed class FeedViewIntentType(
-        val initState: MutableStateFlow<Boolean> = MutableStateFlow(true),
+        val initState: MutableStateFlow<Event<Boolean>> = MutableStateFlow(Event(true)),
         val loadFromNetwork: MutableStateFlow<Boolean?> = MutableStateFlow(null),
         val swipeToRefresh: MutableStateFlow<Event<SwipeToRefresh?>> = MutableStateFlow(Event(null)),
-        val selectContent: MutableStateFlow<Event<SelectContent?>> = MutableStateFlow(Event(null)),
-        val swipeContent: MutableStateFlow<SwipeContent?> = MutableStateFlow(null),
-        val labelContent: MutableStateFlow<LabelContent?> = MutableStateFlow(null),
-        val shareContent: MutableStateFlow<Content?> = MutableStateFlow(null),
-        val openContentSource: MutableStateFlow<String?> = MutableStateFlow(null),
+        val openContent: MutableStateFlow<Event<OpenContent?>> = MutableStateFlow(Event(null)),
+        val openContentSource: MutableStateFlow<Event<String?>> = MutableStateFlow(Event(null)),
+        val swipeContent: MutableStateFlow<Event<SwipeContent?>> = MutableStateFlow(Event(null)),
+        val labelContent: MutableStateFlow<Event<LabelContent?>> = MutableStateFlow(Event(null)),
+        val shareContent: MutableStateFlow<Event<Content?>> = MutableStateFlow(Event((null))),
         val updateAds: MutableStateFlow<Event<Boolean?>> = MutableStateFlow(Event(null))
 ) {
     data class FeedLoad(
@@ -36,7 +36,7 @@ sealed class FeedViewIntentType(
             val isRealtime: Boolean
     ) : FeedViewIntentType()
 
-    data class SelectContent(val content: Content, val position: Int) : FeedViewIntentType()
+    data class OpenContent(val content: Content, val position: Int) : FeedViewIntentType()
 
     class SwipeContent(
             val feedType: FeedType,

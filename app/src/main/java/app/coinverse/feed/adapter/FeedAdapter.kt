@@ -15,7 +15,7 @@ import app.coinverse.R.id.share
 import app.coinverse.databinding.CellContentBinding
 import app.coinverse.feed.Content
 import app.coinverse.feed.state.FeedViewIntentType
-import app.coinverse.feed.state.FeedViewIntentType.SelectContent
+import app.coinverse.feed.state.FeedViewIntentType.OpenContent
 import app.coinverse.utils.Event
 import app.coinverse.utils.setContentTypeIcon
 import app.coinverse.utils.setImageUrlRounded
@@ -70,10 +70,10 @@ class FeedAdapter(
 
     private fun createOnClickListener(content: Content, position: Int) = OnClickListener { view ->
         when (view.id) {
-            preview, contentTypeLogo -> intent.selectContent.value =
-                    Event(SelectContent(content, position))
-            share -> intent.shareContent.value = content
-            openSource -> intent.openContentSource.value = content.url
+            preview, contentTypeLogo -> intent.openContent.value =
+                    Event(OpenContent(content, position))
+            share -> intent.shareContent.value = Event(content)
+            openSource -> intent.openContentSource.value = Event(content.url)
         }
     }
 

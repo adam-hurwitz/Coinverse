@@ -1,6 +1,6 @@
 package app.coinverse.utils
 
-const val TEST_COROUTINE_DISPATCHER_NAMESPACE_STRING = "extensionNamespace"
+const val TEST_COROUTINE_DISPATCHER_NAMESPACE_STRING = "testCoroutineDispatcherNamespace"
 const val TEST_COROUTINE_SCOPE_NAMESPACE_STRING = "testCoroutineScopeNamespace"
 const val TEST_COROUTINE_DISPATCHER_KEY = 1132019
 const val TEST_COROUTINE_SCOPE_KEY = 6272020
@@ -10,7 +10,9 @@ const val MOCK_CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR = "Unable to update feed. 
 const val MOCK_GET_MAIN_FEED_ERROR = "Mock get main feed error."
 const val MOCK_TXT_FILE_PATH = "mock/sample/textFile.txt"
 const val MOCK_PREVIEW_IMAGE = "mockPreviewImage.jpg"
-const val MOCK_URL = "https://mockUrl.com"
+const val MOCK_AUDIO_URL = "https://mockAudioUrl.com"
+const val MOCK_YOUTUBE_URL = "https://mockYouTubeUrl.com"
+
 // Mock Errors
 const val MOCK_TTS_CHAR_LIMIT_ERROR = "TTS_CHAR_LIMIT_ERROR"
 const val MOCK_TTS_CHAR_LIMIT_ERROR_MESSAGE = "Audiocasts for longer content coming soon!"

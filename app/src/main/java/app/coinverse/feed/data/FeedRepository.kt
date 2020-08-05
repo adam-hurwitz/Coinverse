@@ -5,8 +5,8 @@ import androidx.paging.PagedList
 import androidx.paging.toLiveData
 import app.coinverse.BuildConfig
 import app.coinverse.feed.Content
-import app.coinverse.feed.state.FeedViewIntentType.SelectContent
-import app.coinverse.feed.state.FeedViewState.OpenContent
+import app.coinverse.feed.state.FeedViewIntentType
+import app.coinverse.feed.state.FeedViewState
 import app.coinverse.firebase.COLLECTIONS_DOCUMENT
 import app.coinverse.firebase.DISMISS_COLLECTION
 import app.coinverse.firebase.SAVE_COLLECTION
@@ -84,10 +84,10 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
     fun getLabelFeedRoom(feedType: FeedType) =
             dao.getLabeledFeedRoom(feedType).toLiveData(pagedListConfig).asFlow()
 
-    fun getAudiocast(selectContent: SelectContent) = flow {
+    fun getAudiocast(openContent: FeedViewIntentType.OpenContent) = flow {
         emit(loading(null))
         try {
-            val content = selectContent.content
+            val content = openContent.content
             FirebaseFunctions.getInstance(firebaseApp(true))
                     .getHttpsCallable(GET_AUDIOCAST_FUNCTION).call(
                             hashMapOf(
@@ -99,9 +99,9 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
                     ).continueWith { task -> (task.result?.data as HashMap<String, String>) }
                     .await().also { response ->
                         if (response?.get(ERROR_PATH_PARAM).isNullOrEmpty())
-                            emit(success((OpenContent(
-                                    position = selectContent.position,
-                                    content = selectContent.content,
+                            emit(success((FeedViewState.OpenContent(
+                                    position = openContent.position,
+                                    content = openContent.content,
                                     filePath = response?.get(FILE_PATH_PARAM)
                             ))))
                         else emit(error(response?.get(ERROR_PATH_PARAM)!!, null))
@@ -180,7 +180,7 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
                 content
             }
             // Add all content with a label to the local storage.
-            if (labelsList!!.isNotEmpty()) dao.insertFeed(labelsList)
+            if (labelsList!!.isNotEmpty()) dao.updateFeed(labelsList)
             return success(null)
         } else return error(
                 "Error retrieving user save_collection: "

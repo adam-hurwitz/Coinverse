@@ -190,23 +190,23 @@ class FeedFragment : Fragment(), FeedView {
     override fun initState() = intent.initState
     override fun loadFromNetwork() = intent.loadFromNetwork.filterNotNull()
     override fun swipeToRefresh() = intent.swipeToRefresh.filterNotNull()
-    override fun selectContent() = intent.selectContent.filterNotNull()
+    override fun openContent() = intent.openContent.filterNotNull()
+    override fun openContentSource() = intent.openContentSource.filterNotNull()
     override fun swipeContent() = intent.swipeContent.filterNotNull()
     override fun labelContent() = intent.labelContent.filterNotNull()
     override fun shareContent() = intent.shareContent.filterNotNull()
-    override fun openContentSource() = intent.openContentSource.filterNotNull()
     override fun updateAds() = intent.updateAds.filterNotNull()
     override fun render(state: FeedViewState) {
         when (state) {
             is Feed -> renderFeed(state)
             is SwipeToRefresh -> renderSwipeToRefresh(state)
             is OpenContent -> renderOpenContent(state)
+            is OpenContentSource -> renderOpenContentSource(state)
             is SignIn -> renderSignIn(state)
             is SwipeContent -> renderSwipeContent(state)
+            is ShareContent -> renderShareContent(state)
             is UpdateAds -> renderUpdateAds()
             is ClearAdjacentAds -> renderClearAdjacentAds(state)
-            is ShareContent -> renderShareContent(state)
-            is OpenContentSource -> renderOpenContentSource(state)
         }
     }
 
@@ -217,44 +217,44 @@ class FeedFragment : Fragment(), FeedView {
                 isRealtime = homeViewModel.isRealtime.value!!))
     }
 
-    private fun renderFeed(state: Feed) {
-        setToolbar(state.toolbarState)
-        adapter.submitList(state.feed)
-        setScreenEmpty(state.feed.isEmpty())
-        state.error?.let { setSnackbar(state.error) }
+    private fun renderFeed(feed: Feed) {
+        setToolbar(feed.toolbarState)
+        adapter.submitList(feed.feed)
+        setScreenEmpty(feed.feed.isEmpty())
+        feed.error?.let { setSnackbar(feed.error) }
         openFromNotification()
     }
 
-    private fun renderSwipeToRefresh(state: SwipeToRefresh) {
-        homeViewModel.setSwipeToRefreshState(state.isEnabled)
-        if (state.isEnabled == false) homeViewModel.disableSwipeToRefresh()
-        state.error?.let { setSnackbar(state.error) }
+    private fun renderSwipeToRefresh(swipeToRefresh: SwipeToRefresh) {
+        homeViewModel.setSwipeToRefreshState(swipeToRefresh.isEnabled)
+        if (swipeToRefresh.isEnabled == false) homeViewModel.disableSwipeToRefresh()
+        swipeToRefresh.error?.let { setSnackbar(swipeToRefresh.error) }
     }
 
-    private fun renderOpenContent(state: OpenContent) {
+    private fun renderOpenContent(openContent: OpenContent) {
         // Loading UI
-        if (state.isLoading) adapter.loadingIds.add(state.contentId)
-        else adapter.loadingIds.remove(state.contentId)
+        if (openContent.isLoading) adapter.loadingIds.add(openContent.contentId)
+        else adapter.loadingIds.remove(openContent.contentId)
         // Notify item changed
-        val position = getAdapterPosition(state.position)
+        val position = getAdapterPosition(openContent.position)
         if (homeViewModel.accountType.value == FREE)
             moPubAdapter.notifyItemChanged(position)
         else adapter.notifyItemChanged(position)
-        if (state.content.contentType != ContentType.NONE)
+        if (openContent.content.contentType != ContentType.NONE)
             when (feedType) {
                 MAIN, DISMISSED ->
                     if (childFragmentManager.findFragmentByTag(CONTENT_DIALOG_FRAGMENT_TAG) == null)
                         ContentDialogFragment.newInstance(Bundle().apply {
-                            putParcelable(CONTENT_TO_PLAY_KEY, state)
+                            putParcelable(CONTENT_TO_PLAY_KEY, openContent)
                         }).show(childFragmentManager, CONTENT_DIALOG_FRAGMENT_TAG)
                 // Launches content from saved bottom sheet screen via HomeFragment.
-                SAVED -> homeViewModel.setOpenFromSave(state)
+                SAVED -> homeViewModel.setOpenFromSave(openContent)
             }
-        state.error?.let { setSnackbar(state.error) }
+        openContent.error?.let { setSnackbar(openContent.error) }
     }
 
-    private fun renderSignIn(state: SignIn) {
-        val position = getAdapterPosition(state.position)
+    private fun renderSignIn(signIn: SignIn) {
+        val position = getAdapterPosition(signIn.position)
         if (homeViewModel.accountType.value == FREE)
             moPubAdapter.notifyItemChanged(position)
         else adapter.notifyItemChanged(position)
@@ -263,20 +263,20 @@ class FeedFragment : Fragment(), FeedView {
         }).show(parentFragmentManager, SIGNIN_DIALOG_FRAGMENT_TAG)
     }
 
-    private fun renderSwipeContent(state: SwipeContent) {
-        val position = getAdapterPosition(state.position)
+    private fun renderSwipeContent(swipeContent: SwipeContent) {
+        val position = getAdapterPosition(swipeContent.position)
         if (position != ERROR) {
-            val swipeContent = adapter.getContent(position)
+            val content = adapter.getContent(position)
             val user = FirebaseAuth.getInstance().currentUser
-            if (swipeContent !== null && user !== null) {
-                intent.labelContent.value = LabelContent(
+            if (content !== null && user !== null) {
+                intent.labelContent.value = Event(LabelContent(
                         feedType = feedType,
-                        actionType = state.actionType,
+                        actionType = swipeContent.actionType,
                         user = user,
                         position = position,
                         content = adapter.getContent(position),
                         isMainFeedEmptied = if (feedType == MAIN) adapter.itemCount == 1 else false
-                )
+                ))
             }
         }
     }
@@ -300,34 +300,34 @@ class FeedFragment : Fragment(), FeedView {
         }
     }
 
-    private fun renderClearAdjacentAds(state: ClearAdjacentAds) {
-        if (homeViewModel.accountType.value == FREE && state.error == null) {
-            val moPubPosition = moPubAdapter.getAdjustedPosition(state.position)
+    private fun renderClearAdjacentAds(clearAdjacentAds: ClearAdjacentAds) {
+        if (homeViewModel.accountType.value == FREE && clearAdjacentAds.error == null) {
+            val moPubPosition = moPubAdapter.getAdjustedPosition(clearAdjacentAds.position)
             if ((moPubAdapter.isAd(moPubPosition - 1)
                             && moPubAdapter.isAd(moPubPosition + 1))) {
-                clearAdjacentAds = true
+                this.clearAdjacentAds = true
                 moPubAdapter.refreshAds(
                         AD_UNIT_ID,
                         RequestParameters.Builder().keywords(MOPUB_KEYWORDS).build()
                 )
             }
         }
-        state.error?.let { setSnackbar(state.error) }
+        clearAdjacentAds.error?.let { setSnackbar(clearAdjacentAds.error) }
     }
 
-    private fun renderShareContent(state: ShareContent) {
+    private fun renderShareContent(shareContent: ShareContent) {
         val action = Intent(ACTION_SEND)
         action.type = CONTENT_SHARE_TYPE
-        action.putExtra(EXTRA_SUBJECT, CONTENT_SHARE_SUBJECT_PREFFIX + state.content?.title)
-        action.putExtra(EXTRA_TEXT, buildShareString(state, action))
+        action.putExtra(EXTRA_SUBJECT, CONTENT_SHARE_SUBJECT_PREFFIX + shareContent.content?.title)
+        action.putExtra(EXTRA_TEXT, buildShareString(shareContent, action))
         val intent = createChooser(action, CONTENT_SHARE_DIALOG_TITLE)
         intent.resolveActivity(requireContext().packageManager)
         startActivity(intent)
     }
 
-    private fun renderOpenContentSource(state: OpenContentSource) {
+    private fun renderOpenContentSource(openContentSource: OpenContentSource) {
         val intent = Intent(ACTION_VIEW)
-        intent.data = Uri.parse(state.url)
+        intent.data = Uri.parse(openContentSource.url)
         intent.resolveActivity(requireContext().packageManager)
         startActivity(intent)
     }
@@ -415,7 +415,7 @@ class FeedFragment : Fragment(), FeedView {
     private fun openFromNotification() {
         if (isOpenFromNotification) {
             openContentFromNotification?.let {
-                intent.selectContent.value = Event(SelectContent(it.content, it.position))
+                intent.openContent.value = Event(OpenContent(it.content, it.position))
                 binding.contentRecyclerView.layoutManager?.scrollToPosition(it.position)
                 isOpenFromNotification = false
             }

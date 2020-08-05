@@ -2,7 +2,7 @@ package app.coinverse.feed.state
 
 import app.coinverse.feed.Content
 import app.coinverse.feed.state.FeedViewIntentType.LabelContent
-import app.coinverse.feed.state.FeedViewIntentType.SelectContent
+import app.coinverse.feed.state.FeedViewIntentType.OpenContent
 import app.coinverse.feed.state.FeedViewIntentType.SwipeContent
 import app.coinverse.feed.state.FeedViewIntentType.SwipeToRefresh
 import app.coinverse.utils.Event
@@ -16,7 +16,7 @@ interface FeedView {
      *
      * @return A flow that inits the current feed state
      */
-    fun initState(): Flow<Boolean>
+    fun initState(): Flow<Event<Boolean>>
 
     /**
      * Intent to load the feed from the network
@@ -37,35 +37,35 @@ interface FeedView {
      *
      * @return A flow that emits the content to select from the feed
      */
-    fun selectContent(): Flow<Event<SelectContent?>>
-
-    /**
-     * Intent to drag or swipe content in the feed in order to label it
-     *
-     * @return A flow that inits the content swipe navigation
-     */
-    fun swipeContent(): Flow<SwipeContent>
-
-    /**
-     * Intent to label content in the feed as a result of swiping an item
-     *
-     * @return A flow that inits the content labeling
-     */
-    fun labelContent(): Flow<LabelContent>
-
-    /**
-     * Intent to share content from the feed
-     *
-     * @return A flow that emits the content to share from the feed
-     */
-    fun shareContent(): Flow<Content>
+    fun openContent(): Flow<Event<OpenContent?>>
 
     /**
      * Intent to open content from the feed
      *
      * @return A flow that emits the content to open from the feed
      */
-    fun openContentSource(): Flow<String>
+    fun openContentSource(): Flow<Event<String?>>
+
+    /**
+     * Intent to drag or swipe content in the feed in order to label it
+     *
+     * @return A flow that inits the content swipe navigation
+     */
+    fun swipeContent(): Flow<Event<SwipeContent?>>
+
+    /**
+     * Intent to label content in the feed as a result of swiping an item
+     *
+     * @return A flow that inits the content labeling
+     */
+    fun labelContent(): Flow<Event<LabelContent?>>
+
+    /**
+     * Intent to share content from the feed
+     *
+     * @return A flow that emits the content to share from the feed
+     */
+    fun shareContent(): Flow<Event<Content?>>
 
     /**
      * Intent to update feed ads

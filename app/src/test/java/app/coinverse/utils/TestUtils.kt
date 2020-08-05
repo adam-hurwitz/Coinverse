@@ -9,8 +9,6 @@ import androidx.paging.LivePagedListBuilder
 import androidx.room.RoomDatabase
 import androidx.room.RoomSQLiteQuery
 import androidx.room.paging.LimitOffsetDataSource
-import app.coinverse.feedViewModel.LabelContentTest
-import com.google.firebase.auth.FirebaseAuth
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -22,9 +20,6 @@ val TEST_COROUTINE_DISPATCHER_NAMESPACE =
         ExtensionContext.Namespace.create(TEST_COROUTINE_DISPATCHER_NAMESPACE_STRING)
 val TEST_COROUTINE_SCOPE_NAMESPACE =
         ExtensionContext.Namespace.create(TEST_COROUTINE_SCOPE_NAMESPACE_STRING)
-
-fun LabelContentTest.mockUser() =
-        if (this.isUserSignedIn) FirebaseAuth.getInstance().currentUser else null
 
 /**
  * Gets the value of a [LiveData] or waits for it to have one, with a timeout.

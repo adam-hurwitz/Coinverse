@@ -24,6 +24,7 @@ import app.coinverse.R.string.dismiss
 import app.coinverse.R.string.save
 import app.coinverse.feed.state.FeedViewIntentType.SwipeContent
 import app.coinverse.utils.CELL_CONTENT_MARGIN
+import app.coinverse.utils.Event
 import app.coinverse.utils.FeedType
 import app.coinverse.utils.FeedType.DISMISSED
 import app.coinverse.utils.FeedType.MAIN
@@ -49,7 +50,7 @@ fun initItemTouchHelper(
         paymentStatus: PaymentStatus,
         feedType: FeedType,
         moPubAdapter: MoPubRecyclerAdapter?,
-        swipeContent: MutableStateFlow<SwipeContent?>
+        swipeContent: MutableStateFlow<Event<SwipeContent?>>
 ) = ItemTouchHelper(object : Callback() {
 
     /**
@@ -73,12 +74,12 @@ fun initItemTouchHelper(
                         target: RecyclerView.ViewHolder) = false
 
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-        swipeContent.value = SwipeContent(
+        swipeContent.value = Event(SwipeContent(
                 feedType = feedType,
                 actionType = if (direction == RIGHT_SWIPE && feedType != SAVED) SAVE else DISMISS,
                 position = viewHolder.adapterPosition,
                 isSwiped = true
-        )
+        ))
     }
 
     override fun onChildDraw(
@@ -89,12 +90,12 @@ fun initItemTouchHelper(
             dY: Float,
             actionState: Int,
             isCurrentlyActive: Boolean) {
-        swipeContent.value = SwipeContent(
+        swipeContent.value = Event(SwipeContent(
                 feedType = feedType,
                 actionType = if (dX > 0 && feedType != SAVED) SAVE else DISMISS,
                 position = viewHolder.adapterPosition,
                 isSwiped = false
-        )
+        ))
 
         if (actionState == ACTION_STATE_SWIPE) {
             var icon = getDrawable(context, ic_error_black_48dp)
