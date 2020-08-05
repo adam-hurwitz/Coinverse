@@ -86,9 +86,8 @@ class FeedViewTest(
     fun `FeedView`(feedViewTestCase: FeedViewTestCase) = testCoroutineDispatcher.runBlockingTest {
         test = feedViewTestCase
         mockComponents(test)
-        firebaseAuth.currentUser?.let {
-            firebaseUser = firebaseAuth.currentUser
-        }
+        if (firebaseAuth.currentUser != null) firebaseUser = firebaseAuth.currentUser
+        else firebaseUser = null
         val viewModel = FeedViewModel(
                 coroutineScopeProvider = testCoroutineScope,
                 feedType = test.feedLoadIntent.feedType,
@@ -295,7 +294,7 @@ class FeedViewTest(
             if (test.openContentState != null && test.mockContent?.contentType == ARTICLE) {
                 repository.getAudiocast(OpenContent(test.mockContent, mockFeedPosition))
             }
-            if (test.swipeContentIntent != null)
+            if (test.swipeContentIntent != null && test.isLoggedIn)
                 repository.editContentLabels(
                         feedType = test.swipeContentIntent.feedType,
                         actionType = test.swipeContentIntent.actionType,
