@@ -42,8 +42,8 @@ import app.coinverse.utils.ToolbarState
 import app.coinverse.utils.getTimeframe
 import app.coinverse.utils.onEachEvent
 import app.topcafes.dependencyinjection.getViewModelScope
-import com.crashlytics.android.Crashlytics
 import com.google.firebase.Timestamp
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.squareup.inject.assisted.Assisted
 import com.squareup.inject.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineScope
@@ -148,7 +148,7 @@ class FeedViewModel @AssistedInject constructor(
                     LOADING -> getMainFeedLocal(timeframe, null)
                     SUCCESS -> state.value = Feed(toolbarState = toolbarState, feed = resource.data!!)
                     Status.ERROR -> {
-                        Crashlytics.log(ERROR, LOG_TAG, resource.message)
+                        FirebaseCrashlytics.getInstance().log(LOG_TAG + resource.message!!)
                         getMainFeedLocal(timeframe, CONTENT_REQUEST_NETWORK_ERROR)
                     }
                 }
@@ -238,7 +238,7 @@ class FeedViewModel @AssistedInject constructor(
                         state.value = ClearAdjacentAds(labelContent.position)
                     }
                     Status.ERROR -> {
-                        Crashlytics.log(ERROR, LOG_TAG, resource.message)
+                        FirebaseCrashlytics.getInstance().log(LOG_TAG + resource.message!!)
                         state.value = ClearAdjacentAds(
                                 position = ERROR,
                                 error = CONTENT_LABEL_ERROR

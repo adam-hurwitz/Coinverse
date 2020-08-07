@@ -43,9 +43,9 @@ import app.coinverse.utils.mockFeedPosition
 import app.coinverse.utils.mockGetAudiocast
 import app.coinverse.utils.mockGetMainFeedList
 import app.coinverse.utils.mockGetMainFeedRoom
-import com.crashlytics.android.Crashlytics
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -269,8 +269,8 @@ class FeedViewTest(
         else every { firebaseAuth.currentUser } returns null
         mockkStatic(FirebaseRemoteConfig::class)
         every { FirebaseRemoteConfig.getInstance() } returns mockk(relaxed = true)
-        mockkStatic(Crashlytics::class)
-        every { Crashlytics.log(any(), any(), any()) } returns Unit
+        mockkStatic(FirebaseCrashlytics::class)
+        every { FirebaseCrashlytics.getInstance().log(any()) } returns Unit
         // FirebaseRemoteConfig - Constant values
         mockkStatic(CONSTANTS_CLASS_COMPILED_JAVA)
         every { CONTENT_REQUEST_NETWORK_ERROR } returns MOCK_GET_MAIN_FEED_ERROR

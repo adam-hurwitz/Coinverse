@@ -9,7 +9,6 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Binder
 import android.os.Handler
-import android.util.Log
 import app.coinverse.App
 import app.coinverse.MainActivity
 import app.coinverse.R.drawable.ic_coinverse_notification_24dp
@@ -30,7 +29,6 @@ import app.coinverse.utils.PlayerActionType.PAUSE
 import app.coinverse.utils.PlayerActionType.PLAY
 import app.coinverse.utils.PlayerActionType.STOP
 import app.coinverse.utils.byteArrayToBitmap
-import com.crashlytics.android.Crashlytics
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.Player
@@ -49,6 +47,7 @@ import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 import com.google.android.exoplayer2.video.VideoRendererEventListener
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -139,9 +138,9 @@ class AudioService : Service() {
                         playOrPausePressed = this.getBooleanExtra(PLAY_OR_PAUSE_PRESSED_KEY, false)
                     }
                     STOP.name -> stopService()
-                    else -> Crashlytics.log(Log.ERROR, LOG_TAG, "ExoPlayer controls error")
+                    else -> FirebaseCrashlytics.getInstance().log("$LOG_TAG ExoPlayer controls error")
                 }
-                else -> Crashlytics.log(Log.ERROR, LOG_TAG, "ExoPlayer onStartCommand error")
+                else -> FirebaseCrashlytics.getInstance().log("$LOG_TAG ExoPlayer onStartCommand error")
             }
         }
         return START_REDELIVER_INTENT
@@ -212,7 +211,7 @@ class AudioService : Service() {
                                     seekToPositionMillis.toDouble(), player?.duration!!.toDouble()))
                 } catch (error: Exception) {
                     this.cancel()
-                    Crashlytics.log(Log.ERROR, LOG_TAG, "Audio error: ${error.localizedMessage}")
+                    FirebaseCrashlytics.getInstance().log("$LOG_TAG Audio error: ${error.localizedMessage}")
                 }
             }
             job.invokeOnCompletion { job.cancel() }
@@ -247,7 +246,7 @@ class AudioService : Service() {
             if (e.type != ExoPlaybackException.TYPE_SOURCE) false
             else {
                 while (e.sourceException != null) if (e.sourceException is BehindLiveWindowException) true
-                Crashlytics.log(Log.ERROR, LOG_TAG, "Audio error: ${e.sourceException.cause.toString()}")
+                FirebaseCrashlytics.getInstance().log("$LOG_TAG Audio error: ${e.sourceException.cause.toString()}")
                 false
             }
 

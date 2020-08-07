@@ -267,7 +267,6 @@ class PriceFragment : Fragment() {
             setOrderPriceGraphStyle(orders, color, thickness)
             if (enabledExchangeList?.contains(exchange) == true &&
                     enabledOrderTypeList!!.contains(orderType)) graph.addSeries(orders)
-            //TODO: Check HomeViewModel for progress status.
             setGraphVisibility(VISIBLE)
             homeViewModel.setSwipeToRefreshState(false)
             orders?.setOnDataPointTapListener { series, dataPoint ->

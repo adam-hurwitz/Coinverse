@@ -37,10 +37,7 @@ class HomeViewModel : ViewModel() {
     private val _openFromSave = MutableLiveData<OpenContent?>()
 
     init {
-        // TODO: Toggle with button if paid user.
         _isRealtime.value = false
-        // TODO: FREE version
-        //  Display YouTube content separate from ads feed.
         _accountType.value = PAID
         _timeframe.value = buildTypeTimescale
         _user.value = getCurrentUser()

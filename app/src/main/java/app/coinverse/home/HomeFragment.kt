@@ -87,7 +87,6 @@ import app.coinverse.utils.USER_KEY
 import app.coinverse.utils.getDisplayHeight
 import app.coinverse.utils.setImageUrlCircle
 import app.coinverse.utils.snackbarWithText
-import com.crashlytics.android.Crashlytics
 import com.firebase.ui.auth.IdpResponse
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -98,6 +97,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.android.synthetic.main.toolbar_app.appBarLayout
 import kotlinx.android.synthetic.main.toolbar_home.*
@@ -327,7 +327,7 @@ class HomeFragment : Fragment() {
             lifecycleScope.launch {
                 /** Signed in */
                 if (user != null && !user.isAnonymous) {
-                    Crashlytics.setUserIdentifier(user.uid)
+                    FirebaseCrashlytics.getInstance().setUserId(user.uid)
                     val userSnapshot = usersDocument.collection(user.uid)
                             .document(ACCOUNT_DOCUMENT).get().await()
                     /** Create user if user one does not exist. */
@@ -348,7 +348,7 @@ class HomeFragment : Fragment() {
                                         0.0, 0.0, 0.0,
                                         0.0, 0.0)
                         ).addOnSuccessListener {
-                            Crashlytics.setUserIdentifier(user.uid)
+                            FirebaseCrashlytics.getInstance().setUserId(user.uid)
                             Log.v(LOG_TAG, String.format(
                                     "New user action data success:%s", it))
                         }.addOnFailureListener {
@@ -368,9 +368,9 @@ class HomeFragment : Fragment() {
                         savedInstanceState == null) {
                     try {
                         FirebaseAuth.getInstance(firebaseApp(true)).signInAnonymously().await()
-                        Crashlytics.log(Log.VERBOSE, LOG_TAG, "observeSignIn anonymous success")
+                        Log.v(LOG_TAG, "observeSignIn anonymous success")
                     } catch (exception: FirebaseAuthException) {
-                        Crashlytics.log(Log.ERROR, LOG_TAG, "observeSignIn ${exception.localizedMessage}")
+                        FirebaseCrashlytics.getInstance().log("$LOG_TAG observeSignIn ${exception.localizedMessage}")
                         snackbarWithText(resources, getString(error_sign_in_anonymously), contentContainer)
                         makeText(context, "Authentication failed.", LENGTH_SHORT).show()
                     }

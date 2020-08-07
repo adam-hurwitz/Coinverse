@@ -190,7 +190,6 @@ class Analytics @Inject constructor(
         firebaseAnalytics.logEvent(if (content.feedType == FeedType.SAVED) ORGANIZE_EVENT else DISMISS_EVENT, bundle)
     }
 
-    //TODO: Move to Cloud Function
     private fun updateContentActionCounter(contentId: String, counterType: String) {
         contentEnCollection.document(contentId).apply {
             FirebaseFirestore.getInstance().runTransaction(Transaction.Function<String> { counterTransaction ->
@@ -203,7 +202,6 @@ class Analytics @Inject constructor(
         }
     }
 
-    //TODO: Move to Cloud Function
     private fun updateUserActions(userId: String, actionCollection: String, content: Content, countType: String) {
         usersDocument.collection(userId).document(ACTIONS_DOCUMENT).collection(actionCollection)
                 .document(content.id).set(ContentAction(Timestamp.now(), content.id, content.title, content.creator,
@@ -214,7 +212,6 @@ class Analytics @Inject constructor(
                 }
     }
 
-    //TODO: Move to Cloud Function
     private fun updateUserActionCounter(userId: String, counterType: String) {
         usersDocument.collection(userId).document(ACTIONS_DOCUMENT).apply {
             FirebaseFirestore.getInstance().runTransaction(Transaction.Function<String> { counterTransaction ->
@@ -226,7 +223,6 @@ class Analytics @Inject constructor(
         }
     }
 
-    //TODO: Move to Cloud Function
     private fun updateQualityScore(score: Double, contentId: String) {
         Log.d(LOG_TAG, "Transaction success: " + score)
         contentEnCollection.document(contentId).also {

@@ -24,18 +24,14 @@ import app.coinverse.utils.YOUTUBE_WATCH_PERCENT_ERROR
 import app.coinverse.utils.auth.APP_API_KEY_OPEN_SHARED
 import app.coinverse.utils.auth.APP_API_KEY_PRODUCTION
 import app.coinverse.utils.auth.APP_API_KEY_STAGING
-import com.crashlytics.android.Crashlytics
 import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
 import com.google.android.youtube.player.YouTubePlayerSupportFragment
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * Todo: Refactor with Model-View-Intent.
- * See [app.coinverse.feed.FeedFragment].
- **/
 class YouTubeFragment : Fragment() {
     @Inject
     lateinit var analytics: Analytics
@@ -137,7 +133,7 @@ class YouTubeFragment : Fragment() {
                 ((youtubePlayer.currentTimeMillis.toDouble() - seekToPositionMillis)
                         / youtubePlayer.durationMillis)
             } catch (error: Exception) {
-                Crashlytics.log(Log.ERROR, LOG_TAG, error.localizedMessage)
+                FirebaseCrashlytics.getInstance().log(LOG_TAG + error.localizedMessage!!)
                 YOUTUBE_WATCH_PERCENT_ERROR
             }
 }

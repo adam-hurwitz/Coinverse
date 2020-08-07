@@ -3,9 +3,21 @@ package app.coinverse.priceGraph
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import app.coinverse.firebase.contentEthBtcCollection
-import app.coinverse.priceGraph.models.*
-import app.coinverse.utils.*
-import app.coinverse.utils.Exchange.*
+import app.coinverse.priceGraph.models.ExchangeOrderData
+import app.coinverse.priceGraph.models.ExchangeOrdersDataPoints
+import app.coinverse.priceGraph.models.MaximumPercentPriceDifference
+import app.coinverse.priceGraph.models.PercentDifference
+import app.coinverse.priceGraph.models.PriceGraphData
+import app.coinverse.priceGraph.models.PriceGraphXAndYConstraints
+import app.coinverse.utils.Exchange
+import app.coinverse.utils.Exchange.BINANCE
+import app.coinverse.utils.Exchange.COINBASE
+import app.coinverse.utils.Exchange.GEMINI
+import app.coinverse.utils.Exchange.KRAKEN
+import app.coinverse.utils.TIMESTAMP
+import app.coinverse.utils.Timeframe
+import app.coinverse.utils.awaitRealtime
+import app.coinverse.utils.getTimeframe
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query.Direction.ASCENDING
@@ -26,7 +38,7 @@ import javax.inject.Singleton
 private val LOG_TAG = PriceRepository::class.java.simpleName
 
 /**
- * TODO: Remove price graphs and replace with content search bar.
+ * Todo: Remove price graphs and replace with content search bar.
  */
 @Singleton
 class PriceRepository @Inject constructor() {
@@ -58,7 +70,7 @@ class PriceRepository @Inject constructor() {
                     .whereGreaterThan(TIMESTAMP, getTimeframe(timeframe))
                     .awaitRealtime()
             if (response.error == null)
-                response?.let { value -> parsePriceData(value.packet!!.documentChanges) }
+                response.let { value -> parsePriceData(value.packet!!.documentChanges) }
             else Log.e(LOG_TAG, "Price Data EventListener Failed.", response.error)
         } else {
             try {
@@ -79,7 +91,6 @@ class PriceRepository @Inject constructor() {
             xIndex = index++.toDouble()
             priceDataDocument.document.toObject(MaximumPercentPriceDifference::class.java).also { priceData ->
                 priceDifferenceDetailsLiveData.value = priceData.percentDifference
-                //TODO: Refactor axis to use dates.
                 compositeDisposable.add(zip(
                         generateGraphData(COINBASE, priceData.coinbaseExchangeOrderData).subscribeOn(io()),
                         generateGraphData(BINANCE, priceData.binanceExchangeOrderData).subscribeOn(io()),

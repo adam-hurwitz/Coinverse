@@ -23,6 +23,10 @@ import java.net.URL
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Todo: Refactor with Model-View-Intent
+ * See [app.coinverse.feed.data.FeedRepository].
+ **/
 @Singleton
 class ContentRepository @Inject constructor() {
     fun getContentUri(contentId: String, filePath: String) = flow {

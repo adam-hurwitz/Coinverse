@@ -16,7 +16,7 @@ import app.coinverse.utils.Resource.Companion.error
 import app.coinverse.utils.Resource.Companion.success
 import app.coinverse.utils.Status.ERROR
 import app.coinverse.utils.Status.SUCCESS
-import com.crashlytics.android.Crashlytics
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.flow.collect
 
 /**
@@ -95,8 +95,8 @@ class AudioViewModel(val repository: ContentRepository) : ViewModel(), AudioView
             when (resource.status) {
                 SUCCESS -> emit(success(resource.data!!.uri))
                 ERROR -> {
-                    Crashlytics.log(Log.ERROR, LOG_TAG, resource.message)
-                    emit(error(resource.message!!, null))
+                    FirebaseCrashlytics.getInstance().log(LOG_TAG + resource.message!!)
+                    emit(error(resource.message, null))
                 }
             }
         }
@@ -113,7 +113,7 @@ class AudioViewModel(val repository: ContentRepository) : ViewModel(), AudioView
             when (resource.status) {
                 SUCCESS -> emit(success(resource.data))
                 ERROR -> {
-                    Crashlytics.log(Log.WARN, LOG_TAG, "bitmapToByteArray error or null - ${resource.message}")
+                    Log.v(LOG_TAG, "bitmapToByteArray error or null - ${resource.message}")
                     emit(error(resource.message!!, null))
                 }
             }

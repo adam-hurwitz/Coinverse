@@ -56,10 +56,6 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/preview">
 
-        <!--TODO: Enable once feed is connected to playlist.
-            1. 'exo_prev'
-            2. 'exo_next' -->
-
         <ImageButton
             android:id="@id/exo_rew"
             style="@style/ExoMediaButton.Rewind"

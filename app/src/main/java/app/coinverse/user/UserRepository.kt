@@ -10,8 +10,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * TODO: Refactor with Unidirectional Data Flow. See [ContentViewModel].
- * See more: https://medium.com/hackernoon/android-unidirectional-flow-with-livedata-bf24119e747
+ * Todo: Refactor with Model-View-Intent
+ * See [app.coinverse.feed.data.FeedRepository].
  **/
 @Singleton
 class UserRepository @Inject constructor() {

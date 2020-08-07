@@ -5,7 +5,7 @@ apply plugin: 'androidx.navigation.safeargs'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.firebase-perf'
-apply plugin: 'io.fabric'
+apply plugin: 'com.google.firebase.crashlytics'
 apply plugin: 'de.mannodermaus.android-junit5'
 
 android {
@@ -65,7 +65,7 @@ dependencies {
     implementation "com.google.android.gms:play-services-location:$play_services_version"
     implementation "com.firebase:firebase-client-android:$firebase_client_android_version"
     implementation "com.google.firebase:firebase-analytics:$firebase_analytics_version"
-    implementation "com.crashlytics.sdk.android:crashlytics:$crashlytics_version"
+    implementation "com.google.firebase:firebase-crashlytics:$firebase_crashlytics_version"
     implementation "com.google.firebase:firebase-perf:$firebase_perf_version"
     implementation "com.google.firebase:firebase-firestore-ktx:$firebase_ktx_version"
     implementation "com.google.firebase:firebase-functions:$firebase_functions_version"
