@@ -10,10 +10,10 @@ import app.coinverse.R.string.saved
 import app.coinverse.analytics.Analytics
 import app.coinverse.feed.data.FeedRepository
 import app.coinverse.feed.state.FeedView
-import app.coinverse.feed.state.FeedViewIntentType.FeedLoad
-import app.coinverse.feed.state.FeedViewIntentType.LabelContent
-import app.coinverse.feed.state.FeedViewIntentType.OpenContent
-import app.coinverse.feed.state.FeedViewIntentType.SwipeToRefresh
+import app.coinverse.feed.state.FeedViewIntent.FeedLoad
+import app.coinverse.feed.state.FeedViewIntent.LabelContent
+import app.coinverse.feed.state.FeedViewIntent.OpenContent
+import app.coinverse.feed.state.FeedViewIntent.SwipeToRefresh
 import app.coinverse.feed.state.FeedViewState
 import app.coinverse.feed.state.FeedViewState.ClearAdjacentAds
 import app.coinverse.feed.state.FeedViewState.Feed

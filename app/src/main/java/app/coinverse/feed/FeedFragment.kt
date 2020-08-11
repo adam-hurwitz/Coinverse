@@ -57,7 +57,7 @@ import app.coinverse.feed.adapter.FeedAdapter
 import app.coinverse.feed.adapter.initItemTouchHelper
 import app.coinverse.feed.state.FeedView
 import app.coinverse.feed.state.FeedViewIntent
-import app.coinverse.feed.state.FeedViewIntentType.*
+import app.coinverse.feed.state.FeedViewIntent.*
 import app.coinverse.feed.state.FeedViewState
 import app.coinverse.feed.state.FeedViewState.ClearAdjacentAds
 import app.coinverse.feed.state.FeedViewState.Feed
@@ -66,7 +66,6 @@ import app.coinverse.feed.state.FeedViewState.OpenContentSource
 import app.coinverse.feed.state.FeedViewState.ShareContent
 import app.coinverse.feed.state.FeedViewState.SignIn
 import app.coinverse.feed.state.FeedViewState.SwipeContent
-import app.coinverse.feed.state.FeedViewState.SwipeToRefresh
 import app.coinverse.feed.state.FeedViewState.UpdateAds
 import app.coinverse.home.HomeViewModel
 import app.coinverse.user.SignInDialogFragment
@@ -199,7 +198,7 @@ class FeedFragment : Fragment(), FeedView {
     override fun render(state: FeedViewState) {
         when (state) {
             is Feed -> renderFeed(state)
-            is SwipeToRefresh -> renderSwipeToRefresh(state)
+            is FeedViewState.SwipeToRefresh -> renderSwipeToRefresh(state)
             is OpenContent -> renderOpenContent(state)
             is OpenContentSource -> renderOpenContentSource(state)
             is SignIn -> renderSignIn(state)
@@ -225,7 +224,7 @@ class FeedFragment : Fragment(), FeedView {
         openFromNotification()
     }
 
-    private fun renderSwipeToRefresh(swipeToRefresh: SwipeToRefresh) {
+    private fun renderSwipeToRefresh(swipeToRefresh: FeedViewState.SwipeToRefresh) {
         homeViewModel.setSwipeToRefreshState(swipeToRefresh.isEnabled)
         if (swipeToRefresh.isEnabled == false) homeViewModel.disableSwipeToRefresh()
         swipeToRefresh.error?.let { setSnackbar(swipeToRefresh.error) }

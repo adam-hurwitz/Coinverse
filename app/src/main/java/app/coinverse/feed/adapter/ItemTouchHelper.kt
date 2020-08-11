@@ -22,7 +22,7 @@ import app.coinverse.R.drawable.ic_dismiss_planet_light_48dp
 import app.coinverse.R.drawable.ic_error_black_48dp
 import app.coinverse.R.string.dismiss
 import app.coinverse.R.string.save
-import app.coinverse.feed.state.FeedViewIntentType.SwipeContent
+import app.coinverse.feed.state.FeedViewIntent.SwipeContent
 import app.coinverse.utils.CELL_CONTENT_MARGIN
 import app.coinverse.utils.Event
 import app.coinverse.utils.FeedType

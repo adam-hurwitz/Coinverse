@@ -1,8 +1,14 @@
 package app.coinverse.feedViewModel
 
-import app.coinverse.feed.state.FeedViewIntentType.FeedLoad
-import app.coinverse.feed.state.FeedViewIntentType.SwipeContent
-import app.coinverse.feed.state.FeedViewState.*
+import app.coinverse.feed.state.FeedViewIntent.FeedLoad
+import app.coinverse.feed.state.FeedViewIntent.SwipeContent
+import app.coinverse.feed.state.FeedViewState
+import app.coinverse.feed.state.FeedViewState.ClearAdjacentAds
+import app.coinverse.feed.state.FeedViewState.OpenContent
+import app.coinverse.feed.state.FeedViewState.OpenContentSource
+import app.coinverse.feed.state.FeedViewState.ShareContent
+import app.coinverse.feed.state.FeedViewState.SwipeToRefresh
+import app.coinverse.utils.ERROR
 import app.coinverse.utils.FeedType.DISMISSED
 import app.coinverse.utils.FeedType.MAIN
 import app.coinverse.utils.FeedType.SAVED
@@ -11,7 +17,7 @@ import app.coinverse.utils.MOCK_CONTENT_REQUEST_SWIPE_TO_REFRESH_ERROR
 import app.coinverse.utils.MOCK_GET_MAIN_FEED_ERROR
 import app.coinverse.utils.MOCK_TTS_CHAR_LIMIT_ERROR_MESSAGE
 import app.coinverse.utils.MOCK_TXT_FILE_PATH
-import app.coinverse.utils.Status.ERROR
+import app.coinverse.utils.Status
 import app.coinverse.utils.Status.LOADING
 import app.coinverse.utils.Status.SUCCESS
 import app.coinverse.utils.Timeframe.DAY
@@ -70,7 +76,7 @@ fun feedViewTestCaseStream() = Stream.of(
                         filePath = MOCK_TXT_FILE_PATH
                 ),
                 openContentSourceState = OpenContentSource(mockArticleContent.url),
-                swipeContentState = SwipeContent(
+                swipeContentState = FeedViewState.SwipeContent(
                         actionType = SAVE,
                         position = mockFeedPosition
                 ),
@@ -101,7 +107,7 @@ fun feedViewTestCaseStream() = Stream.of(
                         filePath = MOCK_TXT_FILE_PATH
                 ),
                 openContentSourceState = OpenContentSource(mockArticleContent.url),
-                swipeContentState = SwipeContent(
+                swipeContentState = FeedViewState.SwipeContent(
                         actionType = DISMISS,
                         position = mockFeedPosition
                 ),
@@ -131,7 +137,7 @@ fun feedViewTestCaseStream() = Stream.of(
                         content = mockYouTubeContent
                 ),
                 openContentSourceState = OpenContentSource(mockYouTubeContent.url),
-                swipeContentState = SwipeContent(
+                swipeContentState = FeedViewState.SwipeContent(
                         actionType = SAVE,
                         position = mockFeedPosition
                 ),
@@ -162,7 +168,7 @@ fun feedViewTestCaseStream() = Stream.of(
                         content = mockYouTubeContent
                 ),
                 openContentSourceState = OpenContentSource(mockYouTubeContent.url),
-                swipeContentState = SwipeContent(
+                swipeContentState = FeedViewState.SwipeContent(
                         actionType = SAVE,
                         position = mockFeedPosition
                 ),
@@ -183,14 +189,14 @@ fun feedViewTestCaseStream() = Stream.of(
                         position = mockFeedPosition,
                         isSwiped = true
                 ),
-                swipeContentState = SwipeContent(
+                swipeContentState = FeedViewState.SwipeContent(
                         actionType = SAVE,
                         position = mockFeedPosition
                 ),
                 clearAdjacentAdsState = ClearAdjacentAds(mockFeedPosition)
         ),
         FeedViewTestCase(
-                status = ERROR,
+                status = Status.ERROR,
                 mockFeedList = mockDbContentListForDay,
                 mockContent = mockArticleContent,
                 feedLoadIntent = FeedLoad(
@@ -216,12 +222,12 @@ fun feedViewTestCaseStream() = Stream.of(
                         error = MOCK_TTS_CHAR_LIMIT_ERROR_MESSAGE
                 ),
                 openContentSourceState = OpenContentSource(mockArticleContent.url),
-                swipeContentState = SwipeContent(
+                swipeContentState = FeedViewState.SwipeContent(
                         actionType = SAVE,
                         position = mockFeedPosition
                 ),
                 clearAdjacentAdsState = ClearAdjacentAds(
-                        position = app.coinverse.utils.ERROR,
+                        position = ERROR,
                         error = MOCK_CONTENT_LABEL_ERROR
                 )
         ),
@@ -265,7 +271,7 @@ fun feedViewTestCaseStream() = Stream.of(
                         filePath = MOCK_TXT_FILE_PATH
                 ),
                 openContentSourceState = OpenContentSource(mockArticleContent.url),
-                swipeContentState = SwipeContent(
+                swipeContentState = FeedViewState.SwipeContent(
                         actionType = SAVE,
                         position = mockFeedPosition
                 ),
@@ -295,7 +301,7 @@ fun feedViewTestCaseStream() = Stream.of(
                         filePath = MOCK_TXT_FILE_PATH
                 ),
                 openContentSourceState = OpenContentSource(mockArticleContent.url),
-                swipeContentState = SwipeContent(
+                swipeContentState = FeedViewState.SwipeContent(
                         actionType = DISMISS,
                         position = mockFeedPosition
                 ),
@@ -324,7 +330,7 @@ fun feedViewTestCaseStream() = Stream.of(
                         content = mockYouTubeContent
                 ),
                 openContentSourceState = OpenContentSource(mockYouTubeContent.url),
-                swipeContentState = SwipeContent(
+                swipeContentState = FeedViewState.SwipeContent(
                         actionType = SAVE,
                         position = mockFeedPosition
                 ),
@@ -354,7 +360,7 @@ fun feedViewTestCaseStream() = Stream.of(
                         content = mockYouTubeContent
                 ),
                 openContentSourceState = OpenContentSource(mockYouTubeContent.url),
-                swipeContentState = SwipeContent(
+                swipeContentState = FeedViewState.SwipeContent(
                         actionType = SAVE,
                         position = mockFeedPosition
                 ),
@@ -375,14 +381,14 @@ fun feedViewTestCaseStream() = Stream.of(
                         position = mockFeedPosition,
                         isSwiped = true
                 ),
-                swipeContentState = SwipeContent(
+                swipeContentState = FeedViewState.SwipeContent(
                         actionType = SAVE,
                         position = mockFeedPosition
                 ),
                 clearAdjacentAdsState = ClearAdjacentAds(mockFeedPosition)
         ),
         FeedViewTestCase(
-                status = ERROR,
+                status = Status.ERROR,
                 mockFeedList = mockDbContentListForDay,
                 mockContent = mockArticleContent,
                 feedLoadIntent = FeedLoad(
@@ -402,12 +408,12 @@ fun feedViewTestCaseStream() = Stream.of(
                         contentId = mockContentId,
                         error = MOCK_TTS_CHAR_LIMIT_ERROR_MESSAGE
                 ),
-                swipeContentState = SwipeContent(
+                swipeContentState = FeedViewState.SwipeContent(
                         actionType = SAVE,
                         position = mockFeedPosition
                 ),
                 clearAdjacentAdsState = ClearAdjacentAds(
-                        position = app.coinverse.utils.ERROR,
+                        position = ERROR,
                         error = MOCK_CONTENT_LABEL_ERROR
                 )
         ),
@@ -452,7 +458,7 @@ fun feedViewTestCaseStream() = Stream.of(
                         filePath = MOCK_TXT_FILE_PATH
                 ),
                 openContentSourceState = OpenContentSource(mockArticleContent.url),
-                swipeContentState = SwipeContent(
+                swipeContentState = FeedViewState.SwipeContent(
                         actionType = SAVE,
                         position = mockFeedPosition
                 ),
@@ -482,7 +488,7 @@ fun feedViewTestCaseStream() = Stream.of(
                         filePath = MOCK_TXT_FILE_PATH
                 ),
                 openContentSourceState = OpenContentSource(mockArticleContent.url),
-                swipeContentState = SwipeContent(
+                swipeContentState = FeedViewState.SwipeContent(
                         actionType = DISMISS,
                         position = mockFeedPosition
                 ),
@@ -511,7 +517,7 @@ fun feedViewTestCaseStream() = Stream.of(
                         content = mockYouTubeContent
                 ),
                 openContentSourceState = OpenContentSource(mockYouTubeContent.url),
-                swipeContentState = SwipeContent(
+                swipeContentState = FeedViewState.SwipeContent(
                         actionType = SAVE,
                         position = mockFeedPosition
                 ),
@@ -541,7 +547,7 @@ fun feedViewTestCaseStream() = Stream.of(
                         content = mockYouTubeContent
                 ),
                 openContentSourceState = OpenContentSource(mockYouTubeContent.url),
-                swipeContentState = SwipeContent(
+                swipeContentState = FeedViewState.SwipeContent(
                         actionType = SAVE,
                         position = mockFeedPosition
                 ),
@@ -562,14 +568,14 @@ fun feedViewTestCaseStream() = Stream.of(
                         position = mockFeedPosition,
                         isSwiped = true
                 ),
-                swipeContentState = SwipeContent(
+                swipeContentState = FeedViewState.SwipeContent(
                         actionType = SAVE,
                         position = mockFeedPosition
                 ),
                 clearAdjacentAdsState = ClearAdjacentAds(mockFeedPosition)
         ),
         FeedViewTestCase(
-                status = ERROR,
+                status = Status.ERROR,
                 mockFeedList = mockDbContentListForDay,
                 mockContent = mockArticleContent,
                 feedLoadIntent = FeedLoad(
@@ -589,12 +595,12 @@ fun feedViewTestCaseStream() = Stream.of(
                         contentId = mockContentId,
                         error = MOCK_TTS_CHAR_LIMIT_ERROR_MESSAGE
                 ),
-                swipeContentState = SwipeContent(
+                swipeContentState = FeedViewState.SwipeContent(
                         actionType = SAVE,
                         position = mockFeedPosition
                 ),
                 clearAdjacentAdsState = ClearAdjacentAds(
-                        position = app.coinverse.utils.ERROR,
+                        position = ERROR,
                         error = MOCK_CONTENT_LABEL_ERROR
                 )
         )

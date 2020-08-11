@@ -10,10 +10,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @ExperimentalCoroutinesApi
-class FeedViewIntent : FeedViewIntentType()
-
-@ExperimentalCoroutinesApi
-sealed class FeedViewIntentType(
+class FeedViewIntent(
         val initState: MutableStateFlow<Event<Boolean>> = MutableStateFlow(Event(true)),
         val loadFromNetwork: MutableStateFlow<Boolean?> = MutableStateFlow(null),
         val swipeToRefresh: MutableStateFlow<Event<SwipeToRefresh?>> = MutableStateFlow(Event(null)),
@@ -28,22 +25,22 @@ sealed class FeedViewIntentType(
             val feedType: FeedType,
             val timeframe: Timeframe,
             val isRealtime: Boolean
-    ) : FeedViewIntentType()
+    )
 
     data class SwipeToRefresh(
             val feedType: FeedType,
             val timeframe: Timeframe,
             val isRealtime: Boolean
-    ) : FeedViewIntentType()
+    )
 
-    data class OpenContent(val content: Content, val position: Int) : FeedViewIntentType()
+    data class OpenContent(val content: Content, val position: Int)
 
     class SwipeContent(
             val feedType: FeedType,
             val actionType: UserActionType,
             val position: Int,
             val isSwiped: Boolean = false
-    ) : FeedViewIntentType()
+    )
 
     data class LabelContent(
             val feedType: FeedType,
@@ -52,5 +49,5 @@ sealed class FeedViewIntentType(
             val position: Int,
             val content: Content?,
             val isMainFeedEmptied: Boolean
-    ) : FeedViewIntentType()
+    )
 }

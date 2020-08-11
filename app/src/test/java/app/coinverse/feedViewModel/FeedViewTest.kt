@@ -9,10 +9,9 @@ import app.coinverse.feed.FeedViewModel
 import app.coinverse.feed.data.FeedRepository
 import app.coinverse.feed.state.FeedView
 import app.coinverse.feed.state.FeedViewIntent
-import app.coinverse.feed.state.FeedViewIntentType.LabelContent
-import app.coinverse.feed.state.FeedViewIntentType.OpenContent
-import app.coinverse.feed.state.FeedViewIntentType.SwipeContent
-import app.coinverse.feed.state.FeedViewIntentType.SwipeToRefresh
+import app.coinverse.feed.state.FeedViewIntent.OpenContent
+import app.coinverse.feed.state.FeedViewIntent.SwipeContent
+import app.coinverse.feed.state.FeedViewIntent.SwipeToRefresh
 import app.coinverse.feed.state.FeedViewState
 import app.coinverse.feed.state.FeedViewState.ClearAdjacentAds
 import app.coinverse.feed.state.FeedViewState.Feed
@@ -194,7 +193,7 @@ class FeedViewTest(
 
     private fun testRenderSwipeContent(state: FeedViewState.SwipeContent) {
         assertThat(state).isEqualTo(test.swipeContentState)
-        intent.labelContent.value = Event(LabelContent(
+        intent.labelContent.value = Event(FeedViewIntent.LabelContent(
                 feedType = test.swipeContentIntent!!.feedType,
                 actionType = test.swipeContentIntent!!.actionType,
                 user = firebaseUser,

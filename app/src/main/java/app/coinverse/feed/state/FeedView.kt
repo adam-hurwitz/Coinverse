@@ -1,10 +1,10 @@
 package app.coinverse.feed.state
 
 import app.coinverse.feed.Content
-import app.coinverse.feed.state.FeedViewIntentType.LabelContent
-import app.coinverse.feed.state.FeedViewIntentType.OpenContent
-import app.coinverse.feed.state.FeedViewIntentType.SwipeContent
-import app.coinverse.feed.state.FeedViewIntentType.SwipeToRefresh
+import app.coinverse.feed.state.FeedViewIntent.LabelContent
+import app.coinverse.feed.state.FeedViewIntent.OpenContent
+import app.coinverse.feed.state.FeedViewIntent.SwipeContent
+import app.coinverse.feed.state.FeedViewIntent.SwipeToRefresh
 import app.coinverse.utils.Event
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow

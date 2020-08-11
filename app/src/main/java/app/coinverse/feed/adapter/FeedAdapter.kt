@@ -14,8 +14,8 @@ import app.coinverse.R.id.preview
 import app.coinverse.R.id.share
 import app.coinverse.databinding.CellContentBinding
 import app.coinverse.feed.Content
-import app.coinverse.feed.state.FeedViewIntentType
-import app.coinverse.feed.state.FeedViewIntentType.OpenContent
+import app.coinverse.feed.state.FeedViewIntent
+import app.coinverse.feed.state.FeedViewIntent.OpenContent
 import app.coinverse.utils.Event
 import app.coinverse.utils.setContentTypeIcon
 import app.coinverse.utils.setImageUrlRounded
@@ -35,7 +35,7 @@ private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Content>() {
 
 @ExperimentalCoroutinesApi
 class FeedAdapter(
-        private val intent: FeedViewIntentType
+        private val intent: FeedViewIntent
 ) : PagedListAdapter<Content, FeedAdapter.ViewHolder>(DIFF_CALLBACK) {
     val loadingIds: HashSet<String> = hashSetOf()
 

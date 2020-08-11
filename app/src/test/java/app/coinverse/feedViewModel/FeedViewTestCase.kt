@@ -1,10 +1,12 @@
 package app.coinverse.feedViewModel
 
 import app.coinverse.feed.Content
-import app.coinverse.feed.state.FeedViewIntentType
-import app.coinverse.feed.state.FeedViewIntentType.FeedLoad
+import app.coinverse.feed.state.FeedViewIntent.FeedLoad
+import app.coinverse.feed.state.FeedViewIntent.SwipeContent
 import app.coinverse.feed.state.FeedViewState
-import app.coinverse.feed.state.FeedViewState.SwipeContent
+import app.coinverse.feed.state.FeedViewState.ClearAdjacentAds
+import app.coinverse.feed.state.FeedViewState.OpenContentSource
+import app.coinverse.feed.state.FeedViewState.ShareContent
 import app.coinverse.feed.state.FeedViewState.SwipeToRefresh
 import app.coinverse.utils.Status
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -18,11 +20,11 @@ data class FeedViewTestCase constructor(
         val mockContent: Content? = Content(),
         val error: String? = null,
         val feedLoadIntent: FeedLoad,
-        val swipeContentIntent: FeedViewIntentType.SwipeContent? = null,
+        val swipeContentIntent: SwipeContent? = null,
         val swipeToRefreshState: SwipeToRefresh = SwipeToRefresh(),
         val openContentState: FeedViewState.OpenContent? = null,
-        val openContentSourceState: FeedViewState.OpenContentSource? = null,
-        val swipeContentState: SwipeContent? = null,
-        val shareContentState: FeedViewState.ShareContent? = null,
-        val clearAdjacentAdsState: FeedViewState.ClearAdjacentAds? = null
+        val openContentSourceState: OpenContentSource? = null,
+        val swipeContentState: FeedViewState.SwipeContent? = null,
+        val shareContentState: ShareContent? = null,
+        val clearAdjacentAdsState: ClearAdjacentAds? = null
 )

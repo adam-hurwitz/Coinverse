@@ -5,7 +5,7 @@ import androidx.paging.PagedList
 import androidx.paging.toLiveData
 import app.coinverse.BuildConfig
 import app.coinverse.feed.Content
-import app.coinverse.feed.state.FeedViewIntentType
+import app.coinverse.feed.state.FeedViewIntent.OpenContent
 import app.coinverse.feed.state.FeedViewState
 import app.coinverse.firebase.COLLECTIONS_DOCUMENT
 import app.coinverse.firebase.DISMISS_COLLECTION
@@ -84,7 +84,7 @@ class FeedRepository @Inject constructor(private val dao: FeedDao) {
     fun getLabelFeedRoom(feedType: FeedType) =
             dao.getLabeledFeedRoom(feedType).toLiveData(pagedListConfig).asFlow()
 
-    fun getAudiocast(openContent: FeedViewIntentType.OpenContent) = flow {
+    fun getAudiocast(openContent: OpenContent) = flow {
         emit(loading(null))
         try {
             val content = openContent.content
