@@ -97,7 +97,6 @@ dependencies {
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_version"
     testImplementation "org.junit.jupiter:junit-jupiter-params:$junit_version"
     testImplementation "io.mockk:mockk:$mockk_version"
-    testImplementation "androidx.arch.core:core-testing:$lifecycle_test_version"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$kotlin_coroutines_test_version"
     testImplementation "org.assertj:assertj-core:$assertj_version"
 }

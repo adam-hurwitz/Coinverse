@@ -74,11 +74,11 @@ class FeedViewTest(
     private var firebaseUser: FirebaseUser? = null
     private var isContentSwipe = false
 
-    val intent = FeedViewIntent()
-    val sharedPreferences = mockkClass(SharedPreferences::class)
-    val repository = mockkClass(FeedRepository::class)
-    val firebaseAuth = mockkClass(FirebaseAuth::class)
-    val analytics = mockkClass(Analytics::class)
+    private val intent = FeedViewIntent()
+    private val sharedPreferences = mockkClass(SharedPreferences::class)
+    private val repository = mockkClass(FeedRepository::class)
+    private val firebaseAuth = mockkClass(FirebaseAuth::class)
+    private val analytics = mockkClass(Analytics::class)
 
     @ParameterizedTest
     @MethodSource("FeedViewTestCaseStream")
