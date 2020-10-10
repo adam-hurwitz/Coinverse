@@ -1,3 +1,5 @@
+# *The backend service is undergoing a migration. Thank you for your patience!* 🙏🏻 10/10
+
 # Coinverse Open App
 **Coinverse is the first audiocast app for cryptocurrency news, also including YouTube and text. Check it out on the [Play Store](https://play.google.com/store/apps/details?id=app.coinverse) or [subscribe for updates](https://mailchi.mp/c6912adf3367/coinverse)!**
 
