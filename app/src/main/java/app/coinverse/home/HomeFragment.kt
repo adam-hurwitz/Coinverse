@@ -48,7 +48,6 @@ import app.coinverse.firebase.ACTIONS_DOCUMENT
 import app.coinverse.firebase.firebaseApp
 import app.coinverse.firebase.usersDocument
 import app.coinverse.home.HomeFragmentDirections.actionHomeFragmentToUserFragment
-import app.coinverse.priceGraph.PriceFragment
 import app.coinverse.user.PermissionsDialogFragment
 import app.coinverse.user.SignInDialogFragment
 import app.coinverse.user.models.User
@@ -63,7 +62,6 @@ import app.coinverse.utils.FeedType
 import app.coinverse.utils.FeedType.MAIN
 import app.coinverse.utils.FeedType.SAVED
 import app.coinverse.utils.OPEN_CONTENT_FROM_NOTIFICATION_KEY
-import app.coinverse.utils.PRICEGRAPH_FRAGMENT_TAG
 import app.coinverse.utils.PRIVACY_POLICY_LINK
 import app.coinverse.utils.PaymentStatus.FREE
 import app.coinverse.utils.RC_SIGN_IN
@@ -87,7 +85,6 @@ import app.coinverse.utils.USER_KEY
 import app.coinverse.utils.getDisplayHeight
 import app.coinverse.utils.setImageUrlCircle
 import app.coinverse.utils.snackbarWithText
-import com.crashlytics.android.Crashlytics
 import com.firebase.ui.auth.IdpResponse
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -98,6 +95,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.android.synthetic.main.toolbar_app.appBarLayout
 import kotlinx.android.synthetic.main.toolbar_home.*
@@ -165,8 +163,10 @@ class HomeFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         binding = FragmentHomeBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -175,40 +175,24 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         user = homeViewModel.getCurrentUser()
         initProfileButton(user != null && !user!!.isAnonymous)
+        initSavedBottomSheetContainer(savedInstanceState)
         initCollapsingToolbarStates()
         observeSignIn(savedInstanceState)
-        initSavedBottomSheetContainer(savedInstanceState)
         setClickListeners()
         initSwipeToRefresh()
         observeSavedContentSelected()
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        if (savedInstanceState == null
-                && childFragmentManager.findFragmentByTag(PRICEGRAPH_FRAGMENT_TAG) == null) {
-            childFragmentManager.beginTransaction()
-                    .replace(priceContainer.id, PriceFragment().newInstance(), PRICEGRAPH_FRAGMENT_TAG)
-                    .commit()
-        }
-    }
-
     private fun initCollapsingToolbarStates() {
         appBarLayout.addOnOffsetChangedListener(object : AppBarLayout.OnOffsetChangedListener {
             override fun onOffsetChanged(appBarLayout: AppBarLayout, verticalOffset: Int) {
-                //Appbar expanded.
+                // Appbar expanded
                 if (Math.abs(verticalOffset) - appBarLayout.totalScrollRange != 0) {
                     isAppBarExpanded = true
                     swipeToRefresh.isEnabled = true
-                    bottomSheetBehavior.isHideable = true
-                    bottomSheetBehavior.state = STATE_HIDDEN
-                } else { //Appbar collapsed.
+                } else { // Appbar collapsed
                     isAppBarExpanded = false
                     swipeToRefresh.isEnabled = false
-                    if (bottomSheetBehavior.state == STATE_HIDDEN) {
-                        bottomSheetBehavior.isHideable = false
-                        bottomSheetBehavior.state = STATE_COLLAPSED
-                    }
                 }
             }
         })
@@ -225,15 +209,19 @@ class HomeFragment : Fragment() {
         bottomSheetBehavior.peekHeight = SAVED_BOTTOM_SHEET_PEEK_HEIGHT
         bottomSheet.layoutParams.height = getDisplayHeight(requireContext())
         if (savedInstanceState == null
-                && (homeViewModel.user.value == null || homeViewModel.user.value!!.isAnonymous))
+            && (homeViewModel.user.value == null || homeViewModel.user.value!!.isAnonymous)
+        )
             childFragmentManager.beginTransaction().replace(
-                    R.id.savedContentContainer,
-                    SignInDialogFragment().newInstance(Bundle().apply {
-                        putString(SIGNIN_TYPE_KEY, FULLSCREEN.name)
-                    })).commit()
-        bottomSheetBehavior.setBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+                R.id.savedContentContainer,
+                SignInDialogFragment().newInstance(Bundle().apply {
+                    putString(SIGNIN_TYPE_KEY, FULLSCREEN.name)
+                })
+            ).commit()
+        bottomSheetBehavior.setBottomSheetCallback(object :
+            BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
                 if (newState == STATE_EXPANDED) {
+                    swipeToRefresh.isEnabled = false
                     homeViewModel.setBottomSheetState(STATE_EXPANDED)
                     setBottomSheetExpanded()
                 }
@@ -278,8 +266,10 @@ class HomeFragment : Fragment() {
         }
         profileButton.setOnClickListener { view: View ->
             if (user != null && !user!!.isAnonymous)
-                view.findNavController().navigate(R.id.action_homeFragment_to_userFragment,
-                        actionHomeFragmentToUserFragment(user!!).apply { user = user }.arguments)
+                view.findNavController().navigate(
+                    R.id.action_homeFragment_to_userFragment,
+                    actionHomeFragmentToUserFragment(user!!).apply { user = user }.arguments
+                )
             else
                 SignInDialogFragment().newInstance(Bundle().apply {
                     putString(SIGNIN_TYPE_KEY, DIALOG.name)
@@ -287,17 +277,23 @@ class HomeFragment : Fragment() {
         }
         submitBugButton.setOnClickListener { view: View ->
             val intent = Intent(ACTION_SENDTO)
-                    .putExtra(EXTRA_EMAIL, arrayOf(SUPPORT_EMAIL))
-                    .putExtra(EXTRA_SUBJECT, "${SUPPORT_SUBJECT} $VERSION_NAME")
-                    .putExtra(EXTRA_TEXT, "${SUPPORT_BODY} " +
+                .putExtra(EXTRA_EMAIL, arrayOf(SUPPORT_EMAIL))
+                .putExtra(EXTRA_SUBJECT, "${SUPPORT_SUBJECT} $VERSION_NAME")
+                .putExtra(
+                    EXTRA_TEXT, "${SUPPORT_BODY} " +
                             "${SUPPORT_ISSUE}" +
                             "${SUPPORT_VERSION} $VERSION_NAME" +
                             "${SUPPORT_ANDROID_API} $SDK_INT" +
-                            "${SUPPORT_DEVICE} ${BRAND.substring(0, 1).toUpperCase()
-                                    + BRAND.substring(1)}, $MODEL" +
-                            "${SUPPORT_USER +
-                                    if (user != null && !user!!.isAnonymous) user!!.uid
-                                    else getString(logged_out)}")
+                            "${SUPPORT_DEVICE} ${
+                                BRAND.substring(0, 1).toUpperCase()
+                                        + BRAND.substring(1)
+                            }, $MODEL" +
+                            "${
+                                SUPPORT_USER +
+                                        if (user != null && !user!!.isAnonymous) user!!.uid
+                                        else getString(logged_out)
+                            }"
+                )
             intent.data = Uri.parse(getString(mail_to))
             intent.resolveActivity(requireActivity().packageManager)?.let {
                 startActivity(intent)
@@ -330,52 +326,72 @@ class HomeFragment : Fragment() {
             lifecycleScope.launch {
                 /** Signed in */
                 if (user != null && !user.isAnonymous) {
-                    Crashlytics.setUserIdentifier(user.uid)
                     val userSnapshot = usersDocument.collection(user.uid)
-                            .document(ACCOUNT_DOCUMENT).get().await()
+                        .document(ACCOUNT_DOCUMENT).get().await()
+                    FirebaseCrashlytics.getInstance().setUserId(user.uid)
                     /** Create user if user one does not exist. */
                     if (!userSnapshot.exists()) {
                         usersDocument.collection(user.uid).document(ACCOUNT_DOCUMENT).set(
-                                User(user.uid, user.displayName, user.email, user.phoneNumber,
-                                        user.photoUrl.toString(),
-                                        Timestamp(Date(user.metadata!!.creationTimestamp)),
-                                        Timestamp(Date(user.metadata!!.lastSignInTimestamp)),
-                                        user.providerId, FREE, READ))
-                                .addOnSuccessListener {
-                                    Log.v(LOG_TAG, String.format("New user account data success:%s", it))
-                                }.addOnFailureListener {
-                                    Log.v(LOG_TAG, String.format("New user account data failure:%s", it))
-                                }
+                            User(
+                                user.uid, user.displayName, user.email, user.phoneNumber,
+                                user.photoUrl.toString(),
+                                Timestamp(Date(user.metadata!!.creationTimestamp)),
+                                Timestamp(Date(user.metadata!!.lastSignInTimestamp)),
+                                user.providerId, FREE, READ
+                            )
+                        )
+                            .addOnSuccessListener {
+                                Log.v(
+                                    LOG_TAG,
+                                    String.format("New user account data success:%s", it)
+                                )
+                            }.addOnFailureListener {
+                                Log.v(
+                                    LOG_TAG,
+                                    String.format("New user account data failure:%s", it)
+                                )
+                            }
                         usersDocument.collection(user.uid).document(ACTIONS_DOCUMENT).set(
-                                UserActionCount(0.0, 0.0, 0.0,
-                                        0.0, 0.0, 0.0,
-                                        0.0, 0.0)
+                            UserActionCount(
+                                0.0, 0.0, 0.0,
+                                0.0, 0.0, 0.0,
+                                0.0, 0.0
+                            )
                         ).addOnSuccessListener {
-                            Crashlytics.setUserIdentifier(user.uid)
-                            Log.v(LOG_TAG, String.format(
-                                    "New user action data success:%s", it))
+                            Log.v(LOG_TAG, String.format("New user action data success:%s", it))
+                            FirebaseCrashlytics.getInstance().setUserId(user.uid)
                         }.addOnFailureListener {
-                            Log.v(LOG_TAG, String.format(
-                                    "New user action data failure:%s", it))
+                            Log.v(
+                                LOG_TAG, String.format(
+                                    "New user action data failure:%s", it
+                                )
+                            )
                         }
                     }
                     if ((childFragmentManager.findFragmentByTag(CONTENT_FEED_FRAGMENT_TAG) == null
-                                    && savedInstanceState == null)
-                            || savedInstanceState?.getParcelable<FirebaseUser>(USER_KEY) == null) {
+                                && savedInstanceState == null)
+                        || savedInstanceState?.getParcelable<FirebaseUser>(USER_KEY) == null
+                    ) {
                         initMainFeedFragment()
                         initSavedContentFragment()
                     }
                 }
                 /** Signed out */
                 else if (childFragmentManager.findFragmentByTag(CONTENT_FEED_FRAGMENT_TAG) == null &&
-                        savedInstanceState == null) {
+                    savedInstanceState == null
+                ) {
                     try {
                         FirebaseAuth.getInstance(firebaseApp(true)).signInAnonymously().await()
-                        Crashlytics.log(Log.VERBOSE, LOG_TAG, "observeSignIn anonymous success")
+                        Log.v(LOG_TAG, "observeSignIn anonymous success")
                     } catch (exception: FirebaseAuthException) {
-                        Crashlytics.log(Log.ERROR, LOG_TAG, "observeSignIn ${exception.localizedMessage}")
-                        snackbarWithText(resources, getString(error_sign_in_anonymously), contentContainer)
+                        snackbarWithText(
+                            resources,
+                            getString(error_sign_in_anonymously),
+                            contentContainer
+                        )
                         makeText(context, "Authentication failed.", LENGTH_SHORT).show()
+                        FirebaseCrashlytics.getInstance()
+                            .log("$LOG_TAG observeSignIn ${exception.localizedMessage}")
                     }
                     initMainFeedFragment()
                 }
@@ -386,27 +402,27 @@ class HomeFragment : Fragment() {
     private fun initMainFeedFragment() {
         if (homeViewModel.accountType.value == FREE) getLocationPermissionCheck()
         childFragmentManager.beginTransaction().replace(
-                contentContainer.id,
-                FeedFragment().newInstance(Bundle().apply {
-                    putString(FEED_TYPE_KEY, MAIN.name)
-                    openFromNotificaitonFeedType?.let { if (it == MAIN) putAll(arguments) }
-                }), CONTENT_FEED_FRAGMENT_TAG
+            contentContainer.id,
+            FeedFragment().newInstance(Bundle().apply {
+                putString(FEED_TYPE_KEY, MAIN.name)
+                openFromNotificaitonFeedType?.let { if (it == MAIN) putAll(arguments) }
+            }), CONTENT_FEED_FRAGMENT_TAG
         ).commit()
     }
 
     private fun initSavedContentFragment() {
         childFragmentManager.beginTransaction().replace(
-                savedContentContainer.id,
-                FeedFragment().newInstance(Bundle().apply {
-                    putString(FEED_TYPE_KEY, SAVED.name)
-                    if (openFromNotificaitonFeedType == SAVED) {
-                        bottomSheetBehavior.state = STATE_EXPANDED
-                        setBottomSheetExpanded()
-                        swipeToRefresh.isEnabled = false
-                        putAll(arguments)
-                    }
-                }),
-                SAVED_CONTENT_TAG
+            savedContentContainer.id,
+            FeedFragment().newInstance(Bundle().apply {
+                putString(FEED_TYPE_KEY, SAVED.name)
+                if (openFromNotificaitonFeedType == SAVED) {
+                    bottomSheetBehavior.state = STATE_EXPANDED
+                    setBottomSheetExpanded()
+                    swipeToRefresh.isEnabled = false
+                    putAll(arguments)
+                }
+            }),
+            SAVED_CONTENT_TAG
         ).commit()
     }
 
@@ -414,14 +430,18 @@ class HomeFragment : Fragment() {
         if (checkSelfPermission(requireActivity(), ACCESS_COARSE_LOCATION) != PERMISSION_GRANTED) {
             val pref = activity?.getPreferences(MODE_PRIVATE) ?: return
             if (pref.getBoolean(getString(first_open), true)
-                    || shouldShowRequestPermissionRationale(requireActivity(), ACCESS_COARSE_LOCATION)) {
+                || shouldShowRequestPermissionRationale(requireActivity(), ACCESS_COARSE_LOCATION)
+            ) {
                 with(pref.edit()) {
                     putBoolean(getString(first_open), false)
                     apply()
                 }
                 PermissionsDialogFragment().newInstance().show(childFragmentManager, null)
                 homeViewModel.showLocationPermission.observe(viewLifecycleOwner) { showPermission ->
-                    if (showPermission) requestPermissions(arrayOf(ACCESS_COARSE_LOCATION), REQUEST_CODE_LOC_PERMISSION)
+                    if (showPermission) requestPermissions(
+                        arrayOf(ACCESS_COARSE_LOCATION),
+                        REQUEST_CODE_LOC_PERMISSION
+                    )
                 }
             } else requestPermissions(arrayOf(ACCESS_COARSE_LOCATION), REQUEST_CODE_LOC_PERMISSION)
         }
@@ -436,10 +456,8 @@ class HomeFragment : Fragment() {
         }
         swipeToRefresh.setOnRefreshListener {
             if (homeViewModel.accountType.value == FREE) getLocationPermissionCheck()
-            (childFragmentManager.findFragmentById(R.id.priceContainer) as PriceFragment)
-                    .getPrices(homeViewModel.isRealtime.value!!, false)
             (childFragmentManager.findFragmentById(R.id.contentContainer) as FeedFragment)
-                    .swipeToRefresh()
+                .swipeToRefresh()
         }
     }
 

@@ -15,7 +15,11 @@ import androidx.lifecycle.observe
 import androidx.navigation.findNavController
 import app.coinverse.App
 import app.coinverse.R
-import app.coinverse.R.string.*
+import app.coinverse.R.string.already_signed_out
+import app.coinverse.R.string.deleted
+import app.coinverse.R.string.error_sign_in_anonymously
+import app.coinverse.R.string.signed_out
+import app.coinverse.R.string.unable_to_delete
 import app.coinverse.analytics.Analytics
 import app.coinverse.databinding.FragmentUserBinding
 import app.coinverse.firebase.firebaseApp
@@ -27,7 +31,6 @@ import app.coinverse.utils.PROFILE_VIEW
 import app.coinverse.utils.Status.SUCCESS
 import app.coinverse.utils.setImageUrlCircle
 import app.coinverse.utils.snackbarWithText
-import com.crashlytics.android.Crashlytics
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.AuthUI.getInstance
 import com.google.android.material.snackbar.Snackbar
@@ -36,6 +39,7 @@ import com.google.android.material.snackbar.Snackbar.make
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.android.synthetic.main.fragment_user.*
 import kotlinx.android.synthetic.main.toolbar_app.*
@@ -73,20 +77,20 @@ class UserFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        analytics.setCurrentScreen(activity!!, PROFILE_VIEW)
+        analytics.setCurrentScreen(requireActivity(), PROFILE_VIEW)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         binding = FragmentUserBinding.inflate(inflater, container, false)
-        user = UserFragmentArgs.fromBundle(arguments!!).user
+        user = UserFragmentArgs.fromBundle(requireArguments()).user
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setToolbar()
-        profieImage.setImageUrlCircle(context!!, user.photoUrl.toString())
+        profieImage.setImageUrlCircle(requireContext(), user.photoUrl.toString())
         setClickListeners()
     }
 
@@ -110,7 +114,7 @@ class UserFragment : Fragment() {
             if (user != null) {
                 try {
                     lifecycleScope.launch {
-                        getInstance().signOut(context!!).await()
+                        getInstance().signOut(requireContext()).await()
                         homeViewModel.setUser(null)
                         message = signed_out
                         FirebaseAuth.getInstance(firebaseApp(true)).signInAnonymously().await()
@@ -119,9 +123,14 @@ class UserFragment : Fragment() {
                     }
                 } catch (exception: FirebaseAuthException) {
                     //TODO: Add retry.
-                    Crashlytics.log(Log.ERROR, LOG_TAG, "observeSignIn ${exception.localizedMessage}")
-                    snackbarWithText(resources, getString(error_sign_in_anonymously), contentContainer)
+                    snackbarWithText(
+                        resources,
+                        getString(error_sign_in_anonymously),
+                        contentContainer
+                    )
                     Toast.makeText(context, "Authentication failed.", Toast.LENGTH_SHORT).show()
+                    FirebaseCrashlytics.getInstance()
+                        .log("$LOG_TAG observeSignIn ${exception.localizedMessage}")
                 }
             } else {
                 message = already_signed_out
@@ -134,16 +143,26 @@ class UserFragment : Fragment() {
                     if (status == SUCCESS)
                         lifecycleScope.launch {
                             try {
-                                AuthUI.getInstance().signOut(context!!).await()
+                                AuthUI.getInstance().signOut(requireContext()).await()
                                 homeViewModel.setUser(null)
                                 Snackbar.make(view, getString(deleted), LENGTH_SHORT).show()
                                 activity?.onBackPressed()
-                                FirebaseAuth.getInstance(firebaseApp(true)).signInAnonymously().await()
-                                Crashlytics.log(Log.VERBOSE, LOG_TAG, "observeSignIn anonymous success")
+                                FirebaseAuth.getInstance(firebaseApp(true)).signInAnonymously()
+                                    .await()
+                                Log.v(LOG_TAG, "observeSignIn anonymous success")
                             } catch (e: FirebaseAuthException) {
-                                Crashlytics.log(Log.ERROR, LOG_TAG, "observeSignIn ${e.localizedMessage}")
-                                snackbarWithText(resources, getString(error_sign_in_anonymously), contentContainer)
-                                Toast.makeText(context, "Authentication failed.", Toast.LENGTH_SHORT).show()
+                                snackbarWithText(
+                                    resources,
+                                    getString(error_sign_in_anonymously),
+                                    contentContainer
+                                )
+                                Toast.makeText(
+                                    context,
+                                    "Authentication failed.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                FirebaseCrashlytics.getInstance()
+                                    .log("$LOG_TAG observeSignIn ${e.localizedMessage}")
                             }
                         }
                     else make(view, getString(unable_to_delete), LENGTH_SHORT).show()

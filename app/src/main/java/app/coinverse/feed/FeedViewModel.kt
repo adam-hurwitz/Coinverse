@@ -1,6 +1,5 @@
 package app.coinverse.feed
 
-import android.util.Log.ERROR
 import android.view.View
 import android.widget.ProgressBar.GONE
 import android.widget.ProgressBar.VISIBLE
@@ -56,8 +55,8 @@ import app.coinverse.utils.Timeframe
 import app.coinverse.utils.ToolbarState
 import app.coinverse.utils.getTimeframe
 import app.coinverse.utils.viewmodel.getViewModelScope
-import com.crashlytics.android.Crashlytics
 import com.google.firebase.Timestamp
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.squareup.inject.assisted.Assisted
 import com.squareup.inject.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineScope
@@ -178,7 +177,7 @@ class FeedViewModel @AssistedInject constructor(
                     Status.ERROR -> {
                         _state._contentLabeledPosition.value = null
                         _effect._snackBar.value = SnackBarEffect(CONTENT_LABEL_ERROR)
-                        Crashlytics.log(ERROR, LOG_TAG, resource.message)
+                        FirebaseCrashlytics.getInstance().log(LOG_TAG + resource.message!!)
                     }
                 }
             }.launchIn(coroutineScope)
@@ -241,7 +240,7 @@ class FeedViewModel @AssistedInject constructor(
                         }
                     }
                     Status.ERROR -> {
-                        Crashlytics.log(ERROR, LOG_TAG, resource.message)
+                        FirebaseCrashlytics.getInstance().log(LOG_TAG + resource.message!!)
                         if (event is SwipeToRefresh)
                             _effect._swipeToRefresh.value = SwipeToRefreshEffect(false)
                         _effect._snackBar.value = SnackBarEffect(

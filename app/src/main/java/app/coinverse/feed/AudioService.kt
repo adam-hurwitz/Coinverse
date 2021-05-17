@@ -9,7 +9,6 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Binder
 import android.os.Handler
-import android.util.Log
 import app.coinverse.App
 import app.coinverse.MainActivity
 import app.coinverse.R.drawable.ic_coinverse_notification_24dp
@@ -31,7 +30,6 @@ import app.coinverse.utils.PlayerActionType.PAUSE
 import app.coinverse.utils.PlayerActionType.PLAY
 import app.coinverse.utils.PlayerActionType.STOP
 import app.coinverse.utils.byteArrayToBitmap
-import com.crashlytics.android.Crashlytics
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.Player
@@ -50,6 +48,7 @@ import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 import com.google.android.exoplayer2.video.VideoRendererEventListener
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -93,12 +92,17 @@ class AudioService : Service() {
 
     // Called first time audiocast is loaded.
     override fun onBind(intent: Intent?) = AudioServiceBinder().apply {
-        player = SimpleExoPlayer.Builder(applicationContext, AudioOnlyRenderersFactory(applicationContext)).build()
+        player = SimpleExoPlayer.Builder(
+            applicationContext,
+            AudioOnlyRenderersFactory(applicationContext)
+        ).build()
         player?.setHandleWakeLock(true)
         player?.addListener(PlayerEventListener())
         buildNotification(
-                contentToPlay = intent!!.getParcelableExtra(CONTENT_TO_PLAY_KEY),
-                bitmap = intent.getByteArrayExtra(CONTENT_SELECTED_BITMAP_KEY).byteArrayToBitmap(applicationContext))
+            contentToPlay = intent!!.getParcelableExtra(CONTENT_TO_PLAY_KEY),
+            bitmap = intent.getByteArrayExtra(CONTENT_SELECTED_BITMAP_KEY)
+                .byteArrayToBitmap(applicationContext)
+        )
     }
 
     override fun onDestroy() {
@@ -118,16 +122,21 @@ class AudioService : Service() {
                         content = contentToPlay.content
                         seekToPositionMillis = 0
                         analytics.updateStartActionsAndAnalytics(content)
-                        player?.prepare(ProgressiveMediaSource.Factory(
+                        player?.prepare(
+                            ProgressiveMediaSource.Factory(
                                 DefaultDataSourceFactory(
-                                        applicationContext,
-                                        Util.getUserAgent(applicationContext, getString(app_name))))
-                                .createMediaSource(Uri.parse(content.audioUrl)))
+                                    applicationContext,
+                                    Util.getUserAgent(applicationContext, getString(app_name))
+                                )
+                            )
+                                .createMediaSource(Uri.parse(content.audioUrl))
+                        )
                         playerNotificationManager?.setPlayer(null)
                         buildNotification(
-                                intent.getParcelableExtra(CONTENT_TO_PLAY_KEY),
-                                intent.getByteArrayExtra(CONTENT_SELECTED_BITMAP_KEY)
-                                        .byteArrayToBitmap(applicationContext))
+                            intent.getParcelableExtra(CONTENT_TO_PLAY_KEY),
+                            intent.getByteArrayExtra(CONTENT_SELECTED_BITMAP_KEY)
+                                .byteArrayToBitmap(applicationContext)
+                        )
                     }
                 }
                 PLAYER_ACTION -> when (this?.getStringExtra(PLAYER_KEY)) {
@@ -140,59 +149,75 @@ class AudioService : Service() {
                         playOrPausePressed = this.getBooleanExtra(PLAY_OR_PAUSE_PRESSED_KEY, false)
                     }
                     STOP.name -> stopService()
-                    else -> Crashlytics.log(Log.ERROR, LOG_TAG, "ExoPlayer controls error")
+                    else -> FirebaseCrashlytics.getInstance()
+                        .log("$LOG_TAG ExoPlayer controls error")
                 }
-                else -> Crashlytics.log(Log.ERROR, LOG_TAG, "ExoPlayer onStartCommand error")
+                else -> FirebaseCrashlytics.getInstance()
+                    .log("$LOG_TAG ExoPlayer onStartCommand error")
             }
         }
         return START_REDELIVER_INTENT
     }
 
     private inner class AudioOnlyRenderersFactory(var context: Context) : RenderersFactory {
-        override fun createRenderers(eventHandler: Handler,
-                                     videoRendererEventListener: VideoRendererEventListener,
-                                     audioRendererEventListener: AudioRendererEventListener,
-                                     textRendererOutput: TextOutput,
-                                     metadataRendererOutput: MetadataOutput,
-                                     drmSessionManager: DrmSessionManager<FrameworkMediaCrypto>?) =
-                arrayOf(MediaCodecAudioRenderer(context, MediaCodecSelector.DEFAULT, eventHandler,
-                        audioRendererEventListener))
+        override fun createRenderers(
+            eventHandler: Handler,
+            videoRendererEventListener: VideoRendererEventListener,
+            audioRendererEventListener: AudioRendererEventListener,
+            textRendererOutput: TextOutput,
+            metadataRendererOutput: MetadataOutput,
+            drmSessionManager: DrmSessionManager<FrameworkMediaCrypto>?
+        ) =
+            arrayOf(
+                MediaCodecAudioRenderer(
+                    context, MediaCodecSelector.DEFAULT, eventHandler,
+                    audioRendererEventListener
+                )
+            )
     }
 
     private fun buildNotification(contentToPlay: ContentToPlay, bitmap: Bitmap?) {
         playerNotificationManager = PlayerNotificationManager.createWithNotificationChannel(
-                applicationContext,
-                contentToPlay.content.title,
-                app_name,
-                notification_channel_description,
-                EXOPLAYER_NOTIFICATION_ID,
-                object : PlayerNotificationManager.MediaDescriptionAdapter {
-                    override fun createCurrentContentIntent(player: Player) = PendingIntent.getActivity(
-                            applicationContext,
-                            0,
-                            Intent(applicationContext, MainActivity::class.java).apply {
-                                action = OPEN_FROM_NOTIFICATION_ACTION
-                                putExtra(OPEN_CONTENT_FROM_NOTIFICATION_KEY, contentToPlay)
-                            },
-                            PendingIntent.FLAG_UPDATE_CURRENT)
+            applicationContext,
+            contentToPlay.content.title,
+            app_name,
+            notification_channel_description,
+            EXOPLAYER_NOTIFICATION_ID,
+            object : PlayerNotificationManager.MediaDescriptionAdapter {
+                override fun createCurrentContentIntent(player: Player) = PendingIntent.getActivity(
+                    applicationContext,
+                    0,
+                    Intent(applicationContext, MainActivity::class.java).apply {
+                        action = OPEN_FROM_NOTIFICATION_ACTION
+                        putExtra(OPEN_CONTENT_FROM_NOTIFICATION_KEY, contentToPlay)
+                    },
+                    PendingIntent.FLAG_UPDATE_CURRENT
+                )
 
-                    override fun getCurrentContentText(player: Player) = contentToPlay.content.description
+                override fun getCurrentContentText(player: Player) =
+                    contentToPlay.content.description
 
-                    override fun getCurrentContentTitle(player: Player) = contentToPlay.content.title
+                override fun getCurrentContentTitle(player: Player) = contentToPlay.content.title
 
-                    override fun getCurrentLargeIcon(player: Player, callback: PlayerNotificationManager.BitmapCallback) = bitmap
-                },
-                object : PlayerNotificationManager.NotificationListener {
-                    override fun onNotificationStarted(notificationId: Int, notification: Notification) {
-                        // Starts foreground service.
-                        startForeground(notificationId, notification)
-                        player?.playWhenReady = true
-                    }
+                override fun getCurrentLargeIcon(
+                    player: Player,
+                    callback: PlayerNotificationManager.BitmapCallback
+                ) = bitmap
+            },
+            object : PlayerNotificationManager.NotificationListener {
+                override fun onNotificationStarted(
+                    notificationId: Int,
+                    notification: Notification
+                ) {
+                    // Starts foreground service.
+                    startForeground(notificationId, notification)
+                    player?.playWhenReady = true
+                }
 
-                    override fun onNotificationCancelled(notificationId: Int) {
-                        stopService()
-                    }
-                })
+                override fun onNotificationCancelled(notificationId: Int) {
+                    stopService()
+                }
+            })
         playerNotificationManager?.setSmallIcon(ic_coinverse_notification_24dp)
         playerNotificationManager?.setPlayer(player)
     }
@@ -203,17 +228,22 @@ class AudioService : Service() {
             if (playWhenReady == false) stopForeground(false)
             val newSeekPositionMillis = player?.currentPosition!!
             if (player?.currentPosition!! > 0L && newSeekPositionMillis > seekToPositionMillis
-                    && playOrPausePressed == false && playbackState == Player.STATE_BUFFERING)
+                && playOrPausePressed == false && playbackState == Player.STATE_BUFFERING
+            )
                 seekToPositionMillis = newSeekPositionMillis.toInt()
             val job = CoroutineScope(Dispatchers.IO).launch {
                 try {
                     analytics.updateActionsAndAnalytics(
-                            content = content,
-                            watchPercent = analytics.getWatchPercent(player?.currentPosition!!.toDouble(),
-                                    seekToPositionMillis.toDouble(), player?.duration!!.toDouble()))
+                        content = content,
+                        watchPercent = analytics.getWatchPercent(
+                            player?.currentPosition!!.toDouble(),
+                            seekToPositionMillis.toDouble(), player?.duration!!.toDouble()
+                        )
+                    )
                 } catch (error: Exception) {
                     this.cancel()
-                    Crashlytics.log(Log.ERROR, LOG_TAG, "Audio error: ${error.localizedMessage}")
+                    FirebaseCrashlytics.getInstance()
+                        .log("$LOG_TAG Audio error: ${error.localizedMessage}")
                 }
             }
             job.invokeOnCompletion { job.cancel() }
@@ -245,12 +275,13 @@ class AudioService : Service() {
     }
 
     private fun isBehindLiveWindow(e: ExoPlaybackException) =
-            if (e.type != ExoPlaybackException.TYPE_SOURCE) false
-            else {
-                while (e.sourceException != null) if (e.sourceException is BehindLiveWindowException) true
-                Crashlytics.log(Log.ERROR, LOG_TAG, "Audio error: ${e.sourceException.cause.toString()}")
-                false
-            }
+        if (e.type != ExoPlaybackException.TYPE_SOURCE) false
+        else {
+            while (e.sourceException != null) if (e.sourceException is BehindLiveWindowException) true
+            FirebaseCrashlytics.getInstance()
+                .log("$LOG_TAG Audio error: ${e.sourceException.cause.toString()}")
+            false
+        }
 
     private fun clearStartPosition() {
         startAutoPlay = true

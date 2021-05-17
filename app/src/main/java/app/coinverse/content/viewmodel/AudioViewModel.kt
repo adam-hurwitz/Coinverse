@@ -1,6 +1,5 @@
 package app.coinverse.content.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.*
 import app.coinverse.content.AudioViewEventType.AudioPlayerLoad
 import app.coinverse.content.AudioViewEvents
@@ -12,7 +11,7 @@ import app.coinverse.utils.Resource.Companion.error
 import app.coinverse.utils.Resource.Companion.success
 import app.coinverse.utils.Status.ERROR
 import app.coinverse.utils.Status.SUCCESS
-import com.crashlytics.android.Crashlytics
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.flow.collect
 
 /**
@@ -46,9 +45,9 @@ class AudioViewModel(val repository: ContentRepository) : ViewModel(), AudioView
      * @return MediatorLiveData<Event<ContentPlayer>> audio player
      */
     private fun getAudioPlayer(contentId: String, filePath: String, imageUrl: String) =
-            getContentUri(contentId, filePath).combinePlayerData(bitmapToByteArray(imageUrl)) { a, b ->
-                ContentPlayer(uri = a.data!!, image = b.data!!)
-            }
+        getContentUri(contentId, filePath).combinePlayerData(bitmapToByteArray(imageUrl)) { a, b ->
+            ContentPlayer(uri = a.data!!, image = b.data!!)
+        }
 
     /**
      * Sets the value to the result of a function that is called when both `LiveData`s have data
@@ -61,24 +60,24 @@ class AudioViewModel(val repository: ContentRepository) : ViewModel(), AudioView
      * @return MediatorLiveData<T> content mp3 file and formatted preview image
      */
     private fun <T, A, B> LiveData<A>.combinePlayerData(other: LiveData<B>, onChange: (A, B) -> T) =
-            MediatorLiveData<T>().also { result ->
-                var source1emitted = false
-                var source2emitted = false
-                val mergeF = {
-                    val source1Value = this.value
-                    val source2Value = other.value
-                    if (source1emitted && source2emitted)
-                        result.value = onChange.invoke(source1Value!!, source2Value!!)
-                }
-                result.addSource(this) {
-                    source1emitted = true
-                    mergeF.invoke()
-                }
-                result.addSource(other) {
-                    source2emitted = true
-                    mergeF.invoke()
-                }
+        MediatorLiveData<T>().also { result ->
+            var source1emitted = false
+            var source2emitted = false
+            val mergeF = {
+                val source1Value = this.value
+                val source2Value = other.value
+                if (source1emitted && source2emitted)
+                    result.value = onChange.invoke(source1Value!!, source2Value!!)
             }
+            result.addSource(this) {
+                source1emitted = true
+                mergeF.invoke()
+            }
+            result.addSource(other) {
+                source2emitted = true
+                mergeF.invoke()
+            }
+        }
 
     /**
      * Retrieves content mp3 file from Google Cloud Storage
@@ -92,7 +91,8 @@ class AudioViewModel(val repository: ContentRepository) : ViewModel(), AudioView
             when (resource.status) {
                 SUCCESS -> emit(success(resource.data!!.uri))
                 ERROR -> {
-                    Crashlytics.log(Log.ERROR, LOG_TAG, resource.message)
+                    FirebaseCrashlytics.getInstance()
+                        .log(LOG_TAG + "getContentUri," + resource.message)
                     emit(error(resource.message!!, null))
                 }
             }
@@ -110,7 +110,8 @@ class AudioViewModel(val repository: ContentRepository) : ViewModel(), AudioView
             when (resource.status) {
                 SUCCESS -> emit(success(resource.data))
                 ERROR -> {
-                    Crashlytics.log(Log.WARN, LOG_TAG, "bitmapToByteArray error or null - ${resource.message}")
+                    FirebaseCrashlytics.getInstance()
+                        .log(LOG_TAG + "bitmapToByteArray," + resource.message)
                     emit(error(resource.message!!, null))
                 }
             }

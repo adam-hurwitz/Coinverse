@@ -6,7 +6,6 @@ import app.coinverse.feed.AudioService
 import app.coinverse.feed.FeedFragment
 import app.coinverse.feed.FeedViewModel
 import app.coinverse.firebase.FirebaseHelper
-import app.coinverse.priceGraph.PriceFragment
 import app.coinverse.user.UserFragment
 import app.coinverse.utils.viewmodel.AssistedInjectModule
 import dagger.Component
@@ -17,7 +16,6 @@ import javax.inject.Singleton
 @Component(modules = [AssistedInjectModule::class, UtilsModule::class])
 interface Component {
     fun inject(userFragment: UserFragment)
-    fun inject(priceFragment: PriceFragment)
     fun inject(feedFragment: FeedFragment)
     fun inject(audioFragment: AudioFragment)
     fun inject(audioService: AudioService)

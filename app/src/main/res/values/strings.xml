@@ -21,21 +21,6 @@
     <string name="mail_to">mailto:</string>
     <string name="error_sign_in_anonymously">Error loading data, please reload the app.</string>
 
-    <!--Price graphs-->
-    <string name="asks">asks</string>
-    <string name="bids">bids</string>
-    <string name="ask">ask</string>
-    <string name="bid">bid</string>
-    <string name="coinbase">Coinbase</string>
-    <string name="binance">Binance</string>
-    <string name="kraken">Kraken</string>
-    <string name="gemini">Gemini</string>
-    <string name="max_min_format">%s: %.5f</string>
-    <string name="max_bid">max bid</string>
-    <string name="min_ask">min ask</string>
-    <string name="price_pair_format">%s-%s</string>
-    <string name="timeframe_last_day">Last day</string>
-
     <!--Content feed-->
     <string name="first_dismiss_attempt">"firstDismiss"</string>
     <string name="preview_content_description">Preview image for content item</string>

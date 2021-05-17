@@ -1,15 +1,18 @@
 package app.coinverse.firebase
 
 import android.content.Context
-import android.util.Log
 import app.coinverse.BuildConfig
 import app.coinverse.R
 import app.coinverse.utils.BuildType.open
-import app.coinverse.utils.auth.*
-import com.crashlytics.android.Crashlytics
+import app.coinverse.utils.auth.APP_API_KEY_OPEN_SHARED
+import app.coinverse.utils.auth.APP_ID_OPEN_SHARED
+import app.coinverse.utils.auth.DATABASE_URL_OPEN_SHARED
+import app.coinverse.utils.auth.PROJECT_ID_OPEN_SHARED
+import app.coinverse.utils.auth.STORAGE_BUCKET_OPEN_SHARED
 import com.firebase.client.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigException
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
@@ -29,15 +32,16 @@ class FirebaseHelper @Inject constructor(context: Context) {
             }
             if (!openSharedStatus)
                 FirebaseApp.initializeApp(
-                        context,
-                        FirebaseOptions.Builder()
-                                .setApplicationId(APP_ID_OPEN_SHARED)
-                                .setApiKey(APP_API_KEY_OPEN_SHARED)
-                                .setDatabaseUrl(DATABASE_URL_OPEN_SHARED)
-                                .setProjectId(PROJECT_ID_OPEN_SHARED)
-                                .setStorageBucket(STORAGE_BUCKET_OPEN_SHARED)
-                                .build(),
-                        open.name)
+                    context,
+                    FirebaseOptions.Builder()
+                        .setApplicationId(APP_ID_OPEN_SHARED)
+                        .setApiKey(APP_API_KEY_OPEN_SHARED)
+                        .setDatabaseUrl(DATABASE_URL_OPEN_SHARED)
+                        .setProjectId(PROJECT_ID_OPEN_SHARED)
+                        .setStorageBucket(STORAGE_BUCKET_OPEN_SHARED)
+                        .build(),
+                    open.name
+                )
         }
         Firebase.setAndroidContext(context)
         initializeRemoteConfig()
@@ -52,7 +56,8 @@ class FirebaseHelper @Inject constructor(context: Context) {
             firebaseRemoteConfig.fetch(cacheExpiration)
             firebaseRemoteConfig.fetchAndActivate()
         } catch (exception: FirebaseRemoteConfigException) {
-            Crashlytics.log(Log.ERROR, LOG_TAG, "initializeRemoteConfig: ${exception.localizedMessage}")
+            FirebaseCrashlytics.getInstance()
+                .log("$LOG_TAG initializeRemoteConfig: ${exception.localizedMessage}")
         }
     }
 }

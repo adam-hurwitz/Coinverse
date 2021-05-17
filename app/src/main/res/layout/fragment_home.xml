@@ -10,8 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <com.google.android.material.appbar.AppBarLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
+        <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/appBarLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -24,17 +23,6 @@
                 app:layout_scrollFlags="scroll|snap">
 
                 <include layout="@layout/toolbar_home" />
-
-                <FrameLayout
-                    android:id="@+id/priceContainer"
-                    android:name="PriceFragment"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/price_graph_height"
-                    app:layout_collapseMode="parallax"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintRight_toRightOf="parent"
-                    app:layout_constraintTop_toBottomOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
 
             </com.google.android.material.appbar.CollapsingToolbarLayout>
 
@@ -50,7 +38,6 @@
             android:id="@+id/bottomSheet"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:paddingBottom="@dimen/margin_large"
             app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
             <ImageView

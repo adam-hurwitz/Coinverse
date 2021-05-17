@@ -40,7 +40,6 @@ val SUPPORT_USER = getInstance().getString("support_user")
 val PRIVACY_POLICY_LINK = getInstance().getString("privacy_policy_link")
 val SAVED_BOTTOM_SHEET_PEEK_HEIGHT = getInstance().getDouble("saved_bottom_sheet_peek_height").toInt()
 
-const val PRICEGRAPH_FRAGMENT_TAG = "priceGraphFragmentTag"
 const val SIGNIN_DIALOG_FRAGMENT_TAG = "signinDialogFragmentTag"
 const val APP_BAR_EXPANDED_KEY = "appBarCollapsedKey"
 const val SAVED_CONTENT_EXPANDED_KEY = "savedContentExpandedKey"

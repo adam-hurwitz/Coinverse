@@ -31,20 +31,6 @@
     <dimen name="bottom_sheet_logo_elevation">2dp</dimen>
     <dimen name="bottom_sheet_elevation">1dp</dimen>
 
-    <!--Price Graph-->
-    <dimen name="price_graph_height">350dp</dimen>
-    <dimen name="max_and_min_top_padding">-8dp</dimen>
-    <dimen name="price_graph_card_corner_radius">0dp</dimen>
-
-    <integer name="price_graph_asks_thickness">3</integer>
-    <integer name="price_graph_bids_thickness">5</integer>
-    <integer name="price_graph_base_to_quote_margin">8</integer>
-
-    <item name="price_graph_constraint_guideline" format="float" type="dimen">0.8</item>
-    <item name="price_graph_asks_and_bids_constraint_guideline" format="float" type="dimen">0.5
-    </item>
-    <item name="data_point_radius" format="float" type="dimen">0.0</item>
-
     <!--Content Feed-->
     <dimen name="cell_content_feed_height">328dp</dimen>
     <dimen name="swipe_icon_dimen">48dp</dimen>
