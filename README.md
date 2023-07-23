@@ -1,5 +1,5 @@
 # Coinverse Open App
-**Coinverse is the first audiocast app for cryptocurrency news, also including YouTube and text.
+**Coinverse is the first audiocast app for cryptocurrency news, also including YouTube and text.**
 
 [![Coinverse YouTube video](https://carpecoin-media-211903.firebaseapp.com/youtube-preview.png)](https://youtu.be/haXPolAruoc)
 <div align="center">Coinverse YouTube video</div>
