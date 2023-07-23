@@ -1,4 +1,4 @@
-# Coinverse Open App
+# Coinverse open app
 **Coinverse is the first audiocast app for cryptocurrency news, also including YouTube and text.**
 
 [![Coinverse YouTube video](https://carpecoin-media-211903.firebaseapp.com/youtube-preview.png)](https://youtu.be/haXPolAruoc)
@@ -9,8 +9,8 @@
 
 **Note**: For the purpose of this sample, the `open` Android Studio build variant connects to a Firestore database of content that is not actively updated.   
 
-### Architecture & Libraries
-#### Client - Kotlin
+### Architecture and libraries
+#### Client – Kotlin
 - Unidirectional Data Flow w/ Data Binding, ViewModels, LiveData, and Coroutines
 - Navigation component
 - PagedListAdapter with Room SQL library
@@ -22,7 +22,7 @@
 - Content quality scores based on user interaction
 - Published with latest App Bundle format
 
-#### Backend - Kotlin, Node.js
+#### Backend – Kotlin, Node.js
 _Kotlin: Jar_
 - Populates news content
 - RxJava to manage Retrofit data streams
